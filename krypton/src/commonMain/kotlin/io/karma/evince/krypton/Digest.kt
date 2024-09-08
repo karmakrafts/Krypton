@@ -16,6 +16,8 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
+
 /**
  * This class is the implementation of digests like the SHA3 family into Kotlin for multiple platforms. It also allows
  * the usage of dynamically sized hash functions like SHAKE.
@@ -25,7 +27,7 @@ package io.karma.evince.krypton
  * @author Cedric Hammes
  * @since  08/09/2024
  */
-expect class Digest(string: String, size: Int) : AutoCloseable {
+expect class Digest @UncheckedKryptonAPI constructor(string: String, size: Int = 0) : AutoCloseable {
     constructor(type: DigestType, size: Int = type.bitSize / 8)
     fun hash(value: ByteArray): ByteArray
     override fun close()

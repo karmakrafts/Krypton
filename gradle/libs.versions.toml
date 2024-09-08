@@ -4,6 +4,7 @@ kotlin = "2.0.20" # https://kotlinlang.org/docs/releases.html
 kotest = "5.9.1" # https://github.com/kotest/kotest/releases
 kotest-plugin = "6.0.0-SNAPSHOT" # https://github.com/kotest/kotest/releases
 dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases
+okio = "3.9.0" # https://github.com/square/okio/blob/master/CHANGELOG.md
 
 [libraries]
 kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
@@ -11,6 +12,9 @@ kotest-engine-framework = { module = "io.kotest:kotest-framework-engine", versio
 kotest-dataset-framework = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
 kotest-assertion-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
+okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 
 [bundles]
 kotest = ["kotest-common", "kotest-engine-framework", "kotest-dataset-framework", "kotest-assertion-core"]

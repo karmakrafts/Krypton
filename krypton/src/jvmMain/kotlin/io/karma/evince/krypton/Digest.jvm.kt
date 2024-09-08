@@ -16,12 +16,20 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.utils.JavaCryptoHelper
 import java.security.MessageDigest
 
 actual class Digest actual constructor(string: String, size: Int) : AutoCloseable {
-    private val digest = MessageDigest.getInstance(string)
+    private val digest: MessageDigest
 
     actual constructor(type: DigestType, size: Int) : this(type.toString(), size)
+
+    init {
+        if (!JavaCryptoHelper.getAlgorithms<MessageDigest>().contains(string))
+            throw IllegalArgumentException("The digest '$string' is not available, the following are officially " +
+                    "supported by Krypton: ${DigestType.entries.joinToString(", ")}")
+        digest = MessageDigest.getInstance(string)
+    }
 
     actual fun hash(value: ByteArray): ByteArray = digest.digest(value)
     actual override fun close() {}

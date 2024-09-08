@@ -13,6 +13,7 @@ kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
+        optIn.add("kotlinx.cinterop.ExperimentalForeignApi")
     }
 
     jvm {
@@ -35,6 +36,9 @@ kotlin {
     }
 
     sourceSets {
+        commonMain.dependencies {
+            implementation(libs.okio)
+        }
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.bundles.kotest)

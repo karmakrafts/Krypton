@@ -20,18 +20,21 @@ import io.karma.evince.krypton.utils.ErrorHelper
 import kotlinx.cinterop.*
 import libssl.*
 
-@OptIn(ExperimentalForeignApi::class)
 actual class Digest actual constructor(string: String, private val size: Int) : AutoCloseable {
     private val context = requireNotNull(EVP_MD_CTX_new())
 
     actual constructor(type: DigestType, size: Int) : this(type.toString(), size)
 
     init {
+        val digest = EVP_get_digestbyname(string)
+            ?: throw IllegalArgumentException("The digest '$string' is not available, the following are officially " +
+                    "supported by Krypton: ${DigestType.entries.joinToString(", ")}")
+
         if (size == 0) {
             throw IllegalArgumentException("The size of the '$string' digest is not set, please set a size manually")
         }
 
-        if (EVP_DigestInit_ex(context, EVP_get_digestbyname(string), null) != 1) {
+        if (EVP_DigestInit_ex(context, digest, null) != 1) {
             EVP_MD_CTX_free(context)
             throw RuntimeException("Unable to initialize digest for '$string'", ErrorHelper.createOpenSSLException())
         }

@@ -16,18 +16,16 @@
 
 package io.karma.evince.krypton.utils
 
-import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.usePinned
 import libssl.*
 
 /** @suppress **/
-object ErrorHelper {
-    fun createOpenSSLException(): Exception = OpenSSLException(getOpenSSLErrors().joinToString("\n"))
+internal object ErrorHelper {
+    internal fun createOpenSSLException(): Exception = OpenSSLException(getOpenSSLErrors().joinToString("\n"))
 
-    @OptIn(ExperimentalForeignApi::class)
-    fun getOpenSSLErrors(): List<String> {
+    private fun getOpenSSLErrors(): List<String> {
         val errorList = mutableListOf<String>()
         var error = ERR_get_error()
         while (error != 0UL) {
@@ -39,7 +37,6 @@ object ErrorHelper {
         return errorList
     }
 
+    /** @suppress **/
+    internal class OpenSSLException(message: String) : RuntimeException(message)
 }
-
-/** @suppress **/
-class OpenSSLException(message: String) : RuntimeException(message)
