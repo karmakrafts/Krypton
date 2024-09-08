@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton.hashes
+package io.karma.evince.krypton
 
 import java.security.MessageDigest
 

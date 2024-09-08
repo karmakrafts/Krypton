@@ -16,9 +16,9 @@
 
 package de.karma.evince.krypton.hashes
 
-import io.karma.evince.krypton.hashes.Digest
-import io.karma.evince.krypton.hashes.DigestType
-import io.karma.evince.krypton.hashes.hashToString
+import io.karma.evince.krypton.Digest
+import io.karma.evince.krypton.DigestType
+import io.karma.evince.krypton.hashToString
 import io.kotest.core.spec.style.ShouldSpec
 import kotlin.test.assertEquals
 

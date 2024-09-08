@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton.hashes
+package io.karma.evince.krypton
 
 /**
  * This class is the implementation of digests like the SHA3 family into Kotlin for multiple platforms. It also allows
