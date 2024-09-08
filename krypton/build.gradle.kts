@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -10,6 +11,9 @@ group = "io.karma.evince"
 version = "${libs.versions.krypton.get()}.${System.getenv("CI_PIPELINE_IID")?: 0}"
 
 kotlin {
+    val kotlinJvmTarget = libs.versions.jvmTarget.get()
+    jvmToolchain(kotlinJvmTarget.toInt())
+
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
@@ -19,6 +23,10 @@ kotlin {
     jvm {
         testRuns["test"].executionTask {
             useJUnitPlatform()
+        }
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            jvmTarget.set(JvmTarget.valueOf("JVM_$kotlinJvmTarget"))
         }
     }
     linuxX64 {
@@ -42,6 +50,9 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.bundles.kotest)
+        }
+        jvmMain.dependencies {
+            implementation(libs.bouncycastle)
         }
         jvmTest.dependencies {
             implementation(libs.kotest.junit.runner)

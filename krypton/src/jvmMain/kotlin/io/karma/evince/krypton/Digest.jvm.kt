@@ -25,6 +25,7 @@ actual class Digest actual constructor(string: String, size: Int) : AutoCloseabl
     actual constructor(type: DigestType, size: Int) : this(type.toString(), size)
 
     init {
+        JavaCryptoHelper.installBouncyCastleProviders()
         if (!JavaCryptoHelper.getAlgorithms<MessageDigest>().contains(string))
             throw IllegalArgumentException("The digest '$string' is not available, the following are officially " +
                     "supported by Krypton: ${DigestType.entries.joinToString(", ")}")

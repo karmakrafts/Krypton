@@ -16,11 +16,25 @@
 
 package io.karma.evince.krypton.utils
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider
+import java.security.Provider
 import java.security.Security
 
 /** @suppress **/
 internal object JavaCryptoHelper {
     internal inline fun <reified T> getAlgorithms(): List<String> = Security.getProviders()
-        .flatMap { it.services.filter { service -> service.type.equals(T::class.java.simpleName) } }
+        .flatMap { it.services.filter { service -> service.type.equals(T::class.simpleName) } }
         .map { it.algorithm }.toList()
+
+    internal fun installBouncyCastleProviders() {
+        // https://www.bouncycastle.org/documentation/specification_interoperability/
+        installIfNotFound(BouncyCastleProvider())
+        installIfNotFound(BouncyCastlePQCProvider())
+    }
+
+    private inline fun <reified T: Provider> installIfNotFound(value: T) {
+        if (Security.getProviders().none { T::class.isInstance(it) })
+            Security.addProvider(value)
+    }
 }
