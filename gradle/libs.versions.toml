@@ -1,0 +1,21 @@
+[versions]
+krypton = "1.0.0"
+kotlin = "2.0.20" # https://kotlinlang.org/docs/releases.html
+kotest = "5.9.1" # https://github.com/kotest/kotest/releases
+kotest-plugin = "6.0.0-SNAPSHOT" # https://github.com/kotest/kotest/releases
+dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases
+
+[libraries]
+kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
+kotest-engine-framework = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
+kotest-dataset-framework = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
+kotest-assertion-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+
+[bundles]
+kotest = ["kotest-common", "kotest-engine-framework", "kotest-dataset-framework", "kotest-assertion-core"]
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotest = { id = "io.kotest.multiplatform", version.ref = "kotest-plugin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
