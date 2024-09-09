@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton
+package io.karma.evince.krypton.key
 
-import kotlinx.cinterop.CPointer
-import libssl.EVP_PKEY
-
-actual class Key(actual val type: KeyType, actual val algorithm: String, internalKey: CPointer<EVP_PKEY>)
+/**
+ * This class holds a private-public key pair. These key pairs are used while operating with asymmetric algorithms like
+ * RSA or key agreements like Diffie-Hellman.
+ *
+ * @author Cedric Hammes
+ * @since  08/09/2024
+ */
+data class KeyPair(val publicKey: Key, val privateKey: Key)

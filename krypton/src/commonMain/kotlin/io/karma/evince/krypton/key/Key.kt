@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton
+package io.karma.evince.krypton.key
 
 /**
  * This class is a cross-platform implementation for a key (with support for symmetric and asymmetric keys) that can be
@@ -23,9 +23,10 @@ package io.karma.evince.krypton
  * @author Cedric Hammes
  * @since  08/09/2024
  */
-expect class Key {
+expect class Key : AutoCloseable {
     val algorithm: String
     val type: KeyType
+    override fun close()
 }
 
 /**

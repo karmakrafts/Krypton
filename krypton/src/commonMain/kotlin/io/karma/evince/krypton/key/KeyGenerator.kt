@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton
+package io.karma.evince.krypton.key
 
-typealias JavaKey = java.security.Key
+import io.karma.evince.krypton.Algorithm
+import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 
-actual class Key(actual val type: KeyType, internalValue: JavaKey) {
-    actual val algorithm: String = internalValue.algorithm
+expect class KeyGenerator @UncheckedKryptonAPI constructor(algorithm: String, parameter: KeyGeneratorParameter) {
+    constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter)
+
+    fun generate(): Key
 }
+
+open class KeyGeneratorParameter(internal val size: Int)
