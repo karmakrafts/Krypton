@@ -33,8 +33,8 @@ enum class Algorithm(
     internal val defaultPadding: Padding?
 ) {
     /**
-     * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature algorithm created in 1977
-     * with a regular key size of 4096 bits.
+     * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature crypto system created in
+     * 1977. According to the NIST's Recommendation for Key Management the key length 2048 is recommended.
      *
      * @author Cedric Hammes
      * @since  08/09/2024
@@ -47,7 +47,8 @@ enum class Algorithm(
 
     /**
      * Ths AES (Advanced Encryption Standard, also known as Rijndael) block cipher is a symmetric encryption algorithm
-     * created in 1998 with a block size of 128 bits.
+     * created in 1998 with a block size of 128 bits. According to the NSA's Commercial National Security Algorithm
+     * Suite the key length 256 is recommended.
      *
      * @author Cedric Hammes
      * @since  08/09/2024
@@ -70,12 +71,29 @@ enum class Algorithm(
      */
     @Deprecated("DES is deprecated, please use DES3 or AES")
     DES("DES", BlockMode.entries.filter { it == BlockMode.GCM }.toTypedArray(), arrayOf(Padding.NONE, Padding.PKCS1),
-        intArrayOf(56), false, BlockMode.CBC, Padding.PKCS1);
+        intArrayOf(56), false, BlockMode.CBC, Padding.PKCS1),
+
+    /**
+     * The DH (Diffie-Hellman) algorithm is a key agreement algorithm created in 1976. This algorithm is used for the
+     * key agreement in the TLS protocol. According to the NIST's Recommendation for Key Management the key length 2048
+     * is recommended.
+     *
+     * @author Cedric Hammes
+     * @since  09/09/2024
+     *
+     * @see [Wikipedia, Diffie-Hellman key exchange](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange)
+     */
+    DH("DH", true, intArrayOf(1024, 2048, 3000, 4096, 8192));
+
+    /** @suppress **/
+    constructor(literal: String, asymmetric: Boolean, keySizes: IntArray) :
+            this(literal, null, null, keySizes, asymmetric, null, null)
 
     override fun toString(): String = literal
 
     companion object {
-        fun fromLiteral(literal: String): Algorithm? = Algorithm.entries.firstOrNull { it.literal == literal }
+        /** @suppress **/
+        internal fun fromLiteral(literal: String): Algorithm? = Algorithm.entries.firstOrNull { it.literal == literal }
     }
 }
 
@@ -106,5 +124,6 @@ enum class Padding(private val literal: String) {
     PKCS1("PKCS1Padding"),
     OAEP_SHA1_MGF1("OAEPWithSHA-1AndMGF1Padding"),
     OAEP_SHA256_MGF1("OAEPWithSHA-1AndMGF1Padding");
+
     override fun toString(): String = literal
 }

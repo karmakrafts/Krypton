@@ -30,6 +30,7 @@ actual class KeyGenerator actual constructor(algorithm: String, parameter: KeyGe
             throw IllegalArgumentException("The algorithm '$algorithm' is not available, the following are officially " +
                     "supported by Krypton: ${Algorithm.entries.filter { !it.asymmetric }.joinToString(", ")}"
             )
+
         this.keyGenerator = KeyGenerator.getInstance(algorithm)
         this.keyGenerator.init(parameter.size)
     }

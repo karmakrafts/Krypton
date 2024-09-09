@@ -43,9 +43,8 @@ actual class KeyGenerator actual constructor(
     }
 
     actual fun generate(): Key {
-        return Key(KeyType.SYMMETRIC, algorithm, requireNotNull(BIO_new(BIO_s_secmem())).apply {
+        return Key(KeyType.SYMMETRIC, algorithm, requireNotNull(BIO_new(BIO_s_secmem())).let { data ->
             val parameterSize = parameter.size
-            val data = BIO_new(BIO_s_secmem())
             ByteArray(parameterSize).usePinned { dataPtr ->
                 if (RAND_bytes(dataPtr.addressOf(0).reinterpret(), parameter.size) != 1)
                     throw RuntimeException(
@@ -54,6 +53,7 @@ actual class KeyGenerator actual constructor(
                     )
                 BIO_write(data, dataPtr.addressOf(0), parameterSize)
             }
+            data
         })
     }
 
