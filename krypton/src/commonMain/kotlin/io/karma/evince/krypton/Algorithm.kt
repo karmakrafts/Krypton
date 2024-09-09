@@ -73,6 +73,10 @@ enum class Algorithm(
         intArrayOf(56), false, BlockMode.CBC, Padding.PKCS1);
 
     override fun toString(): String = literal
+
+    companion object {
+        fun fromLiteral(literal: String): Algorithm? = Algorithm.entries.firstOrNull { it.literal == literal }
+    }
 }
 
 /**

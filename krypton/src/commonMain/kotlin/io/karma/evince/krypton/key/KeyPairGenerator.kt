@@ -19,9 +19,13 @@ package io.karma.evince.krypton.key
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 
-expect class KeyGenerator @UncheckedKryptonAPI constructor(algorithm: String, parameter: KeyGeneratorParameter) {
-    constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter)
-    fun generate(): Key
+expect class KeyPairGenerator @UncheckedKryptonAPI constructor(
+    algorithm: String,
+    parameter: KeyPairGeneratorParameter
+): AutoCloseable {
+    constructor(algorithm: Algorithm, parameter: KeyPairGeneratorParameter)
+    fun generate(): KeyPair
+    override fun close()
 }
 
-open class KeyGeneratorParameter(internal val size: Int)
+open class KeyPairGeneratorParameter(internal val size: Int)

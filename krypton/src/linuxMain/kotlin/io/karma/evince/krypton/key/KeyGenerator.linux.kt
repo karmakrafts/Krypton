@@ -33,6 +33,15 @@ actual class KeyGenerator actual constructor(
 
     actual constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter) : this(algorithm.toString(), parameter)
 
+    init {
+        if (Algorithm.entries.none { it.toString() == algorithm })
+            throw IllegalArgumentException(
+                "The algorithm '$algorithm' is not available, the following are officially supported by Krypton: ${
+                    Algorithm.entries.filter { !it.asymmetric }.joinToString(", ")
+                }"
+            )
+    }
+
     actual fun generate(): Key {
         return Key(KeyType.SYMMETRIC, algorithm, requireNotNull(BIO_new(BIO_s_secmem())).apply {
             val parameterSize = parameter.size

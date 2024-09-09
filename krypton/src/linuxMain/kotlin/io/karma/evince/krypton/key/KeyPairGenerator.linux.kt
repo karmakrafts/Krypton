@@ -17,11 +17,25 @@
 package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
-import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 
-expect class KeyGenerator @UncheckedKryptonAPI constructor(algorithm: String, parameter: KeyGeneratorParameter) {
-    constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter)
-    fun generate(): Key
+actual class KeyPairGenerator actual constructor(
+    algorithm: Algorithm,
+    parameter: KeyPairGeneratorParameter
+) : AutoCloseable {
+    actual constructor(
+        algorithm: String,
+        parameter: KeyPairGeneratorParameter
+    ) : this(
+        Algorithm.fromLiteral(algorithm) ?: throw IllegalArgumentException(
+            "The algorithm '$algorithm' is not available, the following are officially supported by Krypton: ${
+                Algorithm.entries.filter { it.asymmetric }.joinToString(", ")
+            }"
+        ), parameter
+    )
+
+    actual fun generate(): KeyPair {
+        TODO("Not yet implemented")
+    }
+
+    actual override fun close() {}
 }
-
-open class KeyGeneratorParameter(internal val size: Int)

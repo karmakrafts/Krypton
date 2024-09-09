@@ -19,19 +19,27 @@ package io.karma.evince.krypton.key
 import kotlinx.cinterop.CPointer
 import libssl.BIO
 import libssl.BIO_free
+import libssl.EVP_PKEY
+import libssl.EVP_PKEY_free
 
 actual class Key(actual val type: KeyType, actual val algorithm: String, private val body: KeyBody) : AutoCloseable {
-    constructor(type: KeyType, algorithm: String, data: CPointer<BIO>): this(type, algorithm, KeyBody.DataKeyBody(data))
+    constructor(type: KeyType, algorithm: String, data: CPointer<BIO>): this(type, algorithm, DataKeyBody(data))
+    constructor(type: KeyType, algorithm: String, data: CPointer<EVP_PKEY>): this(type, algorithm, EVPKeyBody(data))
 
     actual override fun close() {
         body.close()
     }
 
-    sealed class KeyBody: AutoCloseable {
-        class DataKeyBody(private val data: CPointer<BIO>) : KeyBody() {
-            override fun close() {
-                BIO_free(data)
-            }
+    sealed interface KeyBody: AutoCloseable
+    internal class DataKeyBody(private val data: CPointer<BIO>) : KeyBody {
+        override fun close() {
+            BIO_free(data)
+        }
+    }
+
+    internal class EVPKeyBody(private val key: CPointer<EVP_PKEY>) : KeyBody {
+        override fun close() {
+            EVP_PKEY_free(key)
         }
     }
 }
