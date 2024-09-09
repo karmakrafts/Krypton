@@ -24,7 +24,7 @@ import kotlin.test.assertEquals
 class KeyPairGeneratorTests : ShouldSpec() {
     init {
         should("test RSA") {
-            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameter(4096)).use { generator ->
+            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameter(2048)).use { generator ->
                 val keyPair = generator.generate()
                 assertEquals("RSA", keyPair.publicKey.algorithm)
                 assertEquals(KeyType.PUBLIC, keyPair.publicKey.type)

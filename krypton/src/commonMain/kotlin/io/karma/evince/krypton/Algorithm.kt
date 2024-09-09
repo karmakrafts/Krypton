@@ -93,7 +93,8 @@ enum class Algorithm(
 
     companion object {
         /** @suppress **/
-        internal fun fromLiteral(literal: String): Algorithm? = Algorithm.entries.firstOrNull { it.literal == literal }
+        internal fun fromLiteral(literal: String, asymmetric: Boolean): Algorithm? = Algorithm.entries
+            .firstOrNull { it.literal == literal && it.asymmetric == asymmetric }
     }
 }
 
