@@ -46,6 +46,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.okio)
+            implementation(libs.bignum)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

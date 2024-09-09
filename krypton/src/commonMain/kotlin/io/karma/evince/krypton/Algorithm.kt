@@ -18,7 +18,10 @@ package io.karma.evince.krypton
 
 /**
  * This enum represents all algorithms definitely supported by all platforms of the Krypton API. These are (a)symmetric
- * encryption algorithms and key agreements.
+ * encryption algorithms and key agreements. It contains post-quantum algorithms like CRYSTALS-Dilithium and algorithms
+ * which can be broken by quantum computers like ECDH or RSA.
+ *
+ * TODO: Rewrite supportedBitSize to bitSizePredicate and implement it into the key generators
  *
  * @author Cedric Hammes
  * @since  08/09/2024
@@ -30,64 +33,94 @@ enum class Algorithm(
     internal val supportedBitSizes: IntArray,
     internal val asymmetric: Boolean,
     internal val defaultBlockMode: BlockMode?,
-    internal val defaultPadding: Padding?
+    internal val defaultPadding: Padding?,
+    internal val usages: Array<Usage>
 ) {
     /**
      * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature crypto system created in
-     * 1977. According to the NIST's Recommendation for Key Management the key length 2048 is recommended.
+     * 1977. According to the NIST's Recommendation for Key Management the key length 2048 is recommended. It can be
+     * broken by Shor's algorithm.
      *
      * @author Cedric Hammes
      * @since  08/09/2024
      *
      * @see [Wikipedia, RSA](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
+     * @see [Wikipedia, Shor's Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm)
      */
-    RSA("RSA", arrayOf(BlockMode.ECB), arrayOf(Padding.NONE, Padding.PKCS5, Padding.OAEP_SHA1_MGF1,
-        Padding.OAEP_SHA256_MGF1), intArrayOf(1024, 2048, 4096, 8192), true,
-        BlockMode.ECB, Padding.PKCS5),
+    RSA(
+        "RSA", arrayOf(BlockMode.ECB), arrayOf(
+            Padding.NONE, Padding.PKCS5, Padding.OAEP_SHA1_MGF1,
+            Padding.OAEP_SHA256_MGF1
+        ), intArrayOf(1024, 2048, 4096, 8192), true,
+        BlockMode.ECB, Padding.PKCS5,
+        arrayOf(Usage.CIPHER, Usage.SIGNATURE)
+    ),
 
     /**
      * Ths AES (Advanced Encryption Standard, also known as Rijndael) block cipher is a symmetric encryption algorithm
      * created in 1998 with a block size of 128 bits. According to the NSA's Commercial National Security Algorithm
-     * Suite the key length 256 is recommended.
+     * Suite the key length 256 is recommended. The security in bit can be reduced to the half by Grover's algorithm.
      *
      * @author Cedric Hammes
      * @since  08/09/2024
      *
      * @see [Wikipedia, AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)
+     * @see [Wikipedia, Grover's Algorithm](https://en.wikipedia.org/wiki/Grover%27s_algorithm)
      */
-    AES("AES", BlockMode.entries.toTypedArray(), arrayOf(Padding.NONE, Padding.PKCS1), intArrayOf(128, 192, 256), false,
-        BlockMode.CBC, Padding.NONE),
+    AES(
+        "AES", BlockMode.entries.toTypedArray(), arrayOf(Padding.NONE, Padding.PKCS1), intArrayOf(128, 192, 256), false,
+        BlockMode.CBC, Padding.NONE,
+        arrayOf(Usage.CIPHER)
+    ),
 
     /**
      * The DES (Data Encryption Standard) block cipher is a symmetric encryption algorithm created in 1975 with a block
      * size of 64 bits. DES can be attacked by bruteforce easily and by multiple cryptanalytic attacks so the algorithm
      * is considered as deprecated and was replaced with Triple-DES and the algorithm AES is recommended for symmetric
-     * encryption.
+     * encryption. The security in bit can be reduced to the half by Grover's algorithm.
      *
      * @author Cedric Hammes
      * @since  08/09/2024
      *
      * @see [Wikipedia, DES](https://en.wikipedia.org/wiki/Data_Encryption_Standard)
+     * @see [Wikipedia, Grover's Algorithm](https://en.wikipedia.org/wiki/Grover%27s_algorithm)
      */
     @Deprecated("DES is deprecated, please use DES3 or AES")
-    DES("DES", BlockMode.entries.filter { it == BlockMode.GCM }.toTypedArray(), arrayOf(Padding.NONE, Padding.PKCS1),
-        intArrayOf(56), false, BlockMode.CBC, Padding.PKCS1),
+    DES(
+        "DES", BlockMode.entries.filter { it == BlockMode.GCM }.toTypedArray(), arrayOf(Padding.NONE, Padding.PKCS1),
+        intArrayOf(56), false, BlockMode.CBC, Padding.PKCS1,
+        arrayOf(Usage.CIPHER)
+    ),
 
     /**
      * The DH (Diffie-Hellman) algorithm is a key agreement algorithm created in 1976. This algorithm is used for the
      * key agreement in the TLS protocol. According to the NIST's Recommendation for Key Management the key length 2048
-     * is recommended.
+     * is recommended. It can be broken by Shor's algorithm.
      *
      * @author Cedric Hammes
      * @since  09/09/2024
      *
      * @see [Wikipedia, Diffie-Hellman key exchange](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange)
+     * @see [Wikipedia, Shor's Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm)
      */
-    DH("DH", true, intArrayOf(1024, 2048, 3000, 4096, 8192));
+    DH("DH", true, intArrayOf(1024, 2048, 3000, 4096, 8192), arrayOf(Usage.KEY_AGREEMENT)),
+
+    /**
+     * The ECDH (Elliptic-Curve Diffie-Hellman) is the elliptic-curve equivalent of the Diffie-Hellman key agreement
+     * algorithm. The advantage of ECDH is the higher security with lower key sizes compared to DH. This algorithm
+     * is used in the Signal Protocol and other implementations. It can be broken by Shor's algorithm.
+     *
+     * @author Cedric Hammes
+     * @since  10/09/2024
+     *
+     * @see [Wikipedia, Elliptic-curve Diffie-Hellman](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman)
+     * @see [Wikipedia, Shor's Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm)
+     */
+    ECDH("ECDH", true, intArrayOf(128, 192, 256), arrayOf(Usage.KEY_AGREEMENT));
 
     /** @suppress **/
-    constructor(literal: String, asymmetric: Boolean, keySizes: IntArray) :
-            this(literal, null, null, keySizes, asymmetric, null, null)
+    constructor(literal: String, asymmetric: Boolean, keySizes: IntArray, usages: Array<Usage>) :
+            this(literal, null, null, keySizes, asymmetric, null, null, usages)
 
     override fun toString(): String = literal
 
@@ -95,6 +128,13 @@ enum class Algorithm(
         /** @suppress **/
         internal fun fromLiteral(literal: String, asymmetric: Boolean): Algorithm? = Algorithm.entries
             .firstOrNull { it.literal == literal && it.asymmetric == asymmetric }
+    }
+
+    /** @suppress **/
+    internal enum class Usage {
+        CIPHER,
+        KEY_AGREEMENT,
+        SIGNATURE
     }
 }
 
