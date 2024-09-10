@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.karma.evince.krypton.hashes
+package io.karma.evince.krypton.hashes
 
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.key.*
