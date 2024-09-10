@@ -3,7 +3,7 @@ Krypton is a library that implements the cryptographic primitives like ciphers o
 - **Hash Functions:** SHA3 (224, 256, 384 and 512 bits), SHA (224, 256, 384 and 512 bits) and MD5
 - **Ciphers:** AES (128, 192 and 256 bits), RSA, DES and Triple-DES
 - **Key Agreements:** Diffie-Hellman (DH) and Elliptic Curve Diffie-Hellman (ECDH)
-- **Elliptic curves:** All of supported by all platforms together and custom elliptic curves
+- **Elliptic curves:** All curves supported by all platforms together and custom elliptic curves
 
 Below this text you can see the list of implementations used on different platforms:
 - **Linux:** [OpenSSL](https://www.openssl.org/) ([Apache License 2.0](https://github.com/openssl/openssl/blob/master/LICENSE.txt)) by The OpenSSL Project
