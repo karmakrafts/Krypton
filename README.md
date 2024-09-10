@@ -12,7 +12,7 @@ Below this text you can see the list of implementations used on different platfo
 ## ToDo's
 - [X] Keys, Key Generator and Keypair Generator
 - [X] Hashing algorithms and digest
-- [ ] Default curves and custom definable elliptic curve
+- [X] Default curves and custom definable elliptic curve
 - [ ] Cipher class for (a)symmetric encryption algorithms
 - [ ] KeyAgreement class for key agreement algorithms
 - [ ] Signature class for signature algorithms
