@@ -23,7 +23,12 @@ import libssl.*
 
 /** @suppress **/
 internal object ErrorHelper {
-    internal fun createOpenSSLException(): Exception = OpenSSLException(getOpenSSLErrors().joinToString("\n"))
+    internal fun createOpenSSLException(): Exception = getOpenSSLErrors().let { errors ->
+        throw when {
+            errors.isEmpty() -> OpenSSLException("No OpenSSL errors captured (ERR_get_error() == 0)")
+            else -> OpenSSLException(errors.joinToString(", "))
+        }
+    }
 
     private fun getOpenSSLErrors(): List<String> {
         val errorList = mutableListOf<String>()

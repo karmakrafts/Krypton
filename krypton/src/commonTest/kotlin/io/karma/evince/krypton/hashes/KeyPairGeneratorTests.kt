@@ -17,6 +17,7 @@
 package io.karma.evince.krypton.hashes
 
 import io.karma.evince.krypton.Algorithm
+import io.karma.evince.krypton.ec.DefaultEllipticCurve
 import io.karma.evince.krypton.key.*
 import io.kotest.core.spec.style.ShouldSpec
 import kotlin.test.assertEquals
@@ -24,11 +25,21 @@ import kotlin.test.assertEquals
 class KeyPairGeneratorTests : ShouldSpec() {
     init {
         should("test RSA") {
-            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameter(2048)).use { generator ->
-                val keyPair = generator.generate()
+            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameter(2048)).use { gen ->
+                val keyPair = gen.generate()
                 assertEquals("RSA", keyPair.publicKey.algorithm)
                 assertEquals(KeyType.PUBLIC, keyPair.publicKey.type)
                 assertEquals("RSA", keyPair.privateKey.algorithm)
+                assertEquals(KeyType.PRIVATE, keyPair.privateKey.type)
+            }
+        }
+
+        should("test prime curves") {
+            KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameter(DefaultEllipticCurve.PRIME192V1)).use { gen ->
+                val keyPair = gen.generate()
+                assertEquals("ECDH", keyPair.publicKey.algorithm)
+                assertEquals(KeyType.PUBLIC, keyPair.publicKey.type)
+                assertEquals("ECDH", keyPair.privateKey.algorithm)
                 assertEquals(KeyType.PRIVATE, keyPair.privateKey.type)
             }
         }

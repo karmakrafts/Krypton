@@ -60,3 +60,28 @@ actual class ParameterizedEllipticCurve actual constructor(
 
     override fun toString(): String = parameters.name
 }
+
+/** @suppress **/
+inline fun DefaultEllipticCurve.toOpenSSLId(): Int = when(this) {
+    DefaultEllipticCurve.PRIME192V1 -> NID_X9_62_prime192v1
+    DefaultEllipticCurve.PRIME192V2 -> NID_X9_62_prime192v2
+    DefaultEllipticCurve.PRIME192V3 -> NID_X9_62_prime192v3
+    DefaultEllipticCurve.PRIME239V1 -> NID_X9_62_prime239v1
+    DefaultEllipticCurve.PRIME239V2 -> NID_X9_62_prime239v2
+    DefaultEllipticCurve.PRIME239V3 -> NID_X9_62_prime192v3
+    DefaultEllipticCurve.PRIME256V1 -> NID_X9_62_prime256v1
+    DefaultEllipticCurve.BRAINPOOL_P160T1 -> NID_brainpoolP160t1
+    DefaultEllipticCurve.BRAINPOOL_P192T1 -> NID_brainpoolP192t1
+    DefaultEllipticCurve.BRAINPOOL_P224T1 -> NID_brainpoolP224t1
+    DefaultEllipticCurve.BRAINPOOL_P256T1 -> NID_brainpoolP256t1
+    DefaultEllipticCurve.BRAINPOOL_P320T1 -> NID_brainpoolP320t1
+    DefaultEllipticCurve.BRAINPOOL_P384T1 -> NID_brainpoolP384t1
+    DefaultEllipticCurve.BRAINPOOL_P512T1 -> NID_brainpoolP512t1
+    DefaultEllipticCurve.BRAINPOOL_P160R1 -> NID_brainpoolP160r1
+    DefaultEllipticCurve.BRAINPOOL_P192R1 -> NID_brainpoolP192r1
+    DefaultEllipticCurve.BRAINPOOL_P256R1 -> NID_brainpoolP256r1
+    DefaultEllipticCurve.BRAINPOOL_P224R1 -> NID_brainpoolP224r1
+    DefaultEllipticCurve.BRAINPOOL_P320R1 -> NID_brainpoolP320r1
+    DefaultEllipticCurve.BRAINPOOL_P384R1 -> NID_brainpoolP384r1
+    DefaultEllipticCurve.BRAINPOOL_P512R1 -> NID_brainpoolP512r1
+}

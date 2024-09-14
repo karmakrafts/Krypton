@@ -17,28 +17,47 @@
 package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
+import io.karma.evince.krypton.ec.DefaultEllipticCurve
+import io.karma.evince.krypton.ec.ParameterizedEllipticCurve
 import io.karma.evince.krypton.utils.JavaCryptoHelper
-import java.security.KeyPairGenerator
+import org.bouncycastle.jce.ECNamedCurveTable
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import java.security.Security
+
+/** @suppress **/
+internal typealias JavaKeyPairGenerator = java.security.KeyPairGenerator
 
 actual class KeyPairGenerator actual constructor(
-    algorithm: String,
-    parameter: KeyPairGeneratorParameter
+    algorithm: String, parameter: KeyPairGeneratorParameter
 ) : AutoCloseable {
-    private val keyPairGenerator: KeyPairGenerator
+    private val keyPairGenerator: JavaKeyPairGenerator
 
     actual constructor(
-        algorithm: Algorithm,
-        parameter: KeyPairGeneratorParameter
+        algorithm: Algorithm, parameter: KeyPairGeneratorParameter
     ) : this(algorithm.toString(), parameter)
 
     init {
-        if (!JavaCryptoHelper.getAlgorithms<KeyPairGenerator>().contains(algorithm))
-            throw IllegalArgumentException(
-                "The algorithm '$algorithm' is not available, the following are officially supported by Krypton: ${
-                    Algorithm.entries.filter { it.asymmetric }.joinToString(", ")
-                }"
+        JavaCryptoHelper.installBouncyCastleProviders()
+        if (!JavaCryptoHelper.getAlgorithms<JavaKeyPairGenerator>().contains(algorithm)) throw IllegalArgumentException(
+            "The algorithm '$algorithm' is not available, the following are officially supported by Krypton: ${
+                Algorithm.entries.filter { it.asymmetric }.joinToString(", ")
+            }"
+        )
+
+        Security.addProvider(BouncyCastleProvider())
+        keyPairGenerator = JavaKeyPairGenerator.getInstance(algorithm)
+        println("DingDingDing")
+        when (parameter) {
+            is ECKeyPairGeneratorParameter -> keyPairGenerator.initialize(
+                when (val ellipticCurve = parameter.ellipticCurve) {
+                    is DefaultEllipticCurve -> ECNamedCurveTable.getParameterSpec(ellipticCurve.toString())
+                    is ParameterizedEllipticCurve -> ellipticCurve.parameterSpec
+                    else -> throw IllegalArgumentException("Unsupported elliptic curve class type '${ellipticCurve}'")
+                }
             )
-        keyPairGenerator = KeyPairGenerator.getInstance(algorithm)
+
+            else -> keyPairGenerator.initialize(parameter.size)
+        }
     }
 
     actual fun generate(): KeyPair = keyPairGenerator.generateKeyPair()

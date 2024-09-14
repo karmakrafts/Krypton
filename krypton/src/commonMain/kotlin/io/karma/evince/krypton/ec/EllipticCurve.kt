@@ -17,6 +17,7 @@
 package io.karma.evince.krypton.ec
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 
 /**
  * This interface is the template for the implementation of elliptic curves into the Krypton API. It allows the user to
@@ -52,8 +53,8 @@ enum class DefaultEllipticCurve(private val literal: String, val bits: Int) : El
     BRAINPOOL_P160R1("brainpoolP160r1", 160),
     BRAINPOOL_P192R1("brainpoolP192r1", 192),
     BRAINPOOL_P224R1("brainpoolP224r1", 224),
-    BRAINPOOL_P320R1("brainpoolP320r1", 320),
     BRAINPOOL_P256R1("brainpoolP256r1", 256),
+    BRAINPOOL_P320R1("brainpoolP320r1", 320),
     BRAINPOOL_P384R1("brainpoolP384r1", 384),
     BRAINPOOL_P512R1("brainpoolP512r1", 512);
 
@@ -74,7 +75,24 @@ class EllipticCurveParameters {
     }
 }
 
+/**
+ * This class represents a parameterized elliptic curve. These curves are configurable with custom curve parameters to
+ * work with custom curves. This API should only be used if you are using secure parameters, otherwise you can reduce
+ * the security of your cryptographic system.
+ *
+ * @author Cedric Hammes
+ * @since  10/09/024
+ */
+@UncheckedKryptonAPI
 expect class ParameterizedEllipticCurve(parameters: EllipticCurveParameters) : EllipticCurve
 
+/**
+ * This function can be used to define a custom elliptic curve. You can configure the elliptic curve parameters in the
+ * closure.
+ *
+ * @author Cedric Hammes
+ * @since  10/09/024
+ */
+@UncheckedKryptonAPI
 fun curve(closure: EllipticCurveParameters.() -> Unit): ParameterizedEllipticCurve =
     ParameterizedEllipticCurve(EllipticCurveParameters().apply(closure))

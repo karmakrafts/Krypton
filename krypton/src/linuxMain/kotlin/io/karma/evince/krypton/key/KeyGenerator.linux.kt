@@ -34,6 +34,7 @@ actual class KeyGenerator actual constructor(
     actual constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter) : this(algorithm.toString(), parameter)
 
     init {
+
         if (Algorithm.entries.none { it.toString() == algorithm })
             throw IllegalArgumentException(
                 "The algorithm '$algorithm' is not available, the following are officially supported by Krypton: ${

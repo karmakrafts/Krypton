@@ -17,7 +17,10 @@
 package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
+import io.karma.evince.krypton.ec.DefaultEllipticCurve
+import io.karma.evince.krypton.ec.toOpenSSLId
 import io.karma.evince.krypton.utils.ErrorHelper
+import kotlinx.cinterop.*
 import libssl.*
 
 actual class KeyPairGenerator actual constructor(
@@ -26,6 +29,7 @@ actual class KeyPairGenerator actual constructor(
 ) : AutoCloseable {
     private val keyPairGeneratorImpl: KeyPairGeneratorImpl = when (algorithm) {
         Algorithm.RSA -> RSAKeyPairGeneratorImpl(parameter)
+        Algorithm.ECDH -> ECDHKeyPairGeneratorImpl(parameter as ECKeyPairGeneratorParameter)
         else -> throw IllegalArgumentException("Algorithm '$algorithm' is not supported")
     }
 
@@ -50,8 +54,58 @@ actual class KeyPairGenerator actual constructor(
         fun close()
     }
 
+    internal class ECDHKeyPairGeneratorImpl(parameter: ECKeyPairGeneratorParameter) : KeyPairGeneratorImpl {
+        private val parameterGeneratorContext: CPointer<EVP_PKEY_CTX>? = requireNotNull(EVP_PKEY_CTX_new_id(EVP_PKEY_EC, null))
+
+        init {
+            if (EVP_PKEY_paramgen_init(parameterGeneratorContext) != 1)
+                throw RuntimeException("Unable to initialize parameter generator", ErrorHelper.createOpenSSLException())
+
+            // TODO: Handle non-default elliptic curves
+            when (val curve = parameter.ellipticCurve) {
+                is DefaultEllipticCurve -> {
+                    if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(parameterGeneratorContext, curve.toOpenSSLId()) != 1)
+                        throw RuntimeException("Unable to set curve to '$curve'", ErrorHelper.createOpenSSLException())
+                }
+                else -> throw IllegalArgumentException("Unsupported elliptic curve type '${curve::class.qualifiedName}'")
+            }
+        }
+
+        override fun generate(): KeyPair = memScoped {
+            val parameters = allocPointerTo<EVP_PKEY>()
+            if (EVP_PKEY_paramgen(parameterGeneratorContext, parameters.ptr) != 1)
+                throw RuntimeException("Unable to generate parameters", ErrorHelper.createOpenSSLException())
+
+            val keyGeneratorContext = requireNotNull(EVP_PKEY_CTX_new(parameters.value, null))
+            if (EVP_PKEY_keygen_init(keyGeneratorContext) != 1)
+                throw RuntimeException("Unable to initialize key generator", ErrorHelper.createOpenSSLException())
+
+            val keyPair = allocPointerTo<EVP_PKEY>()
+            if (EVP_PKEY_keygen(keyGeneratorContext, keyPair.ptr) != 1) {
+                EVP_PKEY_CTX_free(keyGeneratorContext)
+                throw RuntimeException("Unable to generate private key", ErrorHelper.createOpenSSLException())
+            }
+
+            // Convert to EC Keys TODO: How to get EC public and private key
+
+            // Free resources
+            EVP_PKEY_CTX_free(keyGeneratorContext)
+            EVP_PKEY_free(parameters.value)
+            EVP_PKEY_free(keyPair.value)
+
+            // Return
+            // return KeyPair(Key(KeyType.PUBLIC, "ECDH", publicKey), Key(KeyType.PRIVATE, "ECDH", privateKey))
+            TODO()
+        }
+
+        override fun close() {
+            if (parameterGeneratorContext != null)
+                EVP_PKEY_CTX_free(parameterGeneratorContext)
+        }
+    }
+
     internal class RSAKeyPairGeneratorImpl(private val parameter: KeyPairGeneratorParameter) : KeyPairGeneratorImpl {
-        private var bne = BN_new()
+        private var bne: CPointer<BIGNUM>? = BN_new()
 
         init {
             if (BN_set_word(bne, RSA_F4.toULong()) != 1) {
@@ -100,7 +154,8 @@ actual class KeyPairGenerator actual constructor(
         }
 
         override fun close() {
-            BN_free(bne)
+            if (bne != null)
+                BN_free(bne)
         }
 
     }
