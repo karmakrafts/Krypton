@@ -21,8 +21,6 @@ package io.karma.evince.krypton
  * encryption algorithms and key agreements. It contains post-quantum algorithms like CRYSTALS-Dilithium and algorithms
  * which can be broken by quantum computers like ECDH or RSA.
  *
- * TODO: Rewrite supportedBitSize to bitSizePredicate and implement it into the key generators
- *
  * @author Cedric Hammes
  * @since  08/09/2024
  */
