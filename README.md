@@ -16,7 +16,7 @@ Below this text you can see the list of implementations used on different platfo
 - [ ] Cipher class for (a)symmetric encryption algorithms
 - [ ] KeyAgreement class for key agreement algorithms
 - [ ] Signature class for signature algorithms
-- [ ] Rewrite supportedBitSize to bitSizePredicate and implement it into the key generators in Algorithm
+- [X] Rewrite supportedBitSize to bitSizePredicate and implement it into the key generators in Algorithm
 - [ ] Post-quantum algorithms like CRYSTALS-Dilithium
 - [ ] Key derivation functions (KDF) like HDKF
 - [ ] Message Authentication Codes
