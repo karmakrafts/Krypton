@@ -26,7 +26,7 @@ actual class ParameterizedEllipticCurve actual constructor(
 ) : EllipticCurve {
     private val bnCtx: CPointer<BN_CTX> = requireNotNull(BN_CTX_new())
     private val cache: MutableList<CPointer<BIGNUM>> = mutableListOf()
-    private val curve: CPointer<EC_GROUP> = requireNotNull(
+    internal val curve: CPointer<EC_GROUP> = requireNotNull(
         when (val field = parameters.field) {
             is EllipticCurveParameters.Field.Fp -> EC_GROUP_new_curve_GFp(
                 field.p.toBigNumber(cache),

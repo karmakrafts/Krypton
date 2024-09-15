@@ -26,6 +26,10 @@ import libssl.BIO_s_secmem
 import libssl.BIO_write
 import libssl.RAND_bytes
 
+// TODO: Implement internal key generator interface (platform-specific) to allow separation of post-quantum cryptography
+//  API into a separate module
+
+
 actual class KeyGenerator actual constructor(
     private val algorithm: String,
     private val parameter: KeyGeneratorParameter

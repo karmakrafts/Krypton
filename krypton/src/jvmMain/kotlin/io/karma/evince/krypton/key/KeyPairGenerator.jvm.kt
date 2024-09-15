@@ -52,7 +52,7 @@ actual class KeyPairGenerator actual constructor(
                 when (val ellipticCurve = parameter.ellipticCurve) {
                     is DefaultEllipticCurve -> ECNamedCurveTable.getParameterSpec(ellipticCurve.toString())
                     is ParameterizedEllipticCurve -> ellipticCurve.parameterSpec
-                    else -> throw IllegalArgumentException("Unsupported elliptic curve class type '${ellipticCurve}'")
+                    else -> throw IllegalArgumentException("Unsupported elliptic curve class type '$ellipticCurve'")
                 }
             )
 

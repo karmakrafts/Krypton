@@ -17,7 +17,6 @@
 package io.karma.evince.krypton.utils
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider
 import java.security.Provider
 import java.security.Security
 
@@ -29,8 +28,8 @@ internal object JavaCryptoHelper {
 
     internal fun installBouncyCastleProviders() {
         // https://www.bouncycastle.org/documentation/specification_interoperability/
+        // TODO: Only implement the QPC provider if post-quantum module is there. I think later about the design
         installIfNotFound(BouncyCastleProvider())
-        installIfNotFound(BouncyCastlePQCProvider())
     }
 
     private inline fun <reified T: Provider> installIfNotFound(value: T) {
