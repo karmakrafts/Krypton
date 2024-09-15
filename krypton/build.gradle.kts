@@ -1,12 +1,14 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeHostTest
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotest)
     alias(libs.plugins.dokka)
 }
+
+// TODO: Use OpenSSL on Windows x64, macOS (is it default installed on macOS and iOS?) and Linux (x64 and arm64). If
+//       changed, perform change in the README.md file.
 
 group = "io.karma.evince"
 version = "${libs.versions.krypton.get()}.${System.getenv("CI_PIPELINE_IID")?: 0}"

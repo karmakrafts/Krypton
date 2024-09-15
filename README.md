@@ -21,3 +21,4 @@ Below this text you can see the list of implementations used on different platfo
 - [ ] Key derivation functions (KDF) like HDKF
 - [ ] Message Authentication Codes
 - [ ] Support for dynamic-length hash functions like SHAKE-128
+- [ ] Add support for possibility to store keys

@@ -28,13 +28,13 @@ package io.karma.evince.krypton
  */
 enum class Algorithm(
     private val literal: String,
-    internal val supportedBlockModes: Array<BlockMode>?,
-    internal val supportedPaddings: Array<Padding>?,
-    internal val supportedBitSizes: IntArray,
-    internal val asymmetric: Boolean,
-    internal val defaultBlockMode: BlockMode?,
-    internal val defaultPadding: Padding?,
-    internal val usages: Array<Usage>
+    val supportedBlockModes: Array<BlockMode>?,
+    val supportedPaddings: Array<Padding>?,
+    val isBitSizeSupported: (Int) -> Boolean,
+    val asymmetric: Boolean,
+    val defaultBlockMode: BlockMode?,
+    val defaultPadding: Padding?,
+    val usages: Array<Usage>
 ) {
     /**
      * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature crypto system created in
@@ -119,8 +119,19 @@ enum class Algorithm(
     ECDH("ECDH", true, intArrayOf(128, 192, 256), arrayOf(Usage.KEY_AGREEMENT));
 
     /** @suppress **/
-    constructor(literal: String, asymmetric: Boolean, keySizes: IntArray, usages: Array<Usage>) :
-            this(literal, null, null, keySizes, asymmetric, null, null, usages)
+    constructor(literal: String, supportedBlockModes: Array<BlockMode>?, supportedPaddings: Array<Padding>?,
+                supportedBitSizes: IntArray, asymmetric: Boolean, defaultBlockMode: BlockMode?, defaultPadding: Padding?,
+                usages: Array<Usage>) :
+            this(literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) },
+                asymmetric, defaultBlockMode, defaultPadding, usages)
+
+    /** @suppress **/
+    constructor(literal: String, asymmetric: Boolean, supportedBitSizes: IntArray, usages: Array<Usage>) :
+            this(literal, null, null, { value -> supportedBitSizes.contains(value) }, asymmetric, null, null, usages)
+
+    /** @suppress **/
+    constructor(literal: String, asymmetric: Boolean, isBitSizeSupported: (Int) -> Boolean, usages: Array<Usage>) :
+            this(literal, null, null, isBitSizeSupported, asymmetric, null, null, usages)
 
     override fun toString(): String = literal
 
@@ -130,8 +141,14 @@ enum class Algorithm(
             .firstOrNull { it.literal == literal && it.asymmetric == asymmetric }
     }
 
-    /** @suppress **/
-    internal enum class Usage {
+    /**
+     * This class indicates the usages for cryptographic algorithms in the Krypton API. Al of these are checked by the
+     * API to ensure the correct usage of keys.
+     *
+     * @author Cedric Hammes
+     * @since  08/09/2024
+     */
+    enum class Usage {
         CIPHER,
         KEY_AGREEMENT,
         SIGNATURE
