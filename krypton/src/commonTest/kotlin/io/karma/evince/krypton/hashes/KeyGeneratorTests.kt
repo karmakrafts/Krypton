@@ -25,12 +25,14 @@ import kotlin.test.assertEquals
 class KeyGeneratorTests : ShouldSpec() {
     init {
         should("test AES") {
-            val key = KeyGenerator(Algorithm.AES, KeyGeneratorParameter(256)).generate()
-            assertEquals("AES", key.algorithm)
+            KeyGenerator(Algorithm.AES, KeyGeneratorParameter(256)).generate().use { key ->
+                assertEquals("AES", key.algorithm)
+            }
         }
         should("test DES") {
-            val key = KeyGenerator(Algorithm.DES, KeyGeneratorParameter(56)).generate()
-            assertEquals("DES", key.algorithm)
+            KeyGenerator(Algorithm.DES, KeyGeneratorParameter(56)).generate().use { key ->
+                assertEquals("DES", key.algorithm)
+            }
         }
     }
 }

@@ -28,12 +28,13 @@ class KeyAgreementTests : ShouldSpec() {
     init {
         should("test ECDH handshake") {
             KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameter(DefaultEllipticCurve.PRIME256V1)).use {
-                val keyPair1 = it.generate()
-                val keyPair2 = it.generate()
-
-                val secret1 = KeyAgreement(Algorithm.ECDH, keyPair1.privateKey).generateSecret(keyPair2.publicKey)
-                val secret2 = KeyAgreement(Algorithm.ECDH, keyPair2.privateKey).generateSecret(keyPair1.publicKey)
-                assertTrue(secret1.contentEquals(secret2))
+                it.generate().use { kp1 ->
+                    it.generate().use { kp2 ->
+                        val secret1 = KeyAgreement(Algorithm.ECDH, kp1.privateKey).generateSecret(kp2.publicKey)
+                        val secret2 = KeyAgreement(Algorithm.ECDH, kp2.privateKey).generateSecret(kp1.publicKey)
+                        assertTrue(secret1.contentEquals(secret2))
+                    }
+                }
             }
         }
     }

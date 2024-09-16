@@ -108,6 +108,8 @@ enum class Algorithm(
      * algorithm. The advantage of ECDH is the higher security with lower key sizes compared to DH. This algorithm
      * is used in the Signal Protocol and other implementations. It can be broken by Shor's algorithm.
      *
+     * TODO: Transform to generalization of elliptic curves (in case of the keypair generator)
+     *
      * @author Cedric Hammes
      * @since  10/09/2024
      *

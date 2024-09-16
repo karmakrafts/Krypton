@@ -21,4 +21,3 @@ pluginManagement {
 
 include(":krypton")
 rootProject.name = "krypton"
-

@@ -17,8 +17,13 @@
 package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
+import io.karma.evince.krypton.utils.ErrorHelper
+import kotlinx.cinterop.*
+import libssl.*
 
 actual class KeyAgreement actual constructor(algorithm: Algorithm, privateKey: Key) {
+    private val derivationContext: CPointer<EVP_PKEY_CTX>
+
     actual constructor(
         algorithm: String,
         privateKey: Key
@@ -30,7 +35,33 @@ actual class KeyAgreement actual constructor(algorithm: Algorithm, privateKey: K
         ), privateKey
     )
 
+    init {
+        if (privateKey.body !is Key.KeyBody.EVPKeyBody || privateKey.type != KeyType.PRIVATE)
+            throw RuntimeException("The specified private key isn't a private key")
+
+        derivationContext = requireNotNull(EVP_PKEY_CTX_new(privateKey.body.key, null))
+        if (EVP_PKEY_derive_init(derivationContext) != 1) // TODO: EC is not supported?
+            throw RuntimeException("Unable to initialize Key Agreement", ErrorHelper.createOpenSSLException())
+    }
+
     actual fun generateSecret(peerPublicKey: Key): ByteArray {
-        TODO("Not yet implemented")
+        if (peerPublicKey.body !is Key.KeyBody.EVPKeyBody || peerPublicKey.type != KeyType.PUBLIC)
+            throw RuntimeException("The specified public key isn't a private key")
+
+        if (EVP_PKEY_derive_set_peer(derivationContext, peerPublicKey.body.key) != 1)
+            throw RuntimeException("Unable to set public key for agreement", ErrorHelper.createOpenSSLException())
+
+        memScoped {
+            val secretLength = alloc<ULongVar>()
+            if (EVP_PKEY_derive(derivationContext, null, secretLength.ptr) != 1)
+                throw RuntimeException("Unable to acquire length of secret")
+
+            val secret = UByteArray(secretLength.value.toInt())
+            secret.usePinned { pinnedSecret ->
+                if (EVP_PKEY_derive(derivationContext, pinnedSecret.addressOf(0), secretLength.ptr) != 1)
+                    throw RuntimeException("Unable to acquire length of secret")
+            }
+            return secret.toByteArray()
+        }
     }
 }
