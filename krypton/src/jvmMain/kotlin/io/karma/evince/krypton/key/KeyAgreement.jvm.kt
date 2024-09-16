@@ -17,6 +17,7 @@
 package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
+import io.karma.evince.krypton.utils.JavaCryptoHelper
 
 private typealias JavaKeyAgreement = javax.crypto.KeyAgreement
 
@@ -26,6 +27,7 @@ actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key)
     actual constructor(algorithm: Algorithm, privateKey: Key) : this(algorithm.toString(), privateKey)
 
     init {
+        JavaCryptoHelper.installBouncyCastleProviders()
         this.keyAgreement = JavaKeyAgreement.getInstance(algorithm)
         this.keyAgreement.init(privateKey.internalValue)
     }

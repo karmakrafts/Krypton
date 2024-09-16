@@ -18,8 +18,17 @@ package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
 
-actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key) {
-    actual constructor(algorithm: Algorithm, privateKey: Key) : this(algorithm.toString(), privateKey)
+actual class KeyAgreement actual constructor(algorithm: Algorithm, privateKey: Key) {
+    actual constructor(
+        algorithm: String,
+        privateKey: Key
+    ) : this(
+        Algorithm.fromLiteral(algorithm, true) ?: throw IllegalArgumentException(
+            "The algorithm '$algorithm' is not available, the following are officially supported by Krypton: ${
+                Algorithm.entries.filter { it.asymmetric }.joinToString(", ")
+            }"
+        ), privateKey
+    )
 
     actual fun generateSecret(peerPublicKey: Key): ByteArray {
         TODO("Not yet implemented")
