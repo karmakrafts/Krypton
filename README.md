@@ -14,7 +14,7 @@ Below this text you can see the list of implementations used on different platfo
 - [X] Hashing algorithms and digest
 - [X] Default curves and custom definable elliptic curve
 - [ ] Cipher class for (a)symmetric encryption algorithms
-- [ ] KeyAgreement class for key agreement algorithms
+- [X] KeyAgreement class for key agreement algorithms
 - [ ] Signature class for signature algorithms
 - [X] Rewrite supportedBitSize to bitSizePredicate and implement it into the key generators in Algorithm
 - [ ] Post-quantum algorithms like CRYSTALS-Dilithium
