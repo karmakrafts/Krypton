@@ -16,12 +16,12 @@
 
 package io.karma.evince.krypton.key
 
-/** @suppress **/
-typealias JavaKey = java.security.Key
+import io.karma.evince.krypton.Algorithm
 
-actual class Key(actual val type: KeyType, internal val internalValue: JavaKey) : AutoCloseable {
-    actual val algorithm: String = internalValue.algorithm
+actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key) {
+    actual constructor(algorithm: Algorithm, privateKey: Key) : this(algorithm.toString(), privateKey)
 
-    actual override fun close() {
+    actual fun generateSecret(peerPublicKey: Key): ByteArray {
+        TODO("Not yet implemented")
     }
 }
