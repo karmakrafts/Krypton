@@ -46,7 +46,6 @@ actual class KeyPairGenerator actual constructor(
 
         Security.addProvider(BouncyCastleProvider())
         keyPairGenerator = JavaKeyPairGenerator.getInstance(algorithm)
-        println("DingDingDing")
         when (parameter) {
             is ECKeyPairGeneratorParameter -> keyPairGenerator.initialize(
                 when (val ellipticCurve = parameter.ellipticCurve) {

@@ -59,11 +59,6 @@ actual class KeyPairGenerator actual constructor(
     }
 
     internal class ECDHKeyPairGeneratorImpl(parameter: ECKeyPairGeneratorParameter) : KeyPairGeneratorImpl {
-
-        // openssl ecparam -name <curve name> -out elliptic-curve-parameters.pem
-        // openssl ecparam -in elliptic-curve-parameters.pem -genkey -noout -out private-key.pem
-        // openssl ec -in private-key.pem -pubout -out public-key.pem
-
         // TODO: I think this can be improved to remove the copy but I couldn't find a good and beautiful solution
         private val curve: CPointer<EC_GROUP> = when (val curve = parameter.ellipticCurve) {
             is ParameterizedEllipticCurve -> requireNotNull(EC_GROUP_dup(curve.curve))
@@ -72,59 +67,35 @@ actual class KeyPairGenerator actual constructor(
         }
 
         override fun generate(): KeyPair {
-            // Generate private key
-            val privateEcKey = requireNotNull(EC_KEY_new())
-            if (EC_KEY_set_group(privateEcKey, curve) != 1) {
-                EC_KEY_free(privateEcKey)
-                throw RuntimeException("Unable to apply curve to key", ErrorHelper.createOpenSSLException())
+            val ellipticCurveKey = requireNotNull(EC_KEY_new())
+            if (EC_KEY_set_group(ellipticCurveKey, curve) != 1) {
+                throw RuntimeException("Unable to assign curve", ErrorHelper.createOpenSSLException())
             }
 
-            if (EC_KEY_generate_key(privateEcKey) != 1) {
-                EC_KEY_free(privateEcKey)
-                throw RuntimeException("Unable to generate keypair", ErrorHelper.createOpenSSLException())
-            }
-
-            // Get public key to private key
-            val publicEcKey = requireNotNull(EC_KEY_new())
-            if (EC_KEY_set_group(publicEcKey, curve) != 1) {
-                EC_KEY_free(publicEcKey)
-                EC_KEY_free(privateEcKey)
-                throw RuntimeException("Unable to apply curve to key", ErrorHelper.createOpenSSLException())
-            }
-
-            if (EC_KEY_set_public_key(publicEcKey, EC_KEY_get0_public_key(privateEcKey)) != 1) {
-                EC_KEY_free(publicEcKey)
-                EC_KEY_free(privateEcKey)
-                throw RuntimeException("Unable to acquire public key", ErrorHelper.createOpenSSLException())
-            }
-
-            // Convert EC keys to EVP_PKEYs
             val privateKey = requireNotNull(EVP_PKEY_new())
-            if (EVP_PKEY_assign(privateKey, EVP_PKEY_EC, privateEcKey) != 1) {
-                EVP_PKEY_free(privateKey)
-                EC_KEY_free(publicEcKey)
-                EC_KEY_free(privateEcKey)
-                throw RuntimeException(
-                    "Unable to convert private EC key to EVP key",
-                    ErrorHelper.createOpenSSLException()
-                )
+            if (EVP_PKEY_assign(privateKey, EVP_PKEY_EC, ellipticCurveKey) != 1) {
+                throw RuntimeException("Unable to assign EC key to EVP_PKEY", ErrorHelper.createOpenSSLException())
             }
 
-            val publicKey = requireNotNull(EVP_PKEY_new())
-            if (EVP_PKEY_assign(publicKey, EVP_PKEY_EC, publicEcKey) != 1) {
-                EVP_PKEY_free(publicKey)
-                EVP_PKEY_free(privateKey)
-                EC_KEY_free(publicEcKey)
-                EC_KEY_free(privateEcKey)
-                throw RuntimeException(
-                    "Unable to convert public EC key to EVP key",
-                    ErrorHelper.createOpenSSLException()
-                )
+            val keyGeneratorContext = requireNotNull(EVP_PKEY_CTX_new(privateKey, null))
+            if (EVP_PKEY_keygen_init(keyGeneratorContext) != 1) {
+                throw RuntimeException("Unable to initialize key generator", ErrorHelper.createOpenSSLException())
+            }
+            memScoped {
+                val pointerToKeyPointer = allocPointerTo<EVP_PKEY>()
+                pointerToKeyPointer.value = privateKey
+                if (EVP_PKEY_keygen(keyGeneratorContext, pointerToKeyPointer.ptr) != 1) {
+                    throw RuntimeException("Unable to generate key", ErrorHelper.createOpenSSLException())
+                }
             }
 
-            EC_KEY_free(publicEcKey)
-            EC_KEY_free(privateEcKey)
-            return KeyPair(Key(KeyType.PUBLIC, "ECDH", publicKey), Key(KeyType.PRIVATE, "ECDH", privateKey))
+            if (EVP_PKEY_check(keyGeneratorContext) != 1)
+                throw RuntimeException("Key generator produced invalid results", ErrorHelper.createOpenSSLException())
+
+            return KeyPair(
+                Key(KeyType.PUBLIC, "ECDH", privateKey),
+                Key(KeyType.PRIVATE, "ECDH", requireNotNull(EVP_PKEY_dup(privateKey)))
+            )
         }
 
         override fun close() {
