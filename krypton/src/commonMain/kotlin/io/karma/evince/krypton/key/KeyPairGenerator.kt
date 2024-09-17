@@ -24,13 +24,15 @@ import io.karma.evince.krypton.ec.EllipticCurve
 expect class KeyPairGenerator @UncheckedKryptonAPI constructor(
     algorithm: String,
     parameter: KeyPairGeneratorParameter
-): AutoCloseable {
+) : AutoCloseable {
     constructor(algorithm: Algorithm, parameter: KeyPairGeneratorParameter)
+
     fun generate(): KeyPair
     override fun close()
 }
 
 open class KeyPairGeneratorParameter(internal val size: Int)
 
-class ECKeyPairGeneratorParameter(internal val curve: EllipticCurve): KeyPairGeneratorParameter(0)
-class DHKeyPairGeneratorParameter(internal val p: BigInteger, internal val g: BigInteger): KeyPairGeneratorParameter(0)
+class ECKeyPairGeneratorParameter(internal val curve: EllipticCurve) : KeyPairGeneratorParameter(0)
+class DHKeyPairGeneratorParameter(internal val p: BigInteger, internal val g: BigInteger, bits: Int) :
+    KeyPairGeneratorParameter(bits)

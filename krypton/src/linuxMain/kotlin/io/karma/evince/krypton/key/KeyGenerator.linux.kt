@@ -29,23 +29,12 @@ import libssl.RAND_bytes
 // TODO: Implement internal key generator interface (platform-specific) to allow separation of post-quantum cryptography
 //  API into a separate module
 
-
 actual class KeyGenerator actual constructor(
     private val algorithm: String,
     private val parameter: KeyGeneratorParameter
 ) {
-
-    actual constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter) : this(algorithm.toString(), parameter)
-
-    init {
-
-        if (Algorithm.entries.none { it.toString() == algorithm })
-            throw IllegalArgumentException(
-                "The algorithm '$algorithm' is not available, the following are officially supported by Krypton: ${
-                    Algorithm.entries.filter { !it.asymmetric }.joinToString(", ")
-                }"
-            )
-    }
+    actual constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter) :
+            this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameter)
 
     actual fun generate(): Key {
         return Key(KeyType.SYMMETRIC, algorithm, requireNotNull(BIO_new(BIO_s_secmem())).let { data ->

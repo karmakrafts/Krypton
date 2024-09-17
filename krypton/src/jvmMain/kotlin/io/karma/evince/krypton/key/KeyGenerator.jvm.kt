@@ -17,21 +17,15 @@
 package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
-import io.karma.evince.krypton.utils.JavaCryptoHelper
 import javax.crypto.KeyGenerator
 
 actual class KeyGenerator actual constructor(algorithm: String, parameter: KeyGeneratorParameter) {
-    private val keyGenerator: KeyGenerator
+    private val keyGenerator: KeyGenerator = KeyGenerator.getInstance(algorithm)
 
-    actual constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter) : this(algorithm.toString(), parameter)
+    actual constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter) :
+            this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameter)
 
     init {
-        if (!JavaCryptoHelper.getAlgorithms<KeyGenerator>().contains(algorithm))
-            throw IllegalArgumentException("The algorithm '$algorithm' is not available, the following are officially " +
-                    "supported by Krypton: ${Algorithm.entries.filter { !it.asymmetric }.joinToString(", ")}"
-            )
-
-        this.keyGenerator = KeyGenerator.getInstance(algorithm)
         this.keyGenerator.init(parameter.size)
     }
 

@@ -21,26 +21,18 @@ import io.karma.evince.krypton.utils.ErrorHelper
 import kotlinx.cinterop.*
 import libssl.*
 
-actual class KeyAgreement actual constructor(algorithm: Algorithm, privateKey: Key) : AutoCloseable {
+actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key) : AutoCloseable {
     private val derivationContext: CPointer<EVP_PKEY_CTX>
 
-    actual constructor(
-        algorithm: String,
-        privateKey: Key
-    ) : this(
-        Algorithm.fromLiteral(algorithm, true) ?: throw IllegalArgumentException(
-            "The algorithm '$algorithm' is not available, the following are officially supported by Krypton: ${
-                Algorithm.entries.filter { it.asymmetric }.joinToString(", ")
-            }"
-        ), privateKey
-    )
+    actual constructor(algorithm: Algorithm, privateKey: Key) :
+            this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_AGREEMENT).toString(), privateKey)
 
     init {
         if (privateKey.body !is Key.KeyBody.EVPKeyBody || privateKey.type != KeyType.PRIVATE)
             throw RuntimeException("The specified private key isn't a private key")
 
         derivationContext = requireNotNull(EVP_PKEY_CTX_new(privateKey.body.key, null))
-        if (EVP_PKEY_derive_init(derivationContext) != 1) // TODO: EC is not supported?
+        if (EVP_PKEY_derive_init(derivationContext) != 1)
             throw RuntimeException("Unable to initialize Key Agreement", ErrorHelper.createOpenSSLException())
     }
 

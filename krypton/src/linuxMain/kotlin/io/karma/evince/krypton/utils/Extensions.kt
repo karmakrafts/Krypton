@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton
+package io.karma.evince.krypton.utils
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import kotlinx.cinterop.CPointer
@@ -25,10 +25,12 @@ import libssl.BIGNUM
 import libssl.BN_bin2bn
 
 /** @suppress **/
-internal fun BigInteger.toBigNumber(cache: MutableList<CPointer<BIGNUM>>? = null): CPointer<BIGNUM> {
-    val number = requireNotNull(this.toByteArray().let { bytes ->
-        bytes.usePinned { pinnedBytes -> BN_bin2bn(pinnedBytes.addressOf(0).reinterpret(), bytes.size, null) }
-    })
-    cache?.add(number)
-    return number
-}
+internal inline fun <T> T?.checkNotNull(message: String? = "The allocation of a object is failed"): T =
+    this ?: throw RuntimeException(message, ErrorHelper.createOpenSSLException())
+
+/** @suppress **/
+internal inline fun BigInteger.toOpenSSLBigNumber(store: MutableList<CPointer<BIGNUM>>? = null): CPointer<BIGNUM> =
+    this.toByteArray().let { it.usePinned { pinned -> BN_bin2bn(pinned.addressOf(0).reinterpret(), it.size, null) } }
+        .checkNotNull().also {
+            store?.add(it)
+        }

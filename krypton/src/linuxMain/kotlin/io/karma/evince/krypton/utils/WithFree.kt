@@ -37,9 +37,6 @@ class WithFree {
     }
 }
 
-internal inline fun <T> T?.checkNotNull(message: String? = "The allocation of a object is failed"): T =
-    this ?: throw RuntimeException(message, ErrorHelper.createOpenSSLException())
-
 inline fun <T> withFree(block: WithFree.() -> T): T {
     val withFree = WithFree()
     return try {

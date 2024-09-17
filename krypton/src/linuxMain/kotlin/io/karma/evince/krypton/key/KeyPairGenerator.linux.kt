@@ -28,25 +28,18 @@ import libssl.*
 //  cryptography API into a separate module
 
 actual class KeyPairGenerator actual constructor(
-    algorithm: Algorithm,
+    algorithm: String,
     parameter: KeyPairGeneratorParameter
 ) : AutoCloseable {
     private val keyPairGeneratorImpl: KeyPairGeneratorImpl = when (algorithm) {
-        Algorithm.RSA -> RSAKeyPairGeneratorImpl(parameter)
-        Algorithm.ECDH -> ECKeyPairGeneratorImpl(algorithm, parameter as ECKeyPairGeneratorParameter)
+        "RSA" -> RSAKeyPairGeneratorImpl(parameter)
+        "ECDH" -> ECKeyPairGeneratorImpl(Algorithm.ECDH, parameter as ECKeyPairGeneratorParameter)
+        "DH" -> DHKeyPairGeneratorImpl(parameter)
         else -> throw IllegalArgumentException("Algorithm '$algorithm' is not supported")
     }
 
-    actual constructor(
-        algorithm: String,
-        parameter: KeyPairGeneratorParameter
-    ) : this(
-        Algorithm.fromLiteral(algorithm, true) ?: throw IllegalArgumentException(
-            "The algorithm '$algorithm' is not available, the following are officially supported by Krypton: ${
-                Algorithm.entries.filter { it.asymmetric }.joinToString(", ")
-            }"
-        ), parameter
-    )
+    actual constructor(algorithm: Algorithm, parameter: KeyPairGeneratorParameter) :
+            this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameter)
 
     actual fun generate(): KeyPair = this.keyPairGeneratorImpl.generate()
     actual override fun close() {
@@ -56,6 +49,11 @@ actual class KeyPairGenerator actual constructor(
     interface KeyPairGeneratorImpl {
         fun generate(): KeyPair
         fun close()
+    }
+
+    internal class DHKeyPairGeneratorImpl(parameter: KeyPairGeneratorParameter) : KeyPairGeneratorImpl {
+        override fun generate(): KeyPair = TODO()
+        override fun close() {}
     }
 
     internal class ECKeyPairGeneratorImpl(
@@ -131,7 +129,7 @@ actual class KeyPairGenerator actual constructor(
     }
 }
 
-private fun EllipticCurve.toOpenSSLId(): Int = when(this) {
+private fun EllipticCurve.toOpenSSLId(): Int = when (this) {
     EllipticCurve.PRIME192V1 -> NID_X9_62_prime192v1
     EllipticCurve.PRIME192V2 -> NID_X9_62_prime192v2
     EllipticCurve.PRIME192V3 -> NID_X9_62_prime192v3

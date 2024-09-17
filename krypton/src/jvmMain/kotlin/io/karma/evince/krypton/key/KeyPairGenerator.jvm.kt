@@ -20,8 +20,6 @@ import com.ionspin.kotlin.bignum.integer.base63.toJavaBigInteger
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.utils.JavaCryptoHelper
 import org.bouncycastle.jce.ECNamedCurveTable
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.security.Security
 import javax.crypto.spec.DHParameterSpec
 
 /** @suppress **/
@@ -34,17 +32,10 @@ actual class KeyPairGenerator actual constructor(
 
     actual constructor(
         algorithm: Algorithm, parameter: KeyPairGeneratorParameter
-    ) : this(algorithm.toString(), parameter)
+    ) : this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameter)
 
     init {
         JavaCryptoHelper.installBouncyCastleProviders()
-        if (!JavaCryptoHelper.getAlgorithms<JavaKeyPairGenerator>().contains(algorithm)) throw IllegalArgumentException(
-            "The algorithm '$algorithm' is not available, the following are officially supported by Krypton: ${
-                Algorithm.entries.filter { it.asymmetric }.joinToString(", ")
-            }"
-        )
-
-        Security.addProvider(BouncyCastleProvider())
         keyPairGenerator = JavaKeyPairGenerator.getInstance(algorithm)
         when (parameter) {
             is ECKeyPairGeneratorParameter -> keyPairGenerator.initialize(
@@ -52,7 +43,7 @@ actual class KeyPairGenerator actual constructor(
             )
 
             is DHKeyPairGeneratorParameter -> keyPairGenerator.initialize(
-                DHParameterSpec(parameter.p.toJavaBigInteger(), parameter.g.toJavaBigInteger())
+                DHParameterSpec(parameter.p.toJavaBigInteger(), parameter.g.toJavaBigInteger(), parameter.size)
             )
 
             else -> keyPairGenerator.initialize(parameter.size)

@@ -16,6 +16,8 @@
 
 package io.karma.evince.krypton
 
+import kotlin.jvm.JvmStatic
+
 /**
  * This enum represents all algorithms definitely supported by all platforms of the Krypton API. These are (a)symmetric
  * encryption algorithms and key agreements. It contains post-quantum algorithms like CRYSTALS-Dilithium and algorithms
@@ -29,48 +31,10 @@ enum class Algorithm(
     val supportedBlockModes: Array<BlockMode>?,
     val supportedPaddings: Array<Padding>?,
     val isBitSizeSupported: (Int) -> Boolean,
-    val asymmetric: Boolean,
     val defaultBlockMode: BlockMode?,
     val defaultPadding: Padding?,
-    val usages: Array<Usage>
+    val scopes: Array<Scope>
 ) {
-    /**
-     * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature crypto system created in
-     * 1977. According to the NIST's Recommendation for Key Management the key length 2048 is recommended. It can be
-     * broken by Shor's algorithm.
-     *
-     * @author Cedric Hammes
-     * @since  08/09/2024
-     *
-     * @see [Wikipedia, RSA](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
-     * @see [Wikipedia, Shor's Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm)
-     */
-    RSA(
-        "RSA", arrayOf(BlockMode.ECB), arrayOf(
-            Padding.NONE, Padding.PKCS5, Padding.OAEP_SHA1_MGF1,
-            Padding.OAEP_SHA256_MGF1
-        ), intArrayOf(1024, 2048, 4096, 8192), true,
-        BlockMode.ECB, Padding.PKCS5,
-        arrayOf(Usage.CIPHER, Usage.SIGNATURE)
-    ),
-
-    /**
-     * Ths AES (Advanced Encryption Standard, also known as Rijndael) block cipher is a symmetric encryption algorithm
-     * created in 1998 with a block size of 128 bits. According to the NSA's Commercial National Security Algorithm
-     * Suite the key length 256 is recommended. The security in bit can be reduced to the half by Grover's algorithm.
-     *
-     * @author Cedric Hammes
-     * @since  08/09/2024
-     *
-     * @see [Wikipedia, AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)
-     * @see [Wikipedia, Grover's Algorithm](https://en.wikipedia.org/wiki/Grover%27s_algorithm)
-     */
-    AES(
-        "AES", BlockMode.entries.toTypedArray(), arrayOf(Padding.NONE, Padding.PKCS1), intArrayOf(128, 192, 256), false,
-        BlockMode.CBC, Padding.NONE,
-        arrayOf(Usage.CIPHER)
-    ),
-
     /**
      * The DES (Data Encryption Standard) block cipher is a symmetric encryption algorithm created in 1975 with a block
      * size of 64 bits. DES can be attacked by bruteforce easily and by multiple cryptanalytic attacks so the algorithm
@@ -85,9 +49,55 @@ enum class Algorithm(
      */
     @Deprecated("DES is deprecated, please use DES3 or AES")
     DES(
-        "DES", BlockMode.entries.filter { it == BlockMode.GCM }.toTypedArray(), arrayOf(Padding.NONE, Padding.PKCS1),
-        intArrayOf(56), false, BlockMode.CBC, Padding.PKCS1,
-        arrayOf(Usage.CIPHER)
+        literal = "DES",
+        supportedBlockModes = BlockMode.entries.filter { it == BlockMode.GCM }.toTypedArray(),
+        supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS1),
+        supportedBitSizes = intArrayOf(56),
+        defaultBlockMode = BlockMode.CBC,
+        defaultPadding = Padding.PKCS1,
+        scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR)
+    ),
+
+    /**
+     * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature crypto system created in
+     * 1977. According to the NIST's Recommendation for Key Management the key length 2048 is recommended. It can be
+     * broken by Shor's algorithm.
+     *
+     * @author Cedric Hammes
+     * @since  08/09/2024
+     *
+     * @see [Wikipedia, RSA](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
+     * @see [Wikipedia, Shor's Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm)
+     */
+    RSA(
+        literal = "RSA",
+        supportedBlockModes = arrayOf(BlockMode.ECB),
+        supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS5, Padding.OAEP_SHA1_MGF1, Padding.OAEP_SHA256_MGF1),
+        supportedBitSizes = intArrayOf(1024, 2048, 4096, 8192),
+        defaultBlockMode = BlockMode.ECB,
+        defaultPadding = Padding.PKCS5,
+        scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR)
+    ),
+
+    /**
+     * Ths AES (Advanced Encryption Standard, also known as Rijndael) block cipher is a symmetric encryption algorithm
+     * created in 1998 with a block size of 128 bits. According to the NSA's Commercial National Security Algorithm
+     * Suite the key length 256 is recommended. The security in bit can be reduced to the half by Grover's algorithm.
+     *
+     * @author Cedric Hammes
+     * @since  08/09/2024
+     *
+     * @see [Wikipedia, AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)
+     * @see [Wikipedia, Grover's Algorithm](https://en.wikipedia.org/wiki/Grover%27s_algorithm)
+     */
+    AES(
+        literal = "AES",
+        supportedBlockModes = BlockMode.entries.toTypedArray(),
+        supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS1),
+        supportedBitSizes = intArrayOf(128, 192, 256),
+        defaultBlockMode = BlockMode.CBC,
+        defaultPadding = Padding.NONE,
+        scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR)
     ),
 
     /**
@@ -101,14 +111,20 @@ enum class Algorithm(
      * @see [Wikipedia, Diffie-Hellman key exchange](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange)
      * @see [Wikipedia, Shor's Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm)
      */
-    DH("DH", true, intArrayOf(1024, 2048, 3000, 4096, 8192), arrayOf(Usage.KEY_AGREEMENT)),
+    DH(
+        literal = "DH",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        supportedBitSizes = intArrayOf(1024, 2048, 3000, 4096, 8192),
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR)
+    ),
 
     /**
      * The ECDH (Elliptic-Curve Diffie-Hellman) is the elliptic-curve equivalent of the Diffie-Hellman key agreement
      * algorithm. The advantage of ECDH is the higher security with lower key sizes compared to DH. This algorithm
      * is used in the Signal Protocol and other implementations. It can be broken by Shor's algorithm.
-     *
-     * TODO: Transform to generalization of elliptic curves (in case of the keypair generator)
      *
      * @author Cedric Hammes
      * @since  10/09/2024
@@ -116,29 +132,48 @@ enum class Algorithm(
      * @see [Wikipedia, Elliptic-curve Diffie-Hellman](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman)
      * @see [Wikipedia, Shor's Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm)
      */
-    ECDH("ECDH", true, intArrayOf(128, 192, 256), arrayOf(Usage.KEY_AGREEMENT));
+    ECDH(
+        literal = "ECDH",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        supportedBitSizes = intArrayOf(128, 192, 256),
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR)
+    );
 
     /** @suppress **/
-    constructor(literal: String, supportedBlockModes: Array<BlockMode>?, supportedPaddings: Array<Padding>?,
-                supportedBitSizes: IntArray, asymmetric: Boolean, defaultBlockMode: BlockMode?, defaultPadding: Padding?,
-                usages: Array<Usage>) :
-            this(literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) },
-                asymmetric, defaultBlockMode, defaultPadding, usages)
+    constructor(
+        literal: String, supportedBlockModes: Array<BlockMode>?, supportedPaddings: Array<Padding>?,
+        supportedBitSizes: IntArray, defaultBlockMode: BlockMode?, defaultPadding: Padding?,
+        scopes: Array<Scope>
+    ) : this(
+        literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) },
+        defaultBlockMode, defaultPadding, scopes
+    )
 
-    /** @suppress **/
-    constructor(literal: String, asymmetric: Boolean, supportedBitSizes: IntArray, usages: Array<Usage>) :
-            this(literal, null, null, { value -> supportedBitSizes.contains(value) }, asymmetric, null, null, usages)
+    fun checkScopeOrError(scope: Scope): Algorithm = this.also {
+        if (!it.scopes.contains(scope)) {
+            val supported = Algorithm.byScope(listOf(scope)).joinToString(", ")
+            throw IllegalArgumentException("Algorithm '$literal' cannot be found for $scope. Please use: one of the following: $supported")
+        }
+    }
 
-    /** @suppress **/
-    constructor(literal: String, asymmetric: Boolean, isBitSizeSupported: (Int) -> Boolean, usages: Array<Usage>) :
-            this(literal, null, null, isBitSizeSupported, asymmetric, null, null, usages)
-
+    /**
+     * This function returns the algorithm as a literal. These literals are used internally for the JVM target.
+     *
+     * @author Cedric Hammes
+     * @since  08/09/2024
+     */
     override fun toString(): String = literal
 
     companion object {
-        /** @suppress **/
-        internal fun fromLiteral(literal: String, asymmetric: Boolean): Algorithm? = Algorithm.entries
-            .firstOrNull { it.literal == literal && it.asymmetric == asymmetric }
+        @JvmStatic
+        inline fun firstOrNull(literal: String): Algorithm? = Algorithm.entries.firstOrNull { it.toString() == literal }
+
+        @JvmStatic
+        inline fun byScope(scopes: List<Scope>): List<Algorithm> =
+            Algorithm.entries.filter { curr -> curr.scopes.all { it in scopes } }
     }
 
     /**
@@ -148,10 +183,14 @@ enum class Algorithm(
      * @author Cedric Hammes
      * @since  08/09/2024
      */
-    enum class Usage {
-        CIPHER,
-        KEY_AGREEMENT,
-        SIGNATURE
+    enum class Scope(private val literal: String) {
+        CIPHER("Cipher"),
+        KEYPAIR_GENERATOR("Keypair Generator"),
+        KEY_GENERATOR("Key Generator"),
+        KEY_AGREEMENT("Key Agreement"),
+        SIGNATURE("Signature");
+
+        override fun toString(): String = literal
     }
 }
 

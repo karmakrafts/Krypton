@@ -24,7 +24,8 @@ private typealias JavaKeyAgreement = javax.crypto.KeyAgreement
 actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key) : AutoCloseable {
     private val keyAgreement: JavaKeyAgreement
 
-    actual constructor(algorithm: Algorithm, privateKey: Key) : this(algorithm.toString(), privateKey)
+    actual constructor(algorithm: Algorithm, privateKey: Key) :
+            this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_AGREEMENT).toString(), privateKey)
 
     init {
         JavaCryptoHelper.installBouncyCastleProviders()
