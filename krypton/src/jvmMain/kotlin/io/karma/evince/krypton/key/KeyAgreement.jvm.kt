@@ -21,7 +21,7 @@ import io.karma.evince.krypton.utils.JavaCryptoHelper
 
 private typealias JavaKeyAgreement = javax.crypto.KeyAgreement
 
-actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key) {
+actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key) : AutoCloseable {
     private val keyAgreement: JavaKeyAgreement
 
     actual constructor(algorithm: Algorithm, privateKey: Key) : this(algorithm.toString(), privateKey)
@@ -36,4 +36,6 @@ actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key)
         this.keyAgreement.doPhase(peerPublicKey.internalValue, true) // TODO: Add compatibility for doPhase = false
         return this.keyAgreement.generateSecret()
     }
+
+    override fun close() {}
 }

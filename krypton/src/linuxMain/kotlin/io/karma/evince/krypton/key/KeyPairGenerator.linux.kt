@@ -17,10 +17,10 @@
 package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
-import io.karma.evince.krypton.ec.DefaultEllipticCurve
-import io.karma.evince.krypton.ec.ParameterizedEllipticCurve
-import io.karma.evince.krypton.ec.toOpenSSLId
+import io.karma.evince.krypton.ec.EllipticCurve
 import io.karma.evince.krypton.utils.ErrorHelper
+import io.karma.evince.krypton.utils.checkNotNull
+import io.karma.evince.krypton.utils.withFreeWithException
 import kotlinx.cinterop.*
 import libssl.*
 
@@ -33,7 +33,7 @@ actual class KeyPairGenerator actual constructor(
 ) : AutoCloseable {
     private val keyPairGeneratorImpl: KeyPairGeneratorImpl = when (algorithm) {
         Algorithm.RSA -> RSAKeyPairGeneratorImpl(parameter)
-        Algorithm.ECDH -> ECDHKeyPairGeneratorImpl(parameter as ECKeyPairGeneratorParameter)
+        Algorithm.ECDH -> ECKeyPairGeneratorImpl(algorithm, parameter as ECKeyPairGeneratorParameter)
         else -> throw IllegalArgumentException("Algorithm '$algorithm' is not supported")
     }
 
@@ -58,104 +58,99 @@ actual class KeyPairGenerator actual constructor(
         fun close()
     }
 
-    internal class ECDHKeyPairGeneratorImpl(parameter: ECKeyPairGeneratorParameter) : KeyPairGeneratorImpl {
-        // TODO: I think this can be improved to remove the copy but I couldn't find a good and beautiful solution
-        private val curve: CPointer<EC_GROUP> = when (val curve = parameter.ellipticCurve) {
-            is ParameterizedEllipticCurve -> requireNotNull(EC_GROUP_dup(curve.curve))
-            is DefaultEllipticCurve -> requireNotNull(EC_GROUP_new_by_curve_name(curve.toOpenSSLId()))
-            else -> throw UnsupportedOperationException("Unsupported elliptic curve class type '$curve")
+    internal class ECKeyPairGeneratorImpl(
+        private val algorithm: Algorithm,
+        parameter: ECKeyPairGeneratorParameter
+    ) : KeyPairGeneratorImpl {
+        private val parameterGenerator: CPointer<EVP_PKEY_CTX> = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, null).checkNotNull()
+        private val curveParameters: CPointerVar<EVP_PKEY> = nativeHeap.allocPointerTo<EVP_PKEY>().checkNotNull()
+        private val keyPairGenerator: CPointer<EVP_PKEY_CTX>
+
+        init {
+            if (EVP_PKEY_paramgen_init(parameterGenerator) != 1)
+                throw RuntimeException("Unable to initialize parameter generator", ErrorHelper.createOpenSSLException())
+            if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(parameterGenerator, parameter.curve.toOpenSSLId()) != 1)
+                throw RuntimeException("Unable to set curve to generator", ErrorHelper.createOpenSSLException())
+            if (EVP_PKEY_paramgen(parameterGenerator, curveParameters.ptr) != 1)
+                throw RuntimeException("Unable to generate curve parameters", ErrorHelper.createOpenSSLException())
+
+            keyPairGenerator = EVP_PKEY_CTX_new(curveParameters.value, null).checkNotNull()
+            if (EVP_PKEY_keygen_init(keyPairGenerator) != 1)
+                throw RuntimeException("Unable to initialize keypair generator", ErrorHelper.createOpenSSLException())
         }
 
-        override fun generate(): KeyPair {
-            val ellipticCurveKey = requireNotNull(EC_KEY_new())
-            if (EC_KEY_set_group(ellipticCurveKey, curve) != 1) {
-                throw RuntimeException("Unable to assign curve", ErrorHelper.createOpenSSLException())
-            }
-
-            val privateKey = requireNotNull(EVP_PKEY_new())
-            if (EVP_PKEY_assign(privateKey, EVP_PKEY_EC, ellipticCurveKey) != 1) {
-                throw RuntimeException("Unable to assign EC key to EVP_PKEY", ErrorHelper.createOpenSSLException())
-            }
-
-            val keyGeneratorContext = requireNotNull(EVP_PKEY_CTX_new(privateKey, null))
-            if (EVP_PKEY_keygen_init(keyGeneratorContext) != 1) {
-                throw RuntimeException("Unable to initialize key generator", ErrorHelper.createOpenSSLException())
-            }
+        override fun generate(): KeyPair = withFreeWithException {
+            val key = EVP_PKEY_new().checkNotNull().freeAfterOnException(::EVP_PKEY_free)
             memScoped {
-                val pointerToKeyPointer = allocPointerTo<EVP_PKEY>()
-                pointerToKeyPointer.value = privateKey
-                if (EVP_PKEY_keygen(keyGeneratorContext, pointerToKeyPointer.ptr) != 1) {
-                    throw RuntimeException("Unable to generate key", ErrorHelper.createOpenSSLException())
-                }
+                val keyPtr = allocPointerTo<EVP_PKEY>()
+                keyPtr.value = key
+                if (EVP_PKEY_keygen(keyPairGenerator, keyPtr.ptr) != 1)
+                    throw RuntimeException("Unable to generate keypair", ErrorHelper.createOpenSSLException())
             }
-
-            if (EVP_PKEY_check(keyGeneratorContext) != 1)
-                throw RuntimeException("Key generator produced invalid results", ErrorHelper.createOpenSSLException())
-
             return KeyPair(
-                Key(KeyType.PUBLIC, "ECDH", privateKey),
-                Key(KeyType.PRIVATE, "ECDH", requireNotNull(EVP_PKEY_dup(privateKey)))
+                Key(KeyType.PUBLIC, algorithm.toString(), key),
+                Key(KeyType.PRIVATE, algorithm.toString(), EVP_PKEY_dup(key).checkNotNull())
             )
         }
 
         override fun close() {
-            EC_GROUP_free(curve)
+            EVP_PKEY_CTX_free(keyPairGenerator)
+            EVP_PKEY_free(curveParameters.value)
+            nativeHeap.free(curveParameters)
+            EVP_PKEY_CTX_free(parameterGenerator)
         }
     }
 
-    internal class RSAKeyPairGeneratorImpl(private val parameter: KeyPairGeneratorParameter) : KeyPairGeneratorImpl {
-        private var bne: CPointer<BIGNUM>? = BN_new()
+    internal class RSAKeyPairGeneratorImpl(parameter: KeyPairGeneratorParameter) : KeyPairGeneratorImpl {
+        private var generationContext = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, null).checkNotNull()
 
         init {
-            if (BN_set_word(bne, RSA_F4.toULong()) != 1) {
-                BN_free(bne)
-                bne = null
-                throw RuntimeException(
-                    "Initialization of RSA key generator failed",
-                    ErrorHelper.createOpenSSLException()
-                )
-            }
+            if (EVP_PKEY_keygen_init(generationContext) != 1)
+                throw RuntimeException("Unable to initialize key generator", ErrorHelper.createOpenSSLException())
+            if (EVP_PKEY_CTX_set_rsa_keygen_bits(generationContext, parameter.size) != 1)
+                throw RuntimeException("Unable to set RSA modulus", ErrorHelper.createOpenSSLException())
         }
 
-        override fun generate(): KeyPair {
-            val rsa = requireNotNull(RSA_new())
-            if (RSA_generate_key_ex(rsa, parameter.size, bne, null) != 1) {
-                RSA_free(rsa)
-                throw RuntimeException("Unable to generate RSA keys", ErrorHelper.createOpenSSLException())
+        override fun generate(): KeyPair = withFreeWithException {
+            val key = EVP_PKEY_new().checkNotNull().freeAfterOnException(::EVP_PKEY_free)
+            memScoped {
+                val keyPtr = allocPointerTo<EVP_PKEY>()
+                keyPtr.value = key
+                if (EVP_PKEY_keygen(generationContext, keyPtr.ptr) != 1)
+                    throw RuntimeException("Unable to generate keypair", ErrorHelper.createOpenSSLException())
             }
-
-            val privateKey = requireNotNull(EVP_PKEY_new())
-            if (EVP_PKEY_set1_RSA(privateKey, rsa) != 1) {
-                EVP_PKEY_free(privateKey)
-                RSA_free(rsa)
-                throw RuntimeException(
-                    "Unable to acquire private key from generate keypair",
-                    ErrorHelper.createOpenSSLException()
-                )
-            }
-
-            val publicKey = requireNotNull(EVP_PKEY_new())
-            val publicKeyRSA = RSAPublicKey_dup(rsa)
-            if (EVP_PKEY_set1_RSA(publicKey, publicKeyRSA) != 1) {
-                EVP_PKEY_free(privateKey)
-                EVP_PKEY_free(publicKey)
-                RSA_free(publicKeyRSA)
-                RSA_free(rsa)
-                throw RuntimeException(
-                    "Unable to acquire public key from generate keypair",
-                    ErrorHelper.createOpenSSLException()
-                )
-            }
-
-            RSA_free(publicKeyRSA)
-            RSA_free(rsa)
-            return KeyPair(Key(KeyType.PUBLIC, "RSA", publicKey), Key(KeyType.PRIVATE, "RSA", privateKey))
+            return KeyPair(
+                Key(KeyType.PUBLIC, "RSA", key),
+                Key(KeyType.PRIVATE, "RSA", EVP_PKEY_dup(key).checkNotNull())
+            )
         }
 
-        override fun close() {
-            if (bne != null)
-                BN_free(bne)
+        override fun close() { // TODO: Warum bekomme ich hier einen Segfault
+            EVP_PKEY_CTX_free(generationContext)
         }
-
     }
+}
+
+private fun EllipticCurve.toOpenSSLId(): Int = when(this) {
+    EllipticCurve.PRIME192V1 -> NID_X9_62_prime192v1
+    EllipticCurve.PRIME192V2 -> NID_X9_62_prime192v2
+    EllipticCurve.PRIME192V3 -> NID_X9_62_prime192v3
+    EllipticCurve.PRIME239V1 -> NID_X9_62_prime239v1
+    EllipticCurve.PRIME239V2 -> NID_X9_62_prime239v2
+    EllipticCurve.PRIME239V3 -> NID_X9_62_prime192v3
+    EllipticCurve.PRIME256V1 -> NID_X9_62_prime256v1
+    EllipticCurve.BRAINPOOL_P160T1 -> NID_brainpoolP160t1
+    EllipticCurve.BRAINPOOL_P192T1 -> NID_brainpoolP192t1
+    EllipticCurve.BRAINPOOL_P224T1 -> NID_brainpoolP224t1
+    EllipticCurve.BRAINPOOL_P256T1 -> NID_brainpoolP256t1
+    EllipticCurve.BRAINPOOL_P320T1 -> NID_brainpoolP320t1
+    EllipticCurve.BRAINPOOL_P384T1 -> NID_brainpoolP384t1
+    EllipticCurve.BRAINPOOL_P512T1 -> NID_brainpoolP512t1
+    EllipticCurve.BRAINPOOL_P160R1 -> NID_brainpoolP160r1
+    EllipticCurve.BRAINPOOL_P192R1 -> NID_brainpoolP192r1
+    EllipticCurve.BRAINPOOL_P256R1 -> NID_brainpoolP256r1
+    EllipticCurve.BRAINPOOL_P224R1 -> NID_brainpoolP224r1
+    EllipticCurve.BRAINPOOL_P320R1 -> NID_brainpoolP320r1
+    EllipticCurve.BRAINPOOL_P384R1 -> NID_brainpoolP384r1
+    EllipticCurve.BRAINPOOL_P512R1 -> NID_brainpoolP512r1
 }

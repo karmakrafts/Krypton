@@ -27,7 +27,7 @@ import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
  * @author Cedric Hammes
  * @since  17/09/2024
  */
-expect class KeyAgreement @UncheckedKryptonAPI constructor(algorithm: String, privateKey: Key) {
+expect class KeyAgreement @UncheckedKryptonAPI constructor(algorithm: String, privateKey: Key) : AutoCloseable {
     constructor(algorithm: Algorithm, privateKey: Key)
 
     /**

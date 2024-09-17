@@ -21,7 +21,7 @@ import io.karma.evince.krypton.utils.ErrorHelper
 import kotlinx.cinterop.*
 import libssl.*
 
-actual class KeyAgreement actual constructor(algorithm: Algorithm, privateKey: Key) {
+actual class KeyAgreement actual constructor(algorithm: Algorithm, privateKey: Key) : AutoCloseable {
     private val derivationContext: CPointer<EVP_PKEY_CTX>
 
     actual constructor(
@@ -63,5 +63,9 @@ actual class KeyAgreement actual constructor(algorithm: Algorithm, privateKey: K
             }
             return secret.toByteArray()
         }
+    }
+
+    override fun close() {
+        EVP_PKEY_CTX_free(derivationContext)
     }
 }

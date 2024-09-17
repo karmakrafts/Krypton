@@ -16,13 +16,13 @@
 
 package io.karma.evince.krypton.key
 
+import com.ionspin.kotlin.bignum.integer.base63.toJavaBigInteger
 import io.karma.evince.krypton.Algorithm
-import io.karma.evince.krypton.ec.DefaultEllipticCurve
-import io.karma.evince.krypton.ec.ParameterizedEllipticCurve
 import io.karma.evince.krypton.utils.JavaCryptoHelper
 import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Security
+import javax.crypto.spec.DHParameterSpec
 
 /** @suppress **/
 internal typealias JavaKeyPairGenerator = java.security.KeyPairGenerator
@@ -48,11 +48,11 @@ actual class KeyPairGenerator actual constructor(
         keyPairGenerator = JavaKeyPairGenerator.getInstance(algorithm)
         when (parameter) {
             is ECKeyPairGeneratorParameter -> keyPairGenerator.initialize(
-                when (val ellipticCurve = parameter.ellipticCurve) {
-                    is DefaultEllipticCurve -> ECNamedCurveTable.getParameterSpec(ellipticCurve.toString())
-                    is ParameterizedEllipticCurve -> ellipticCurve.parameterSpec
-                    else -> throw IllegalArgumentException("Unsupported elliptic curve class type '$ellipticCurve'")
-                }
+                ECNamedCurveTable.getParameterSpec(parameter.curve.toString())
+            )
+
+            is DHKeyPairGeneratorParameter -> keyPairGenerator.initialize(
+                DHParameterSpec(parameter.p.toJavaBigInteger(), parameter.g.toJavaBigInteger())
             )
 
             else -> keyPairGenerator.initialize(parameter.size)

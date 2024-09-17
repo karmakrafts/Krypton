@@ -17,21 +17,38 @@
 package io.karma.evince.krypton.hashes
 
 import io.karma.evince.krypton.Algorithm
-import io.karma.evince.krypton.ec.DefaultEllipticCurve
+import io.karma.evince.krypton.ec.EllipticCurve
 import io.karma.evince.krypton.key.ECKeyPairGeneratorParameter
 import io.karma.evince.krypton.key.KeyAgreement
 import io.karma.evince.krypton.key.KeyPairGenerator
+import io.karma.evince.krypton.key.KeyPairGeneratorParameter
 import io.kotest.core.spec.style.ShouldSpec
 import kotlin.test.assertTrue
 
 class KeyAgreementTests : ShouldSpec() {
     init {
-        should("test ECDH handshake") {
-            KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameter(DefaultEllipticCurve.PRIME256V1)).use {
-                it.generate().use { kp1 ->
-                    it.generate().use { kp2 ->
-                        val secret1 = KeyAgreement(Algorithm.ECDH, kp1.privateKey).generateSecret(kp2.publicKey)
-                        val secret2 = KeyAgreement(Algorithm.ECDH, kp2.privateKey).generateSecret(kp1.publicKey)
+        should("test ECDH agreement") {
+            KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameter(EllipticCurve.PRIME256V1)).use { gen ->
+                gen.generate().use { kp1 ->
+                    gen.generate().use { kp2 ->
+                        val secret1 = KeyAgreement(Algorithm.ECDH, kp1.privateKey)
+                            .use { it.generateSecret(kp2.publicKey) }
+                        val secret2 = KeyAgreement(Algorithm.ECDH, kp2.privateKey)
+                            .use { it.generateSecret(kp1.publicKey) }
+                        assertTrue(secret1.contentEquals(secret2))
+                    }
+                }
+            }
+        }
+
+        should("test DH agreement") {
+            KeyPairGenerator(Algorithm.DH, KeyPairGeneratorParameter(2048)).use { gen ->
+                gen.generate().use { kp1 ->
+                    gen.generate().use { kp2 ->
+                        val secret1 = KeyAgreement(Algorithm.DH, kp1.privateKey)
+                            .use { it.generateSecret(kp2.publicKey) }
+                        val secret2 = KeyAgreement(Algorithm.DH, kp2.privateKey)
+                            .use { it.generateSecret(kp1.publicKey) }
                         assertTrue(secret1.contentEquals(secret2))
                     }
                 }

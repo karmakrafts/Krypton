@@ -16,6 +16,7 @@
 
 package io.karma.evince.krypton.key
 
+import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 import io.karma.evince.krypton.ec.EllipticCurve
@@ -31,4 +32,5 @@ expect class KeyPairGenerator @UncheckedKryptonAPI constructor(
 
 open class KeyPairGeneratorParameter(internal val size: Int)
 
-class ECKeyPairGeneratorParameter(internal val ellipticCurve: EllipticCurve): KeyPairGeneratorParameter(0)
+class ECKeyPairGeneratorParameter(internal val curve: EllipticCurve): KeyPairGeneratorParameter(0)
+class DHKeyPairGeneratorParameter(internal val p: BigInteger, internal val g: BigInteger): KeyPairGeneratorParameter(0)

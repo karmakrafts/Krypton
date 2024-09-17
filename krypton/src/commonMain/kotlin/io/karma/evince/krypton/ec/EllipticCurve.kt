@@ -16,26 +16,7 @@
 
 package io.karma.evince.krypton.ec
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
-
-/**
- * This interface is the template for the implementation of elliptic curves into the Krypton API. It allows the user to
- * create custom curves or use one of the by-default provided curves.
- *
- * @author Cedric Hammes
- * @since  10/09/2024
- */
-interface EllipticCurve : AutoCloseable
-
-/**
- * This enum represents all by-default provided elliptic curves. All of these curves are implemented on all platforms
- * supported by Krypton itself. It is recommended to prefer these curves over custom curves.
- *
- * @author Cedric Hammes
- * @since  10/09/024
- */
-enum class DefaultEllipticCurve(private val literal: String, val bits: Int) : EllipticCurve {
+enum class EllipticCurve(private val literal: String, val bits: Int) {
     PRIME192V1("prime192v1", 192),
     PRIME192V2("prime192v2", 192),
     PRIME192V3("prime192v3", 192),
@@ -58,41 +39,5 @@ enum class DefaultEllipticCurve(private val literal: String, val bits: Int) : El
     BRAINPOOL_P384R1("brainpoolP384r1", 384),
     BRAINPOOL_P512R1("brainpoolP512r1", 512);
 
-    override fun close() {}
     override fun toString(): String = literal
 }
-
-class EllipticCurveParameters {
-    lateinit var name: String
-    lateinit var generatorPoint: Pair<BigInteger, BigInteger>
-    lateinit var field: Field
-    lateinit var a: BigInteger
-    lateinit var b: BigInteger
-    lateinit var order: BigInteger
-
-    sealed interface Field {
-        data class Fp(internal val p: BigInteger): Field
-    }
-}
-
-/**
- * This class represents a parameterized elliptic curve. These curves are configurable with custom curve parameters to
- * work with custom curves. This API should only be used if you are using secure parameters, otherwise you can reduce
- * the security of your cryptographic system.
- *
- * @author Cedric Hammes
- * @since  10/09/024
- */
-@UncheckedKryptonAPI
-expect class ParameterizedEllipticCurve(parameters: EllipticCurveParameters) : EllipticCurve
-
-/**
- * This function can be used to define a custom elliptic curve. You can configure the elliptic curve parameters in the
- * closure.
- *
- * @author Cedric Hammes
- * @since  10/09/024
- */
-@UncheckedKryptonAPI
-fun curve(closure: EllipticCurveParameters.() -> Unit): ParameterizedEllipticCurve =
-    ParameterizedEllipticCurve(EllipticCurveParameters().apply(closure))
