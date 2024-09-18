@@ -23,9 +23,6 @@ import io.karma.evince.krypton.key.internal.ECKeyPairGenerator
 import io.karma.evince.krypton.key.internal.InternalKeyPairGenerator
 import io.karma.evince.krypton.key.internal.RSAKeyPairGenerator
 
-// TODO: Implement internal keypair generator interface (platform-specific) to allow separation of post-quantum
-//  cryptography API into a separate module
-
 @OptIn(InternalKryptonAPI::class)
 actual class KeyPairGenerator actual constructor(
     algorithm: String,
