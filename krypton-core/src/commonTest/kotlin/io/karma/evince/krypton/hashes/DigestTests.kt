@@ -50,7 +50,7 @@ class DigestTests : ShouldSpec() {
                 )
             }
         }
-
+        
         should("test SHA") {
             Digest(DigestType.SHA224).use { digest ->
                 assertEquals(
@@ -77,7 +77,7 @@ class DigestTests : ShouldSpec() {
                 )
             }
         }
-
+        
         should("test MD5") {
             Digest(DigestType.MD5).use { digest ->
                 assertEquals(

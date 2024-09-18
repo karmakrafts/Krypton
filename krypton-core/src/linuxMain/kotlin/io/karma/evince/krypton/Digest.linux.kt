@@ -22,30 +22,32 @@ import libssl.*
 
 actual class Digest actual constructor(string: String, private val size: Int) : AutoCloseable {
     private val context = requireNotNull(EVP_MD_CTX_new())
-
+    
     actual constructor(type: DigestType, size: Int) : this(type.toString(), size)
-
+    
     init {
         val digest = EVP_get_digestbyname(string)
-            ?: throw IllegalArgumentException("The digest '$string' is not available, the following are officially " +
-                    "supported by Krypton: ${DigestType.entries.joinToString(", ")}")
-
+            ?: throw IllegalArgumentException(
+                "The digest '$string' is not available, the following are officially " +
+                        "supported by Krypton: ${DigestType.entries.joinToString(", ")}"
+            )
+        
         if (size == 0) {
             throw IllegalArgumentException("The size of the '$string' digest is not set, please set a size manually")
         }
-
+        
         if (EVP_DigestInit_ex(context, digest, null) != 1) {
             EVP_MD_CTX_free(context)
             throw RuntimeException("Unable to initialize digest for '$string'", ErrorHelper.createOpenSSLException())
         }
     }
-
+    
     actual fun hash(value: ByteArray): ByteArray {
         value.usePinned { valuePtr ->
             if (EVP_DigestUpdate(context, valuePtr.addressOf(0), value.size.toULong()) != 1)
                 throw RuntimeException("Unable to update digest", ErrorHelper.createOpenSSLException())
         }
-
+        
         val output = ByteArray(size)
         memScoped {
             val size = alloc<UIntVar>()
@@ -57,9 +59,8 @@ actual class Digest actual constructor(string: String, private val size: Int) : 
         }
         return output
     }
-
+    
     actual override fun close() {
         EVP_MD_CTX_free(context)
     }
-
 }

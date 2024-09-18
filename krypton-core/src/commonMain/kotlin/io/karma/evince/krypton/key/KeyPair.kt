@@ -23,7 +23,7 @@ package io.karma.evince.krypton.key
  * @author Cedric Hammes
  * @since  08/09/2024
  */
-data class KeyPair(val publicKey: Key, val privateKey: Key): AutoCloseable {
+data class KeyPair(val publicKey: Key, val privateKey: Key) : AutoCloseable {
     override fun close() {
         publicKey.close()
         privateKey.close()

@@ -12,14 +12,14 @@ class WithFree {
     private val freeOperations = mutableListOf<() -> Unit>()
     private val exceptionFreeOperations = mutableListOf<() -> Unit>()
     
-    fun <T: CPointed> CPointerVar<T>.freeAfterOnException(free: (NativePtr) -> Unit): CPointerVar<T> =
+    fun <T : CPointed> CPointerVar<T>.freeAfterOnException(free: (NativePtr) -> Unit): CPointerVar<T> =
         also {
             exceptionFreeOperations.add {
                 free(it.rawPtr)
             }
         }
     
-    fun <T: CPointed> CPointerVar<T>.freeAfter(free: (NativePtr) -> Unit): CPointerVar<T> =
+    fun <T : CPointed> CPointerVar<T>.freeAfter(free: (NativePtr) -> Unit): CPointerVar<T> =
         also {
             freeOperations.add {
                 free(it.rawPtr)
@@ -39,13 +39,13 @@ class WithFree {
                 free(it)
             }
         }
-
+    
     @PublishedApi
     internal fun freeAll() {
         freeOperations.reversed().forEach { it() }
         freeOperations.clear()
     }
-
+    
     @PublishedApi
     internal fun freeAllOnException() {
         exceptionFreeOperations.reversed().forEach { it() }

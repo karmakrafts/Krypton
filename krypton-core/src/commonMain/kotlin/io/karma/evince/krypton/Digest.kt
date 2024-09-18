@@ -29,6 +29,7 @@ import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
  */
 expect class Digest @UncheckedKryptonAPI constructor(string: String, size: Int = 0) : AutoCloseable {
     constructor(type: DigestType, size: Int = type.bitSize / 8)
+    
     fun hash(value: ByteArray): ByteArray
     override fun close()
 }
@@ -71,17 +72,21 @@ enum class DigestType(private val literal: String, val bitSize: Int) {
     SHA3_256("SHA3-256", 256),
     SHA3_384("SHA3-384", 384),
     SHA3_512("SHA3-512", 512),
-
+    
     @Deprecated("MD5 is not secure and deprecated")
     MD5("MD5", 128),
+    
     @Deprecated("SHA224 is deprecated, please use SHA3-224")
     SHA224("SHA-224", 224),
+    
     @Deprecated("SHA256 is deprecated, please use SHA3-256")
     SHA256("SHA-256", 256),
+    
     @Deprecated("SHA384 is deprecated, please use SHA3-384")
     SHA384("SHA-384", 384),
+    
     @Deprecated("SHA512 is deprecated, please use SHA3-512")
     SHA512("SHA-512", 512);
-
+    
     override fun toString(): String = literal
 }

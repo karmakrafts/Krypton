@@ -23,16 +23,16 @@ private typealias JavaKeyAgreement = javax.crypto.KeyAgreement
 
 actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key) : AutoCloseable {
     private val keyAgreement: JavaKeyAgreement
-
+    
     actual constructor(algorithm: Algorithm, privateKey: Key) :
             this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_AGREEMENT).toString(), privateKey)
-
+    
     init {
         JavaCryptoHelper.installBouncyCastleProviders()
         this.keyAgreement = JavaKeyAgreement.getInstance(algorithm)
         this.keyAgreement.init(privateKey.internalValue)
     }
-
+    
     actual fun generateSecret(peerPublicKey: Key): ByteArray {
         this.keyAgreement.doPhase(peerPublicKey.internalValue, true) // TODO: Add compatibility for doPhase = false
         return this.keyAgreement.generateSecret()

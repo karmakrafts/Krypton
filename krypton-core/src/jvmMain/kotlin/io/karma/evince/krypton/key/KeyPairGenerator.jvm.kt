@@ -29,11 +29,11 @@ actual class KeyPairGenerator actual constructor(
     algorithm: String, parameter: KeyPairGeneratorParameter
 ) : AutoCloseable {
     private val keyPairGenerator: JavaKeyPairGenerator
-
+    
     actual constructor(
         algorithm: Algorithm, parameter: KeyPairGeneratorParameter
     ) : this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameter)
-
+    
     init {
         JavaCryptoHelper.installBouncyCastleProviders()
         keyPairGenerator = JavaKeyPairGenerator.getInstance(algorithm)
@@ -41,17 +41,17 @@ actual class KeyPairGenerator actual constructor(
             is ECKeyPairGeneratorParameter -> keyPairGenerator.initialize(
                 ECNamedCurveTable.getParameterSpec(parameter.curve.toString())
             )
-
+            
             is DHKeyPairGeneratorParameter -> keyPairGenerator.initialize(
                 DHParameterSpec(parameter.p.toJavaBigInteger(), parameter.g.toJavaBigInteger(), parameter.size)
             )
-
+            
             else -> keyPairGenerator.initialize(parameter.size)
         }
     }
-
+    
     actual fun generate(): KeyPair = keyPairGenerator.generateKeyPair()
         .let { KeyPair(Key(KeyType.PUBLIC, it.public), Key(KeyType.PRIVATE, it.private)) }
-
+    
     actual override fun close() {}
 }

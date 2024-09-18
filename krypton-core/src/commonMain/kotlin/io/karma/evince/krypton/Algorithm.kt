@@ -57,7 +57,7 @@ enum class Algorithm(
         defaultPadding = Padding.PKCS1,
         scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR)
     ),
-
+    
     /**
      * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature crypto system created in
      * 1977. According to the NIST's Recommendation for Key Management the key length 2048 is recommended. It can be
@@ -78,7 +78,7 @@ enum class Algorithm(
         defaultPadding = Padding.PKCS5,
         scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR)
     ),
-
+    
     /**
      * Ths AES (Advanced Encryption Standard, also known as Rijndael) block cipher is a symmetric encryption algorithm
      * created in 1998 with a block size of 128 bits. According to the NSA's Commercial National Security Algorithm
@@ -99,7 +99,7 @@ enum class Algorithm(
         defaultPadding = Padding.NONE,
         scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR)
     ),
-
+    
     /**
      * The DH (Diffie-Hellman) algorithm is a key agreement algorithm created in 1976. This algorithm is used for the
      * key agreement in the TLS protocol. According to the NIST's Recommendation for Key Management the key length 2048
@@ -120,7 +120,7 @@ enum class Algorithm(
         defaultPadding = null,
         scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR)
     ),
-
+    
     /**
      * The ECDH (Elliptic-Curve Diffie-Hellman) is the elliptic-curve equivalent of the Diffie-Hellman key agreement
      * algorithm. The advantage of ECDH is the higher security with lower key sizes compared to DH. This algorithm
@@ -141,7 +141,7 @@ enum class Algorithm(
         defaultPadding = null,
         scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR)
     );
-
+    
     /** @suppress **/
     constructor(
         literal: String, supportedBlockModes: Array<BlockMode>?, supportedPaddings: Array<Padding>?,
@@ -151,14 +151,14 @@ enum class Algorithm(
         literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) },
         defaultBlockMode, defaultPadding, scopes
     )
-
+    
     fun checkScopeOrError(scope: Scope): Algorithm = this.also {
         if (!it.scopes.contains(scope)) {
             val supported = Algorithm.byScope(listOf(scope)).joinToString(", ")
             throw IllegalArgumentException("Algorithm '$literal' cannot be found for $scope. Please use: one of the following: $supported")
         }
     }
-
+    
     /**
      * This function returns the algorithm as a literal. These literals are used internally for the JVM target.
      *
@@ -166,16 +166,16 @@ enum class Algorithm(
      * @since  08/09/2024
      */
     override fun toString(): String = literal
-
+    
     companion object {
         @JvmStatic
         fun firstOrNull(literal: String): Algorithm? = Algorithm.entries.firstOrNull { it.toString() == literal }
-
+        
         @JvmStatic
         fun byScope(scopes: List<Scope>): List<Algorithm> =
             Algorithm.entries.filter { curr -> curr.scopes.all { it in scopes } }
     }
-
+    
     /**
      * This class indicates the usages for cryptographic algorithms in the Krypton API. Al of these are checked by the
      * API to ensure the correct usage of keys.
@@ -189,7 +189,7 @@ enum class Algorithm(
         KEY_GENERATOR("Key Generator"),
         KEY_AGREEMENT("Key Agreement"),
         SIGNATURE("Signature");
-
+        
         override fun toString(): String = literal
     }
 }
@@ -221,6 +221,6 @@ enum class Padding(private val literal: String) {
     PKCS1("PKCS1Padding"),
     OAEP_SHA1_MGF1("OAEPWithSHA-1AndMGF1Padding"),
     OAEP_SHA256_MGF1("OAEPWithSHA-1AndMGF1Padding");
-
+    
     override fun toString(): String = literal
 }

@@ -19,7 +19,8 @@ package io.karma.evince.krypton.utils
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.usePinned
-import libssl.*
+import libssl.ERR_error_string
+import libssl.ERR_get_error
 
 /** @suppress **/
 internal object ErrorHelper {
@@ -29,7 +30,7 @@ internal object ErrorHelper {
             else -> OpenSSLException(errors.joinToString(", "))
         }
     }
-
+    
     private fun getOpenSSLErrors(): List<String> {
         val errorList = mutableListOf<String>()
         var error = ERR_get_error()
@@ -41,7 +42,7 @@ internal object ErrorHelper {
         }
         return errorList
     }
-
+    
     /** @suppress **/
     internal class OpenSSLException(message: String) : RuntimeException(message)
 }

@@ -34,8 +34,7 @@ interface InternalKeyPairGenerator {
 @InternalKryptonAPI
 object InternalKeyPairGeneratorRegistry {
     
-    private val generators: MutableMap<String, (KeyPairGeneratorParameter) -> InternalKeyPairGenerator> =
-        mutableMapOf()
+    private val generators: MutableMap<String, (KeyPairGeneratorParameter) -> InternalKeyPairGenerator> = mutableMapOf()
     
     init {
         this.registerFactory(Algorithm.RSA) { parameters -> RSAKeyPairGenerator(parameters) }
@@ -46,8 +45,7 @@ object InternalKeyPairGeneratorRegistry {
     }
     
     fun registerFactory(algorithm: String, factory: (KeyPairGeneratorParameter) -> InternalKeyPairGenerator) {
-        if (generators.containsKey(algorithm))
-            throw RuntimeException("Factory for algorithm '$algorithm' is already registered")
+        if (generators.containsKey(algorithm)) throw RuntimeException("Factory for algorithm '$algorithm' is already registered")
         generators[algorithm] = factory
     }
     

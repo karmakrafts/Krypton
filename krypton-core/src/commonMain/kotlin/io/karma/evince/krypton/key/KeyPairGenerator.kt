@@ -26,7 +26,7 @@ expect class KeyPairGenerator @UncheckedKryptonAPI constructor(
     parameter: KeyPairGeneratorParameter
 ) : AutoCloseable {
     constructor(algorithm: Algorithm, parameter: KeyPairGeneratorParameter)
-
+    
     fun generate(): KeyPair
     override fun close()
 }

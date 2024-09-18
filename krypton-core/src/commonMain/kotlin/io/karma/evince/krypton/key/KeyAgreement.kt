@@ -29,7 +29,7 @@ import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
  */
 expect class KeyAgreement @UncheckedKryptonAPI constructor(algorithm: String, privateKey: Key) : AutoCloseable {
     constructor(algorithm: Algorithm, privateKey: Key)
-
+    
     /**
      * This function derives the secret from the peer's public key combined with the private key specified in the
      * constructor. This secret should not be used directly for cryptographic algorithms

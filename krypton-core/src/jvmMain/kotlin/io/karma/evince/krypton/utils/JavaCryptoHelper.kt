@@ -25,14 +25,14 @@ internal object JavaCryptoHelper {
     internal inline fun <reified T> getAlgorithms(): List<String> = Security.getProviders()
         .flatMap { it.services.filter { service -> service.type.equals(T::class.simpleName) } }
         .map { it.algorithm }.toList()
-
+    
     internal fun installBouncyCastleProviders() {
         // https://www.bouncycastle.org/documentation/specification_interoperability/
         // TODO: Only implement the QPC provider if post-quantum module is there. I think later about the design
         installIfNotFound(BouncyCastleProvider())
     }
-
-    private inline fun <reified T: Provider> installIfNotFound(value: T) {
+    
+    private inline fun <reified T : Provider> installIfNotFound(value: T) {
         if (Security.getProviders().none { T::class.isInstance(it) })
             Security.addProvider(value)
     }

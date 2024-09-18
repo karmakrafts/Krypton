@@ -38,6 +38,6 @@ enum class EllipticCurve(private val literal: String, val bits: Int) {
     BRAINPOOL_P320R1("brainpoolP320r1", 320),
     BRAINPOOL_P384R1("brainpoolP384r1", 384),
     BRAINPOOL_P512R1("brainpoolP512r1", 512);
-
+    
     override fun toString(): String = literal
 }

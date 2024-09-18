@@ -21,14 +21,13 @@ import javax.crypto.KeyGenerator
 
 actual class KeyGenerator actual constructor(algorithm: String, parameter: KeyGeneratorParameter) {
     private val keyGenerator: KeyGenerator = KeyGenerator.getInstance(algorithm)
-
+    
     actual constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter) :
             this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameter)
-
+    
     init {
         this.keyGenerator.init(parameter.size)
     }
-
+    
     actual fun generate(): Key = Key(KeyType.SYMMETRIC, keyGenerator.generateKey())
-
 }

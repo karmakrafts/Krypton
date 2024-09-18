@@ -16,7 +16,6 @@
 
 package io.karma.evince.krypton.key.internal
 
-import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
 import io.karma.evince.krypton.ec.EllipticCurve
 import io.karma.evince.krypton.key.*

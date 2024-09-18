@@ -21,7 +21,7 @@ typealias JavaKey = java.security.Key
 
 actual class Key(actual val type: KeyType, internal val internalValue: JavaKey) : AutoCloseable {
     actual val algorithm: String = internalValue.algorithm
-
+    
     actual override fun close() {
     }
 }

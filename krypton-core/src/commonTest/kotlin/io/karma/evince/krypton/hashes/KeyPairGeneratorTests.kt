@@ -18,7 +18,10 @@ package io.karma.evince.krypton.hashes
 
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.ec.EllipticCurve
-import io.karma.evince.krypton.key.*
+import io.karma.evince.krypton.key.ECKeyPairGeneratorParameter
+import io.karma.evince.krypton.key.KeyPairGenerator
+import io.karma.evince.krypton.key.KeyPairGeneratorParameter
+import io.karma.evince.krypton.key.KeyType
 import io.kotest.core.spec.style.ShouldSpec
 import kotlin.test.assertEquals
 
@@ -34,7 +37,7 @@ class KeyPairGeneratorTests : ShouldSpec() {
                 }
             }
         }
-
+        
         should("test DH") {
             KeyPairGenerator(Algorithm.DH, KeyPairGeneratorParameter(1024)).use { gen ->
                 gen.generate().use { keyPair ->
@@ -45,7 +48,7 @@ class KeyPairGeneratorTests : ShouldSpec() {
                 }
             }
         }
-
+        
         should("test ECDH") {
             KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameter(EllipticCurve.PRIME192V1)).use { gen ->
                 gen.generate().use { keyPair ->
