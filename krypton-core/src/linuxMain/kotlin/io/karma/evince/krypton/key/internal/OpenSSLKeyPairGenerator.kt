@@ -110,7 +110,7 @@ open class ParameterizedOpenSSLKeyPairGenerator<P : KeyPairGeneratorParameter>(
 
 /** @suppress **/
 @InternalKryptonAPI
-class ECKeyPairGenerator(algorithm: Algorithm, params: ECKeyPairGeneratorParameter) :
+internal class ECKeyPairGenerator(algorithm: Algorithm, params: ECKeyPairGeneratorParameter) :
     ParameterizedOpenSSLKeyPairGenerator<ECKeyPairGeneratorParameter>(EVP_PKEY_EC, algorithm, params,
         { parameterGenerator, parameters ->
             if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(parameterGenerator, parameters.curve.toOpenSSLId()) != 1)
@@ -120,7 +120,7 @@ class ECKeyPairGenerator(algorithm: Algorithm, params: ECKeyPairGeneratorParamet
 
 /** @suppress **/
 @InternalKryptonAPI
-class RSAKeyPairGenerator(params: KeyPairGeneratorParameter) :
+internal class RSAKeyPairGenerator(params: KeyPairGeneratorParameter) :
     OpenSSLKeyPairGenerator<KeyPairGeneratorParameter>(EVP_PKEY_RSA, Algorithm.RSA, params,
         { keyGenerator, parameters ->
             if (EVP_PKEY_CTX_set_rsa_keygen_bits(keyGenerator, parameters.size) != 1)
@@ -130,7 +130,7 @@ class RSAKeyPairGenerator(params: KeyPairGeneratorParameter) :
 
 /** @suppress **/
 @InternalKryptonAPI
-class DefaultDHKeyPairGenerator(params: KeyPairGeneratorParameter) :
+internal class DefaultDHKeyPairGenerator(params: KeyPairGeneratorParameter) :
     ParameterizedOpenSSLKeyPairGenerator<KeyPairGeneratorParameter>(EVP_PKEY_DH, Algorithm.DH, params,
         { parameterGenerator, parameters ->
             if (EVP_PKEY_CTX_set_dh_paramgen_prime_len(parameterGenerator, parameters.size) != 1)
