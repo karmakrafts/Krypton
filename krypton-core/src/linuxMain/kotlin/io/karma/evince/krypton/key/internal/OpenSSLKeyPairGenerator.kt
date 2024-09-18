@@ -30,7 +30,7 @@ import libssl.*
 @InternalKryptonAPI
 open class OpenSSLKeyPairGenerator<P : KeyPairGeneratorParameter>(
     nid: Int,
-    private val algorithm: Algorithm,
+    private val algorithm: String,
     parameters: P,
     configurator: (CPointer<EVP_PKEY_CTX>, P) -> Unit
 ) : InternalKeyPairGenerator {
@@ -51,8 +51,8 @@ open class OpenSSLKeyPairGenerator<P : KeyPairGeneratorParameter>(
                 throw RuntimeException("Unable to generate keypair", ErrorHelper.createOpenSSLException())
         }
         return KeyPair(
-            Key(KeyType.PUBLIC, algorithm.toString(), key),
-            Key(KeyType.PRIVATE, algorithm.toString(), EVP_PKEY_dup(key).checkNotNull())
+            Key(KeyType.PUBLIC, algorithm, key),
+            Key(KeyType.PRIVATE, algorithm, EVP_PKEY_dup(key).checkNotNull())
         )
     }
     
@@ -65,7 +65,7 @@ open class OpenSSLKeyPairGenerator<P : KeyPairGeneratorParameter>(
 @InternalKryptonAPI
 open class ParameterizedOpenSSLKeyPairGenerator<P : KeyPairGeneratorParameter>(
     nid: Int,
-    private val algorithm: Algorithm,
+    private val algorithm: String,
     parameters: P,
     configurator: (CPointer<EVP_PKEY_CTX>, P) -> Unit
 ) : InternalKeyPairGenerator {
@@ -95,8 +95,8 @@ open class ParameterizedOpenSSLKeyPairGenerator<P : KeyPairGeneratorParameter>(
                 throw RuntimeException("Unable to generate keypair", ErrorHelper.createOpenSSLException())
         }
         return KeyPair(
-            Key(KeyType.PUBLIC, algorithm.toString(), key),
-            Key(KeyType.PRIVATE, algorithm.toString(), EVP_PKEY_dup(key).checkNotNull())
+            Key(KeyType.PUBLIC, algorithm, key),
+            Key(KeyType.PRIVATE, algorithm, EVP_PKEY_dup(key).checkNotNull())
         )
     }
     
@@ -110,7 +110,7 @@ open class ParameterizedOpenSSLKeyPairGenerator<P : KeyPairGeneratorParameter>(
 
 /** @suppress **/
 @InternalKryptonAPI
-internal class ECKeyPairGenerator(algorithm: Algorithm, params: ECKeyPairGeneratorParameter) :
+internal class ECKeyPairGenerator(algorithm: String, params: ECKeyPairGeneratorParameter) :
     ParameterizedOpenSSLKeyPairGenerator<ECKeyPairGeneratorParameter>(EVP_PKEY_EC, algorithm, params,
         { parameterGenerator, parameters ->
             if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(parameterGenerator, parameters.curve.toOpenSSLId()) != 1)
@@ -121,7 +121,7 @@ internal class ECKeyPairGenerator(algorithm: Algorithm, params: ECKeyPairGenerat
 /** @suppress **/
 @InternalKryptonAPI
 internal class RSAKeyPairGenerator(params: KeyPairGeneratorParameter) :
-    OpenSSLKeyPairGenerator<KeyPairGeneratorParameter>(EVP_PKEY_RSA, Algorithm.RSA, params,
+    OpenSSLKeyPairGenerator<KeyPairGeneratorParameter>(EVP_PKEY_RSA, "RSA", params,
         { keyGenerator, parameters ->
             if (EVP_PKEY_CTX_set_rsa_keygen_bits(keyGenerator, parameters.size) != 1)
                 throw RuntimeException("Unable to set RSA modulus", ErrorHelper.createOpenSSLException())
@@ -131,7 +131,7 @@ internal class RSAKeyPairGenerator(params: KeyPairGeneratorParameter) :
 /** @suppress **/
 @InternalKryptonAPI
 internal class DefaultDHKeyPairGenerator(params: KeyPairGeneratorParameter) :
-    ParameterizedOpenSSLKeyPairGenerator<KeyPairGeneratorParameter>(EVP_PKEY_DH, Algorithm.DH, params,
+    ParameterizedOpenSSLKeyPairGenerator<KeyPairGeneratorParameter>(EVP_PKEY_DH, "DH", params,
         { parameterGenerator, parameters ->
             if (EVP_PKEY_CTX_set_dh_paramgen_prime_len(parameterGenerator, parameters.size) != 1)
                 throw RuntimeException("Unable to set prime length", ErrorHelper.createOpenSSLException())

@@ -18,28 +18,19 @@ package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
-import io.karma.evince.krypton.key.internal.DefaultDHKeyPairGenerator
-import io.karma.evince.krypton.key.internal.ECKeyPairGenerator
-import io.karma.evince.krypton.key.internal.InternalKeyPairGenerator
-import io.karma.evince.krypton.key.internal.RSAKeyPairGenerator
+import io.karma.evince.krypton.key.internal.*
 
 @OptIn(InternalKryptonAPI::class)
 actual class KeyPairGenerator actual constructor(
     algorithm: String,
     parameter: KeyPairGeneratorParameter
 ) : AutoCloseable {
-    private val keyPairGeneratorImpl: InternalKeyPairGenerator = when (algorithm) {
-        "RSA" -> RSAKeyPairGenerator(parameter)
-        "ECDH" -> ECKeyPairGenerator(Algorithm.ECDH, parameter as ECKeyPairGeneratorParameter)
-        "DH" -> DefaultDHKeyPairGenerator(parameter)
-        else -> throw IllegalArgumentException("Algorithm '$algorithm' is not supported")
-    }
+    private val internal: InternalKeyPairGenerator =
+        InternalKeyPairGeneratorRegistry.createGenerator(algorithm, parameter)
 
     actual constructor(algorithm: Algorithm, parameter: KeyPairGeneratorParameter) :
             this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameter)
 
-    actual fun generate(): KeyPair = this.keyPairGeneratorImpl.generate()
-    actual override fun close() {
-        this.keyPairGeneratorImpl.close()
-    }
+    actual fun generate(): KeyPair = this.internal.generate()
+    actual override fun close() = this.internal.close()
 }
