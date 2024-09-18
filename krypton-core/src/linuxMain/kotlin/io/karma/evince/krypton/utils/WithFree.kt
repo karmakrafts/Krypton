@@ -2,6 +2,8 @@ package io.karma.evince.krypton.utils
 
 import kotlinx.cinterop.CPointed
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.CPointerVar
+import kotlinx.cinterop.NativePtr
 
 /**
  * See in https://gitlab.com/connect2x/qca/-/blob/main/qca-crypto/src/opensslMain/kotlin/de/connect2x/qca/crypto/withFree.kt?ref_type=heads
@@ -9,14 +11,28 @@ import kotlinx.cinterop.CPointer
 class WithFree {
     private val freeOperations = mutableListOf<() -> Unit>()
     private val exceptionFreeOperations = mutableListOf<() -> Unit>()
-
+    
+    fun <T: CPointed> CPointerVar<T>.freeAfterOnException(free: (NativePtr) -> Unit): CPointerVar<T> =
+        also {
+            exceptionFreeOperations.add {
+                free(it.rawPtr)
+            }
+        }
+    
+    fun <T: CPointed> CPointerVar<T>.freeAfter(free: (NativePtr) -> Unit): CPointerVar<T> =
+        also {
+            freeOperations.add {
+                free(it.rawPtr)
+            }
+        }
+    
     fun <T : CPointed> CPointer<T>.freeAfter(free: (CPointer<T>) -> Unit): CPointer<T> =
         also {
             freeOperations.add {
                 free(it)
             }
         }
-
+    
     fun <T : CPointed> CPointer<T>.freeAfterOnException(free: (CPointer<T>) -> Unit): CPointer<T> =
         also {
             exceptionFreeOperations.add {

@@ -36,7 +36,7 @@ class KeyPairGeneratorTests : ShouldSpec() {
         }
 
         should("test DH") {
-            KeyPairGenerator(Algorithm.DH, KeyPairGeneratorParameter(4096)).use { gen ->
+            KeyPairGenerator(Algorithm.DH, KeyPairGeneratorParameter(1024)).use { gen ->
                 gen.generate().use { keyPair ->
                     assertEquals("DH", keyPair.publicKey.algorithm)
                     assertEquals(KeyType.PUBLIC, keyPair.publicKey.type)

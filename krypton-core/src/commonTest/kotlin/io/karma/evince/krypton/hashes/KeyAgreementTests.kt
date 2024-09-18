@@ -42,7 +42,7 @@ class KeyAgreementTests : ShouldSpec() {
         }
 
         should("test DH agreement") {
-            KeyPairGenerator(Algorithm.DH, KeyPairGeneratorParameter(2048)).use { gen ->
+            KeyPairGenerator(Algorithm.DH, KeyPairGeneratorParameter(1024)).use { gen ->
                 gen.generate().use { kp1 ->
                     gen.generate().use { kp2 ->
                         val secret1 = KeyAgreement(Algorithm.DH, kp1.privateKey)
