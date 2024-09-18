@@ -33,6 +33,8 @@ expect class KeyPairGenerator @UncheckedKryptonAPI constructor(
 
 open class KeyPairGeneratorParameter(internal val size: Int)
 
+// TODO: Add in both JVM and native support for custom DH parameters
+
 class ECKeyPairGeneratorParameter(internal val curve: EllipticCurve) : KeyPairGeneratorParameter(0)
 class DHKeyPairGeneratorParameter(internal val p: BigInteger, internal val g: BigInteger, bits: Int) :
     KeyPairGeneratorParameter(bits)
