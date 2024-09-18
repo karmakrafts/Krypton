@@ -19,5 +19,5 @@ pluginManagement {
     }
 }
 
-include(":krypton")
+include(":krypton-core")
 rootProject.name = "krypton"
