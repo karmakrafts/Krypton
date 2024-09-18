@@ -25,7 +25,7 @@ class ParameterGeneratorTests : ShouldSpec() {
         should("test DH parameter generation") {
             ParameterGenerator(Algorithm.DH, ParameterGeneratorParameters(512)).use { parameterGenerator ->
                 val keyPairGenerationParameters = parameterGenerator.generate() as DHKeyPairGeneratorParameters
-                assertEquals(2, keyPairGenerationParameters.g.intValue())
+                assertEquals(512, keyPairGenerationParameters.p.toByteArray().size * 8)
                 assertEquals(512, keyPairGenerationParameters.size)
             }
         }
