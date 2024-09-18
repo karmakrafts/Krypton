@@ -20,6 +20,7 @@ import io.karma.evince.krypton.utils.ErrorHelper
 import kotlinx.cinterop.*
 import libssl.*
 
+/** @suppress **/
 actual class Digest actual constructor(string: String, private val size: Int) : AutoCloseable {
     private val context = requireNotNull(EVP_MD_CTX_new())
     

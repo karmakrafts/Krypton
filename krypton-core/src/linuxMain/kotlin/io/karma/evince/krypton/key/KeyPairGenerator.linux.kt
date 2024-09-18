@@ -18,9 +18,10 @@ package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
-import io.karma.evince.krypton.key.internal.InternalKeyPairGenerator
-import io.karma.evince.krypton.key.internal.InternalKeyPairGeneratorRegistry
+import io.karma.evince.krypton.internal.key.InternalKeyPairGenerator
+import io.karma.evince.krypton.internal.key.InternalKeyPairGeneratorRegistry
 
+/** @suppress **/
 @OptIn(InternalKryptonAPI::class)
 actual class KeyPairGenerator actual constructor(
     algorithm: String,

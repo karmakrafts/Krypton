@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton.key.internal
+package io.karma.evince.krypton.internal.key
 
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
@@ -37,9 +37,9 @@ object InternalKeyPairGeneratorRegistry {
     private val generators: MutableMap<String, (KeyPairGeneratorParameter) -> InternalKeyPairGenerator> = mutableMapOf()
     
     init {
-        this.registerFactory(Algorithm.RSA) { parameters -> RSAKeyPairGenerator(parameters) }
-        this.registerFactory(Algorithm.DH) { parameters -> DefaultDHKeyPairGenerator(parameters) }
-        this.registerFactory(Algorithm.ECDH) { parameters ->
+        registerFactory(Algorithm.RSA) { parameters -> RSAKeyPairGenerator(parameters) }
+        registerFactory(Algorithm.DH) { parameters -> DefaultDHKeyPairGenerator(parameters) }
+        registerFactory(Algorithm.ECDH) { parameters ->
             ECKeyPairGenerator("ECDH", parameters as ECKeyPairGeneratorParameter)
         }
     }
@@ -50,7 +50,7 @@ object InternalKeyPairGeneratorRegistry {
     }
     
     fun registerFactory(algorithm: Algorithm, factory: (KeyPairGeneratorParameter) -> InternalKeyPairGenerator) =
-        this.registerFactory(algorithm.toString(), factory)
+        registerFactory(algorithm.toString(), factory)
     
     fun createGenerator(algorithm: String, parameters: KeyPairGeneratorParameter): InternalKeyPairGenerator =
         generators[algorithm]?.invoke(parameters) ?: throw NullPointerException("'$algorithm' is not registered")

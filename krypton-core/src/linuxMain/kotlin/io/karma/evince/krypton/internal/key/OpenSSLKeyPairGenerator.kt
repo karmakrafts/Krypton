@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton.key.internal
+package io.karma.evince.krypton.internal.key
 
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
 import io.karma.evince.krypton.ec.EllipticCurve

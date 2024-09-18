@@ -19,6 +19,7 @@ package io.karma.evince.krypton.key
 /** @suppress **/
 typealias JavaKey = java.security.Key
 
+/** @suppress **/
 actual class Key(actual val type: KeyType, internal val internalValue: JavaKey) : AutoCloseable {
     actual val algorithm: String = internalValue.algorithm
     

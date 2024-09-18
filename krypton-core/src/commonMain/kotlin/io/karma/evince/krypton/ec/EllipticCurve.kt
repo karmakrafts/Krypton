@@ -16,6 +16,15 @@
 
 package io.karma.evince.krypton.ec
 
+/**
+ * This enum contains all by-default supported elliptic curves for the usage with elliptic curve based algorithms like
+ * ECDSA or ECDH. These curves are standardized curves like the brainpool curves or the ANSI X9.62 curves.
+ *
+ * @author Cedric Hammes
+ * @since  10/09/2024
+ *
+ * @see [Standard curve database](https://neuromancer.sk/std/)
+ */
 enum class EllipticCurve(private val literal: String, val bits: Int) {
     PRIME192V1("prime192v1", 192),
     PRIME192V2("prime192v2", 192),

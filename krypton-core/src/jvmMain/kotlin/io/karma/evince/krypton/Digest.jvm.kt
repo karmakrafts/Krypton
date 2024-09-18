@@ -19,6 +19,7 @@ package io.karma.evince.krypton
 import io.karma.evince.krypton.utils.JavaCryptoHelper
 import java.security.MessageDigest
 
+/** @suppress **/
 actual class Digest actual constructor(string: String, size: Int) : AutoCloseable {
     private val digest: MessageDigest
     

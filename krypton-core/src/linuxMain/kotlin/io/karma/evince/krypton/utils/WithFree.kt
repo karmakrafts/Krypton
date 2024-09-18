@@ -7,8 +7,9 @@ import kotlinx.cinterop.NativePtr
 
 /**
  * See in https://gitlab.com/connect2x/qca/-/blob/main/qca-crypto/src/opensslMain/kotlin/de/connect2x/qca/crypto/withFree.kt?ref_type=heads
+ * @suppress
  */
-class WithFree {
+internal class WithFree {
     private val freeOperations = mutableListOf<() -> Unit>()
     private val exceptionFreeOperations = mutableListOf<() -> Unit>()
     
@@ -53,7 +54,8 @@ class WithFree {
     }
 }
 
-inline fun <T> withFree(block: WithFree.() -> T): T {
+/** @suppress **/
+internal inline fun <T> withFree(block: WithFree.() -> T): T {
     val withFree = WithFree()
     return try {
         withFree.block()
@@ -62,7 +64,8 @@ inline fun <T> withFree(block: WithFree.() -> T): T {
     }
 }
 
-inline fun <T> withFreeWithException(closure: WithFree.() -> T): T {
+/** @suppress **/
+internal inline fun <T> withFreeWithException(closure: WithFree.() -> T): T {
     val withFree = WithFree()
     return try {
         withFree.closure()

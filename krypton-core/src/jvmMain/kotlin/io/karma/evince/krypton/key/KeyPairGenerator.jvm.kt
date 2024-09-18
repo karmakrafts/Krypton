@@ -25,6 +25,7 @@ import javax.crypto.spec.DHParameterSpec
 /** @suppress **/
 internal typealias JavaKeyPairGenerator = java.security.KeyPairGenerator
 
+/** @suppress **/
 actual class KeyPairGenerator actual constructor(
     algorithm: String, parameter: KeyPairGeneratorParameter
 ) : AutoCloseable {

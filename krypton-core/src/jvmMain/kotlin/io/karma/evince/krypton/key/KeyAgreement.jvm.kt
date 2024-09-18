@@ -21,6 +21,7 @@ import io.karma.evince.krypton.utils.JavaCryptoHelper
 
 private typealias JavaKeyAgreement = javax.crypto.KeyAgreement
 
+/** @suppress **/
 actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key) : AutoCloseable {
     private val keyAgreement: JavaKeyAgreement
     

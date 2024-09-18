@@ -22,6 +22,7 @@ import libssl.BIO_free
 import libssl.EVP_PKEY
 import libssl.EVP_PKEY_free
 
+/** @suppress **/
 actual class Key(actual val type: KeyType, actual val algorithm: String, internal val body: KeyBody) : AutoCloseable {
     constructor(type: KeyType, algorithm: String, data: CPointer<BIO>) :
             this(type, algorithm, KeyBody.DataKeyBody(data))

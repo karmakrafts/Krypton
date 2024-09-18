@@ -19,6 +19,7 @@ package io.karma.evince.krypton.key
 import io.karma.evince.krypton.Algorithm
 import javax.crypto.KeyGenerator
 
+/** @suppress **/
 actual class KeyGenerator actual constructor(algorithm: String, parameter: KeyGeneratorParameter) {
     private val keyGenerator: KeyGenerator = KeyGenerator.getInstance(algorithm)
     
