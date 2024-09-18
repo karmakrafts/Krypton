@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotest)
     alias(libs.plugins.dokka)
+    id("maven-publish")
 }
 
 // TODO: Use OpenSSL on Windows x64, macOS (is it default installed on macOS and iOS?) and Linux (x64 and arm64). If
@@ -12,6 +13,9 @@ plugins {
 
 group = "io.karma.evince"
 version = "${libs.versions.krypton.get()}.${System.getenv("CI_PIPELINE_IID")?: 0}"
+val isCIEnvironment = System.getenv("CI")?.equals("true")?: false
+if (!isCIEnvironment)
+    logger.info("Gradle build script is currently running in non-CI environment")
 
 kotlin {
     val kotlinJvmTarget = libs.versions.jvmTarget.get()
@@ -61,5 +65,45 @@ kotlin {
         jvmTest.dependencies {
             implementation(libs.kotest.junit.runner)
         }
+    }
+}
+
+publishing {
+    val dokkaJar by tasks.registering(Jar::class) {
+        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+        archiveClassifier.set("javadoc")
+        dependsOn(tasks.dokkaHtml)
+    }
+    
+    publications.configureEach {
+        if (this !is MavenPublication)
+            return@configureEach
+        
+        pom {
+            name = project.name
+            description = "Krypton is a library that implements the cryptographic primitives into Kotlin"
+            url = "https://git.karmakrafts.dev/kk/evince-project/krypton"
+            licenses {
+                license {
+                    name = "Apache License, version 2.0"
+                    url = "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            }
+            developers {
+                developer {
+                    id = "cach30verfl0w"
+                    name = "Cedric Hammes"
+                    email = "cach30verfl0w@gmail.com"
+                    roles = listOf("Lead Developer")
+                    timezone = "Europe/Berlin"
+                }
+            }
+            scm {
+                url.set("https://git.karmakrafts.dev/kk/evince-project/krypton")
+            }
+        }
+        
+        if (isCIEnvironment)
+            artifact(dokkaJar)
     }
 }

@@ -37,6 +37,6 @@ actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key)
         this.keyAgreement.doPhase(peerPublicKey.internalValue, true) // TODO: Add compatibility for doPhase = false
         return this.keyAgreement.generateSecret()
     }
-
-    override fun close() {}
+    
+    actual override fun close() {}
 }

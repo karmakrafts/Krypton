@@ -25,11 +25,11 @@ import libssl.BIGNUM
 import libssl.BN_bin2bn
 
 /** @suppress **/
-internal inline fun <T> T?.checkNotNull(message: String? = "The allocation of a object is failed"): T =
+internal fun <T> T?.checkNotNull(message: String? = "The allocation of a object is failed"): T =
     this ?: throw RuntimeException(message, ErrorHelper.createOpenSSLException())
 
 /** @suppress **/
-internal inline fun BigInteger.toOpenSSLBigNumber(store: MutableList<CPointer<BIGNUM>>? = null): CPointer<BIGNUM> =
+internal fun BigInteger.toOpenSSLBigNumber(store: MutableList<CPointer<BIGNUM>>? = null): CPointer<BIGNUM> =
     this.toByteArray().let { it.usePinned { pinned -> BN_bin2bn(pinned.addressOf(0).reinterpret(), it.size, null) } }
         .checkNotNull().also {
             store?.add(it)

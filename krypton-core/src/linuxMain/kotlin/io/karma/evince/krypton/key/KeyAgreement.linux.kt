@@ -57,7 +57,7 @@ actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key)
         }
     }
 
-    override fun close() {
+    actual override fun close() {
         EVP_PKEY_CTX_free(derivationContext)
     }
 }

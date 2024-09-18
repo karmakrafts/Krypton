@@ -169,10 +169,10 @@ enum class Algorithm(
 
     companion object {
         @JvmStatic
-        inline fun firstOrNull(literal: String): Algorithm? = Algorithm.entries.firstOrNull { it.toString() == literal }
+        fun firstOrNull(literal: String): Algorithm? = Algorithm.entries.firstOrNull { it.toString() == literal }
 
         @JvmStatic
-        inline fun byScope(scopes: List<Scope>): List<Algorithm> =
+        fun byScope(scopes: List<Scope>): List<Algorithm> =
             Algorithm.entries.filter { curr -> curr.scopes.all { it in scopes } }
     }
 

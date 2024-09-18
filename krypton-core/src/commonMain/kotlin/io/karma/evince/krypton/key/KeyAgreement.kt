@@ -38,4 +38,5 @@ expect class KeyAgreement @UncheckedKryptonAPI constructor(algorithm: String, pr
      * @since  17/09/2024
      */
     fun generateSecret(peerPublicKey: Key): ByteArray
+    override fun close()
 }
