@@ -25,13 +25,13 @@ import io.karma.evince.krypton.internal.key.InternalKeyPairGeneratorRegistry
 @OptIn(InternalKryptonAPI::class)
 actual class KeyPairGenerator actual constructor(
     algorithm: String,
-    parameter: KeyPairGeneratorParameter
+    parameters: KeyPairGeneratorParameters
 ) : AutoCloseable {
     private val internal: InternalKeyPairGenerator =
-        InternalKeyPairGeneratorRegistry.createGenerator(algorithm, parameter)
+        InternalKeyPairGeneratorRegistry.createGenerator(algorithm, parameters)
     
-    actual constructor(algorithm: Algorithm, parameter: KeyPairGeneratorParameter) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameter)
+    actual constructor(algorithm: Algorithm, parameters: KeyPairGeneratorParameters) :
+            this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameters)
     
     actual fun generate(): KeyPair = this.internal.generate()
     actual override fun close() = this.internal.close()

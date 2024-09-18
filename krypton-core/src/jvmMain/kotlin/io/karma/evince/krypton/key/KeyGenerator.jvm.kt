@@ -20,14 +20,14 @@ import io.karma.evince.krypton.Algorithm
 import javax.crypto.KeyGenerator
 
 /** @suppress **/
-actual class KeyGenerator actual constructor(algorithm: String, parameter: KeyGeneratorParameter) {
+actual class KeyGenerator actual constructor(algorithm: String, parameters: KeyGeneratorParameters) {
     private val keyGenerator: KeyGenerator = KeyGenerator.getInstance(algorithm)
     
-    actual constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameter)
+    actual constructor(algorithm: Algorithm, parameters: KeyGeneratorParameters) :
+            this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameters)
     
     init {
-        this.keyGenerator.init(parameter.size)
+        this.keyGenerator.init(parameters.size)
     }
     
     actual fun generate(): Key = Key(KeyType.SYMMETRIC, keyGenerator.generateKey())

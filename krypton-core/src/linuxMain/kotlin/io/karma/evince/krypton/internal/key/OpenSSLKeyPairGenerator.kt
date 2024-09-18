@@ -27,7 +27,7 @@ import libssl.*
 
 /** @suppress **/
 @InternalKryptonAPI
-open class OpenSSLKeyPairGenerator<P : KeyPairGeneratorParameter>(
+open class OpenSSLKeyPairGenerator<P : KeyPairGeneratorParameters>(
     nid: Int,
     private val algorithm: String,
     parameters: P,
@@ -62,7 +62,7 @@ open class OpenSSLKeyPairGenerator<P : KeyPairGeneratorParameter>(
 
 /** @suppress **/
 @InternalKryptonAPI
-open class ParameterizedOpenSSLKeyPairGenerator<P : KeyPairGeneratorParameter>(
+open class ParameterizedOpenSSLKeyPairGenerator<P : KeyPairGeneratorParameters>(
     nid: Int,
     private val algorithm: String,
     parameters: P,
@@ -109,8 +109,8 @@ open class ParameterizedOpenSSLKeyPairGenerator<P : KeyPairGeneratorParameter>(
 
 /** @suppress **/
 @InternalKryptonAPI
-internal class ECKeyPairGenerator(algorithm: String, params: ECKeyPairGeneratorParameter) :
-    ParameterizedOpenSSLKeyPairGenerator<ECKeyPairGeneratorParameter>(EVP_PKEY_EC, algorithm, params,
+internal class ECKeyPairGenerator(algorithm: String, params: ECKeyPairGeneratorParameters) :
+    ParameterizedOpenSSLKeyPairGenerator<ECKeyPairGeneratorParameters>(EVP_PKEY_EC, algorithm, params,
         { parameterGenerator, parameters ->
             if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(parameterGenerator, parameters.curve.toOpenSSLId()) != 1)
                 throw RuntimeException("Unable to set curve to generator", ErrorHelper.createOpenSSLException())
@@ -119,8 +119,8 @@ internal class ECKeyPairGenerator(algorithm: String, params: ECKeyPairGeneratorP
 
 /** @suppress **/
 @InternalKryptonAPI
-internal class RSAKeyPairGenerator(params: KeyPairGeneratorParameter) :
-    OpenSSLKeyPairGenerator<KeyPairGeneratorParameter>(EVP_PKEY_RSA, "RSA", params,
+internal class RSAKeyPairGenerator(params: KeyPairGeneratorParameters) :
+    OpenSSLKeyPairGenerator<KeyPairGeneratorParameters>(EVP_PKEY_RSA, "RSA", params,
         { keyGenerator, parameters ->
             if (EVP_PKEY_CTX_set_rsa_keygen_bits(keyGenerator, parameters.size) != 1)
                 throw RuntimeException("Unable to set RSA modulus", ErrorHelper.createOpenSSLException())
@@ -129,8 +129,8 @@ internal class RSAKeyPairGenerator(params: KeyPairGeneratorParameter) :
 
 /** @suppress **/
 @InternalKryptonAPI
-internal class DefaultDHKeyPairGenerator(params: KeyPairGeneratorParameter) :
-    ParameterizedOpenSSLKeyPairGenerator<KeyPairGeneratorParameter>(EVP_PKEY_DH, "DH", params,
+internal class DefaultDHKeyPairGenerator(params: KeyPairGeneratorParameters) :
+    ParameterizedOpenSSLKeyPairGenerator<KeyPairGeneratorParameters>(EVP_PKEY_DH, "DH", params,
         { parameterGenerator, parameters ->
             if (EVP_PKEY_CTX_set_dh_paramgen_prime_len(parameterGenerator, parameters.size) != 1)
                 throw RuntimeException("Unable to set prime length", ErrorHelper.createOpenSSLException())

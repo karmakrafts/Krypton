@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton.hashes
+package io.karma.evince.krypton
 
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.key.KeyGenerator
-import io.karma.evince.krypton.key.KeyGeneratorParameter
+import io.karma.evince.krypton.key.KeyGeneratorParameters
 import io.kotest.core.spec.style.ShouldSpec
 import kotlin.test.assertEquals
 
 class KeyGeneratorTests : ShouldSpec() {
     init {
         should("test AES") {
-            KeyGenerator(Algorithm.AES, KeyGeneratorParameter(256)).generate().use { key ->
+            KeyGenerator(Algorithm.AES, KeyGeneratorParameters(256)).generate().use { key ->
                 assertEquals("AES", key.algorithm)
             }
         }
         should("test DES") {
-            KeyGenerator(Algorithm.DES, KeyGeneratorParameter(56)).generate().use { key ->
+            KeyGenerator(Algorithm.DES, KeyGeneratorParameters(56)).generate().use { key ->
                 assertEquals("DES", key.algorithm)
             }
         }

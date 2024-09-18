@@ -17,12 +17,15 @@
 package io.karma.evince.krypton.utils
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import com.ionspin.kotlin.bignum.integer.Sign
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
 import libssl.BIGNUM
 import libssl.BN_bin2bn
+import libssl.BN_bn2bin
+import libssl.BN_num_bits
 
 /** @suppress **/
 internal fun <T> T?.checkNotNull(message: String? = "The allocation of a object is failed"): T =
@@ -34,3 +37,15 @@ internal fun BigInteger.toOpenSSLBigNumber(store: MutableList<CPointer<BIGNUM>>?
         .checkNotNull().also {
             store?.add(it)
         }
+
+internal fun CPointer<BIGNUM>.toBigInteger(): BigInteger {
+    val data = ByteArray((BN_num_bits(this) + 7) / 8)
+    data.usePinned {
+        if (BN_bn2bin(this, it.addressOf(0).reinterpret()) < 1)
+            throw RuntimeException(
+                "Unable to convert OpenSSL big number to BigInteger",
+                ErrorHelper.createOpenSSLException()
+            )
+    }
+    return BigInteger.fromByteArray(data, Sign.POSITIVE)
+}

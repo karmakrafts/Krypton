@@ -118,7 +118,7 @@ enum class Algorithm(
         supportedBitSizes = intArrayOf(1024, 2048, 3000, 4096, 8192),
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR)
+        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR, Scope.PARAMETER_GENERATOR)
     ),
     
     /**
@@ -188,6 +188,7 @@ enum class Algorithm(
         KEYPAIR_GENERATOR("Keypair Generator"),
         KEY_GENERATOR("Key Generator"),
         KEY_AGREEMENT("Key Agreement"),
+        PARAMETER_GENERATOR("Parameter generator"),
         SIGNATURE("Signature");
         
         override fun toString(): String = literal

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton.hashes
+package io.karma.evince.krypton
 
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.ec.EllipticCurve
-import io.karma.evince.krypton.key.ECKeyPairGeneratorParameter
+import io.karma.evince.krypton.key.ECKeyPairGeneratorParameters
 import io.karma.evince.krypton.key.KeyPairGenerator
-import io.karma.evince.krypton.key.KeyPairGeneratorParameter
+import io.karma.evince.krypton.key.KeyPairGeneratorParameters
 import io.karma.evince.krypton.key.KeyType
 import io.kotest.core.spec.style.ShouldSpec
 import kotlin.test.assertEquals
@@ -28,7 +28,7 @@ import kotlin.test.assertEquals
 class KeyPairGeneratorTests : ShouldSpec() {
     init {
         should("test RSA") {
-            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameter(2048)).use { gen ->
+            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameters(2048)).use { gen ->
                 gen.generate().use { keyPair ->
                     assertEquals("RSA", keyPair.publicKey.algorithm)
                     assertEquals(KeyType.PUBLIC, keyPair.publicKey.type)
@@ -39,7 +39,7 @@ class KeyPairGeneratorTests : ShouldSpec() {
         }
         
         should("test DH") {
-            KeyPairGenerator(Algorithm.DH, KeyPairGeneratorParameter(1024)).use { gen ->
+            KeyPairGenerator(Algorithm.DH, KeyPairGeneratorParameters(1024)).use { gen ->
                 gen.generate().use { keyPair ->
                     assertEquals("DH", keyPair.publicKey.algorithm)
                     assertEquals(KeyType.PUBLIC, keyPair.publicKey.type)
@@ -50,7 +50,7 @@ class KeyPairGeneratorTests : ShouldSpec() {
         }
         
         should("test ECDH") {
-            KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameter(EllipticCurve.PRIME192V1)).use { gen ->
+            KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameters(EllipticCurve.PRIME192V1)).use { gen ->
                 gen.generate().use { keyPair ->
                     assertEquals("ECDH", keyPair.publicKey.algorithm)
                     assertEquals(KeyType.PUBLIC, keyPair.publicKey.type)

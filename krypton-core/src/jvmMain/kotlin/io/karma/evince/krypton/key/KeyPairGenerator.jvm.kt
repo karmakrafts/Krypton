@@ -27,27 +27,27 @@ internal typealias JavaKeyPairGenerator = java.security.KeyPairGenerator
 
 /** @suppress **/
 actual class KeyPairGenerator actual constructor(
-    algorithm: String, parameter: KeyPairGeneratorParameter
+    algorithm: String, parameters: KeyPairGeneratorParameters
 ) : AutoCloseable {
     private val keyPairGenerator: JavaKeyPairGenerator
     
     actual constructor(
-        algorithm: Algorithm, parameter: KeyPairGeneratorParameter
-    ) : this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameter)
+        algorithm: Algorithm, parameters: KeyPairGeneratorParameters
+    ) : this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameters)
     
     init {
         JavaCryptoHelper.installBouncyCastleProviders()
         keyPairGenerator = JavaKeyPairGenerator.getInstance(algorithm)
-        when (parameter) {
-            is ECKeyPairGeneratorParameter -> keyPairGenerator.initialize(
-                ECNamedCurveTable.getParameterSpec(parameter.curve.toString())
+        when (parameters) {
+            is ECKeyPairGeneratorParameters -> keyPairGenerator.initialize(
+                ECNamedCurveTable.getParameterSpec(parameters.curve.toString())
             )
             
-            is DHKeyPairGeneratorParameter -> keyPairGenerator.initialize(
-                DHParameterSpec(parameter.p.toJavaBigInteger(), parameter.g.toJavaBigInteger(), parameter.size)
+            is DHKeyPairGeneratorParameters -> keyPairGenerator.initialize(
+                DHParameterSpec(parameters.p.toJavaBigInteger(), parameters.g.toJavaBigInteger(), parameters.size)
             )
             
-            else -> keyPairGenerator.initialize(parameter.size)
+            else -> keyPairGenerator.initialize(parameters.size)
         }
     }
     

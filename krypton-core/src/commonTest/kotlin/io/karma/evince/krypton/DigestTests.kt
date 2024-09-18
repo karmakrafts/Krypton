@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton.hashes
+package io.karma.evince.krypton
 
 import io.karma.evince.krypton.Digest
 import io.karma.evince.krypton.DigestType

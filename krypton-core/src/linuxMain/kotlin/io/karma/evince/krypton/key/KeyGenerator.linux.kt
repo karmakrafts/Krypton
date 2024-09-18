@@ -29,16 +29,16 @@ import libssl.RAND_bytes
 /** @suppress **/
 actual class KeyGenerator actual constructor(
     private val algorithm: String,
-    private val parameter: KeyGeneratorParameter
+    private val parameters: KeyGeneratorParameters
 ) {
-    actual constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameter)
+    actual constructor(algorithm: Algorithm, parameters: KeyGeneratorParameters) :
+            this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameters)
     
     actual fun generate(): Key {
         return Key(KeyType.SYMMETRIC, algorithm, requireNotNull(BIO_new(BIO_s_secmem())).let { data ->
-            val parameterSize = parameter.size
+            val parameterSize = parameters.size
             ByteArray(parameterSize).usePinned { dataPtr ->
-                if (RAND_bytes(dataPtr.addressOf(0).reinterpret(), parameter.size) != 1)
+                if (RAND_bytes(dataPtr.addressOf(0).reinterpret(), parameters.size) != 1)
                     throw RuntimeException(
                         "Unable to generate random data for key",
                         ErrorHelper.createOpenSSLException()

@@ -14,43 +14,38 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton.internal.key
+package io.karma.evince.krypton.internal.params
 
 import io.karma.evince.krypton.Algorithm
+import io.karma.evince.krypton.ParameterGeneratorParameters
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
-import io.karma.evince.krypton.key.ECKeyPairGeneratorParameters
-import io.karma.evince.krypton.key.KeyPair
 import io.karma.evince.krypton.key.KeyPairGeneratorParameters
 
 /** @suppress **/
 @InternalKryptonAPI
-interface InternalKeyPairGenerator : AutoCloseable {
-    fun generate(): KeyPair
+interface InternalParameterGenerator : AutoCloseable {
+    fun generate(): KeyPairGeneratorParameters
 }
 
 /** @suppress **/
 @InternalKryptonAPI
-object InternalKeyPairGeneratorRegistry {
-    private val generators: MutableMap<String, (KeyPairGeneratorParameters) -> InternalKeyPairGenerator> =
+object InternalParameterGeneratorRegistry {
+    private val generators: MutableMap<String, (ParameterGeneratorParameters) -> InternalParameterGenerator> =
         mutableMapOf()
     
     init {
-        registerFactory(Algorithm.RSA) { parameters -> RSAKeyPairGenerator(parameters) }
-        registerFactory(Algorithm.DH) { parameters -> DefaultDHKeyPairGenerator(parameters) }
-        registerFactory(Algorithm.ECDH) { parameters ->
-            ECKeyPairGenerator("ECDH", parameters as ECKeyPairGeneratorParameters)
-        }
+        registerFactory(Algorithm.DH) { parameters -> DHOpenSSLParameterGenerator(parameters) }
     }
     
-    fun registerFactory(algorithm: String, factory: (KeyPairGeneratorParameters) -> InternalKeyPairGenerator) {
+    fun registerFactory(algorithm: String, factory: (ParameterGeneratorParameters) -> InternalParameterGenerator) {
         if (generators.containsKey(algorithm))
             throw RuntimeException("Factory for algorithm '$algorithm' is already registered")
         generators[algorithm] = factory
     }
     
-    fun registerFactory(algorithm: Algorithm, factory: (KeyPairGeneratorParameters) -> InternalKeyPairGenerator) =
+    fun registerFactory(algorithm: Algorithm, factory: (ParameterGeneratorParameters) -> InternalParameterGenerator) =
         registerFactory(algorithm.toString(), factory)
     
-    fun createGenerator(algorithm: String, parameters: KeyPairGeneratorParameters): InternalKeyPairGenerator =
+    fun createGenerator(algorithm: String, parameters: ParameterGeneratorParameters): InternalParameterGenerator =
         generators[algorithm]?.invoke(parameters) ?: throw NullPointerException("'$algorithm' is not registered")
 }

@@ -9,7 +9,7 @@ import kotlinx.cinterop.NativePtr
  * See in https://gitlab.com/connect2x/qca/-/blob/main/qca-crypto/src/opensslMain/kotlin/de/connect2x/qca/crypto/withFree.kt?ref_type=heads
  * @suppress
  */
-internal class WithFree {
+class WithFree {
     private val freeOperations = mutableListOf<() -> Unit>()
     private val exceptionFreeOperations = mutableListOf<() -> Unit>()
     

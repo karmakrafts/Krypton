@@ -27,8 +27,8 @@ import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
  * @author Cedric Hamems
  * @since  08/09/2024
  */
-expect class KeyGenerator @UncheckedKryptonAPI constructor(algorithm: String, parameter: KeyGeneratorParameter) {
-    constructor(algorithm: Algorithm, parameter: KeyGeneratorParameter)
+expect class KeyGenerator @UncheckedKryptonAPI constructor(algorithm: String, parameters: KeyGeneratorParameters) {
+    constructor(algorithm: Algorithm, parameters: KeyGeneratorParameters)
     
     fun generate(): Key
 }
@@ -40,4 +40,4 @@ expect class KeyGenerator @UncheckedKryptonAPI constructor(algorithm: String, pa
  * @author Cedric Hammes
  * @since  08/09/2024
  */
-open class KeyGeneratorParameter(internal val size: Int)
+open class KeyGeneratorParameters(internal val size: Int)
