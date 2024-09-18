@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton.annotations
+package io.karma.evince.krypton.key.internal
 
-/**
- * This annotation is marking an unchecked API interface of the Krypton library. These APIs can be used by the user to
- * use not-officially supported algorithms or platform-dependant algorithms etc. Please prefer other APIs other these
- * unchecked APIs.
- *
- * @author Cedric Hammes
- * @since  08/09/2024
- */
-@Retention(AnnotationRetention.BINARY)
-@RequiresOptIn(level = RequiresOptIn.Level.WARNING, message = "This API does not ensure the correctness of the input")
-annotation class UncheckedKryptonAPI
+import io.karma.evince.krypton.annotations.InternalKryptonAPI
+import io.karma.evince.krypton.key.KeyPair
+
+/** @suppress **/
+@InternalKryptonAPI
+interface InternalKeyPairGenerator {
+    fun generate(): KeyPair
+    fun close()
+}
