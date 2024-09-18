@@ -5,7 +5,7 @@ Krypton is a library that implements the cryptographic primitives like ciphers o
 - **Key Agreements:** Diffie-Hellman (DH) and Elliptic Curve Diffie-Hellman (ECDH)
 - **Elliptic curves:** All curves supported by all platforms together and custom elliptic curves
 
-Below this text you can see the list of implementations used on different platforms:
+Below this text you can see the list of backends used on different platforms:
 - **Linux:** [OpenSSL](https://www.openssl.org/) ([Apache License 2.0](https://github.com/openssl/openssl/blob/master/LICENSE.txt)) by The OpenSSL Project
 - **JVM:** [Java Cryptography Architecture](https://en.wikipedia.org/wiki/Java_Cryptography_Architecture) ([Oracle Binary Code License](https://www.oracle.com/downloads/licenses/binary-code-license.html)) by Oracle and Sun Microsystems and [BouncyCastle](https://github.com/bcgit/bc-java) ([MIT License](https://github.com/bcgit/bc-java/blob/main/LICENSE.md)) by [Legion of the Bouncy Castle Inc](https://github.com/bcgit)
 
@@ -21,4 +21,4 @@ Below this text you can see the list of implementations used on different platfo
 - [ ] Key derivation functions (KDF) like HDKF
 - [ ] Message Authentication Codes
 - [ ] Support for dynamic-length hash functions like SHAKE-128
-- [ ] Add support for possibility to store keys
+- [ ] Add support for key stores
