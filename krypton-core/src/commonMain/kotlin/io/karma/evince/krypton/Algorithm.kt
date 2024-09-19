@@ -36,6 +36,13 @@ enum class Algorithm(
     val defaultPadding: Padding?,
     val scopes: Array<Scope>
 ) {
+    /**
+     * This value represents the MD5 algorithm. MD5 is a deprecated standard for hashing and should not be used in
+     * security relevant usage.
+     *
+     * @author Cedric Hammes
+     * @since  19/09/2024
+     */
     @Deprecated("MD5 is deprecated <https://en.wikipedia.org/wiki/MD5#Overview_of_security_issues>")
     MD5(
         literal = "MD5",
@@ -238,14 +245,20 @@ enum class Algorithm(
     
     /**
      * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature crypto system created in
-     * 1977. According to the NIST's Recommendation for Key Management the key length 2048 is recommended. It can be
-     * broken by Shor's algorithm.
+     * 1977 by Ron Rivest, Adi Shamir and Leonard Adleman. According to the NIST's Recommendation for Key Management
+     * the key length 2048 is recommended. Most security recommendations recommend elliptic curve cryptography over
+     * the usage of RSA because of the smaller keys in relation to its security.
+     *
+     * This algorithm is based on the factoring problem, the difficulty of factoring the product of two large prime
+     * numbers. No efficient algorithm is known for regular computer architectures but on quantum architectures the
+     * Shor's algorithm, an algorithm for the efficient factorisation, is available.
      *
      * @author Cedric Hammes
      * @since  08/09/2024
      *
      * @see [Wikipedia, RSA](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
      * @see [Wikipedia, Shor's Algorithm](https://en.wikipedia.org/wiki/Shor%27s_algorithm)
+     * @see [Wikipedia, Integer factorization](https://en.wikipedia.org/wiki/Integer_factorization)
      */
     RSA(
         literal = "RSA",
