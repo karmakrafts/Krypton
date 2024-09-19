@@ -18,6 +18,7 @@ package io.karma.evince.krypton.internal.key
 
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
+import io.karma.evince.krypton.key.DHKeyPairGeneratorParameters
 import io.karma.evince.krypton.key.ECKeyPairGeneratorParameters
 import io.karma.evince.krypton.key.KeyPair
 import io.karma.evince.krypton.key.KeyPairGeneratorParameters
@@ -36,7 +37,12 @@ object InternalKeyPairGeneratorRegistry {
     
     init {
         registerFactory(Algorithm.RSA) { parameters -> RSAKeyPairGenerator(parameters) }
-        registerFactory(Algorithm.DH) { parameters -> DefaultDHKeyPairGenerator(parameters) }
+        registerFactory(Algorithm.DH) { parameters ->
+            when(parameters) {
+                is DHKeyPairGeneratorParameters -> ParameterizedDHKeyPairGenerator(parameters)
+                else -> DefaultDHKeyPairGenerator(parameters)
+            }
+        }
         registerFactory(Algorithm.ECDH) { parameters ->
             ECKeyPairGenerator("ECDH", parameters as ECKeyPairGeneratorParameters)
         }

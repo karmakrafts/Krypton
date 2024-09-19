@@ -19,9 +19,7 @@ package io.karma.evince.krypton.internal.key
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
 import io.karma.evince.krypton.ec.EllipticCurve
 import io.karma.evince.krypton.key.*
-import io.karma.evince.krypton.utils.ErrorHelper
-import io.karma.evince.krypton.utils.checkNotNull
-import io.karma.evince.krypton.utils.withFreeWithException
+import io.karma.evince.krypton.utils.*
 import kotlinx.cinterop.*
 import libssl.*
 
@@ -62,13 +60,49 @@ open class OpenSSLKeyPairGenerator<P : KeyPairGeneratorParameters>(
 
 /** @suppress **/
 @InternalKryptonAPI
-open class ParameterizedOpenSSLKeyPairGenerator<P : KeyPairGeneratorParameters>(
+open class ParameterizedOpenSSLKeyPairGenerator(
+    parameterGenerator: WithFree.() -> CPointer<EVP_PKEY>,
+    private val algorithm: String,
+) : InternalKeyPairGenerator {
+    private val keyGeneratorParameters: CPointer<EVP_PKEY> = withFree { parameterGenerator() }
+    private val keyGenerator: CPointer<EVP_PKEY_CTX> = withFree {
+        EVP_PKEY_CTX_new(keyGeneratorParameters, null).checkNotNull()
+    }
+    
+    init {
+        if (EVP_PKEY_keygen_init(keyGenerator) != 1)
+            throw RuntimeException("Unable to initialize parameter generator", ErrorHelper.createOpenSSLException())
+    }
+    
+    override fun generate(): KeyPair = withFreeWithException {
+        val key = EVP_PKEY_new().checkNotNull().freeAfterOnException(::EVP_PKEY_free)
+        memScoped {
+            val keyPtr = allocPointerTo<EVP_PKEY>()
+            keyPtr.value = key
+            if (EVP_PKEY_keygen(keyGenerator, keyPtr.ptr) != 1)
+                throw RuntimeException("Unable to generate keypair", ErrorHelper.createOpenSSLException())
+        }
+        
+        return KeyPair(
+            Key(KeyType.PUBLIC, algorithm, key),
+            Key(KeyType.PRIVATE, algorithm, EVP_PKEY_dup(key).checkNotNull())
+        )
+    }
+    
+    override fun close() {
+        EVP_PKEY_CTX_free(keyGenerator)
+        EVP_PKEY_free(keyGeneratorParameters)
+    }
+}
+
+/** @suppress **/
+@InternalKryptonAPI
+open class ParameterGeneratingOpenSSLKeyPairGenerator<P : KeyPairGeneratorParameters>(
     nid: Int,
     private val algorithm: String,
     parameters: P,
     configurator: (CPointer<EVP_PKEY_CTX>, P) -> Unit
 ) : InternalKeyPairGenerator {
-    
     private val parameterGenerator: CPointer<EVP_PKEY_CTX> = EVP_PKEY_CTX_new_id(nid, null).checkNotNull()
     private val generatedParameters: CPointerVar<EVP_PKEY> = nativeHeap.allocPointerTo<EVP_PKEY>().checkNotNull()
     private val keyPairGenerator: CPointer<EVP_PKEY_CTX>
@@ -110,7 +144,7 @@ open class ParameterizedOpenSSLKeyPairGenerator<P : KeyPairGeneratorParameters>(
 /** @suppress **/
 @InternalKryptonAPI
 internal class ECKeyPairGenerator(algorithm: String, params: ECKeyPairGeneratorParameters) :
-    ParameterizedOpenSSLKeyPairGenerator<ECKeyPairGeneratorParameters>(EVP_PKEY_EC, algorithm, params,
+    ParameterGeneratingOpenSSLKeyPairGenerator<ECKeyPairGeneratorParameters>(EVP_PKEY_EC, algorithm, params,
         { parameterGenerator, parameters ->
             if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(parameterGenerator, parameters.curve.toOpenSSLId()) != 1)
                 throw RuntimeException("Unable to set curve to generator", ErrorHelper.createOpenSSLException())
@@ -129,13 +163,34 @@ internal class RSAKeyPairGenerator(params: KeyPairGeneratorParameters) :
 
 /** @suppress **/
 @InternalKryptonAPI
+internal class ParameterizedDHKeyPairGenerator(parameters: DHKeyPairGeneratorParameters) :
+    ParameterizedOpenSSLKeyPairGenerator(
+        {
+            val dh = DH_new().checkNotNull().freeAfter(::DH_free)
+            val prime = parameters.p.toOpenSSLBigNumber().checkNotNull()
+            val generator = parameters.g.toOpenSSLBigNumber().checkNotNull()
+            if (DH_set0_pqg(dh, prime, null, generator) != 1)
+                throw RuntimeException("Unable to set parameters", ErrorHelper.createOpenSSLException())
+            
+            val keyGeneratorParameters = EVP_PKEY_new().checkNotNull()
+            if (EVP_PKEY_set1_DH(keyGeneratorParameters, dh) != 1)
+                throw RuntimeException("Unable to apply parameters", ErrorHelper.createOpenSSLException())
+            keyGeneratorParameters
+        },
+        "DH"
+    )
+
+/** @suppress **/
+@InternalKryptonAPI
 internal class DefaultDHKeyPairGenerator(params: KeyPairGeneratorParameters) :
-    ParameterizedOpenSSLKeyPairGenerator<KeyPairGeneratorParameters>(EVP_PKEY_DH, "DH", params,
+    ParameterGeneratingOpenSSLKeyPairGenerator<KeyPairGeneratorParameters>(EVP_PKEY_DH, "DH", params,
         { parameterGenerator, parameters ->
             if (EVP_PKEY_CTX_set_dh_paramgen_prime_len(parameterGenerator, parameters.size) != 1)
                 throw RuntimeException("Unable to set prime length", ErrorHelper.createOpenSSLException())
         }
     )
+
+// TODO: Add implementation for custom generator value + custom prime (validate prime against specified length)
 
 private fun EllipticCurve.toOpenSSLId(): Int = when (this) {
     EllipticCurve.PRIME192V1 -> NID_X9_62_prime192v1
