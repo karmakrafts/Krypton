@@ -28,7 +28,7 @@ import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
  * @since  08/09/2024
  */
 expect class Digest @UncheckedKryptonAPI constructor(string: String, size: Int = 0) : AutoCloseable {
-    constructor(type: DigestType, size: Int = type.bitSize / 8)
+    constructor(algorithm: Algorithm, size: Int = algorithm.defaultBitSize / 8)
     
     fun hash(value: ByteArray): ByteArray
     override fun close()
@@ -59,34 +59,3 @@ fun Digest.hashToString(value: String): String = hash(value).toHexString()
  */
 @OptIn(ExperimentalStdlibApi::class)
 fun Digest.hashToString(value: ByteArray): String = hash(value).toHexString()
-
-/**
- * This class is listing all officially-supported hash functions provided by the Krypton library itself. It is
- * recommended to use this over the string constructor.
- *
- * @author Cedric Hammes
- * @since  08/09/2024
- */
-enum class DigestType(private val literal: String, val bitSize: Int) {
-    SHA3_224("SHA3-224", 224),
-    SHA3_256("SHA3-256", 256),
-    SHA3_384("SHA3-384", 384),
-    SHA3_512("SHA3-512", 512),
-    
-    @Deprecated("MD5 is not secure and deprecated")
-    MD5("MD5", 128),
-    
-    @Deprecated("SHA224 is deprecated, please use SHA3-224")
-    SHA224("SHA-224", 224),
-    
-    @Deprecated("SHA256 is deprecated, please use SHA3-256")
-    SHA256("SHA-256", 256),
-    
-    @Deprecated("SHA384 is deprecated, please use SHA3-384")
-    SHA384("SHA-384", 384),
-    
-    @Deprecated("SHA512 is deprecated, please use SHA3-512")
-    SHA512("SHA-512", 512);
-    
-    override fun toString(): String = literal
-}

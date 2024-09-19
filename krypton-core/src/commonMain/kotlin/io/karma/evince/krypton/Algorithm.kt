@@ -28,13 +28,190 @@ import kotlin.jvm.JvmStatic
  */
 enum class Algorithm(
     private val literal: String,
-    val supportedBlockModes: Array<BlockMode>?,
-    val supportedPaddings: Array<Padding>?,
+    val supportedBlockModes: Array<BlockMode>,
+    val supportedPaddings: Array<Padding>,
     val isBitSizeSupported: (Int) -> Boolean,
+    val defaultBitSize: Int,
     val defaultBlockMode: BlockMode?,
     val defaultPadding: Padding?,
     val scopes: Array<Scope>
 ) {
+    @Deprecated("MD5 is deprecated <https://en.wikipedia.org/wiki/MD5#Overview_of_security_issues>")
+    MD5(
+        literal = "MD5",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        isBitSizeSupported = { true },
+        defaultBitSize = 128,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.DIGEST)
+    ),
+    
+    /**
+     * This value represents the 224-bit output length variant of the SHA (Secure Hash Algorithm) standard, also named
+     * Keccak. This version of the standard is deprecated and SHA3 should be used.
+     *
+     * @author Cedric Hammes
+     * @since  19/09/2024
+     *
+     * @see [SHA-1](https://en.wikipedia.org/wiki/SHA-1)
+     */
+    @Deprecated("SHA is deprecated, please use SHA3")
+    SHA224(
+        literal = "SHA-224",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        isBitSizeSupported = { true },
+        defaultBitSize = 224,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.DIGEST)
+    ),
+    
+    /**
+     * This value represents the 256-bit output length variant of the SHA (Secure Hash Algorithm) standard, also named
+     * Keccak. This version of the standard is deprecated and SHA3 should be used.
+     *
+     * @author Cedric Hammes
+     * @since  19/09/2024
+     *
+     * @see [SHA-1](https://en.wikipedia.org/wiki/SHA-1)
+     */
+    @Deprecated("SHA is deprecated, please use SHA3")
+    SHA256(
+        literal = "SHA-256",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        isBitSizeSupported = { true },
+        defaultBitSize = 256,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.DIGEST)
+    ),
+    
+    /**
+     * This value represents the 384-bit output length variant of the SHA (Secure Hash Algorithm) standard, also named
+     * Keccak. This version of the standard is deprecated and SHA3 should be used.
+     *
+     * @author Cedric Hammes
+     * @since  19/09/2024
+     *
+     * @see [SHA-1](https://en.wikipedia.org/wiki/SHA-1)
+     */
+    @Deprecated("SHA is deprecated, please use SHA3")
+    SHA384(
+        literal = "SHA-384",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        isBitSizeSupported = { true },
+        defaultBitSize = 384,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.DIGEST)
+    ),
+    
+    /**
+     * This value represents the 512-bit output length variant of the SHA (Secure Hash Algorithm) standard, also named
+     * Keccak. This version of the standard is deprecated and SHA3 should be used.
+     *
+     * @author Cedric Hammes
+     * @since  19/09/2024
+     *
+     * @see [SHA-1](https://en.wikipedia.org/wiki/SHA-1)
+     */
+    @Deprecated("SHA is deprecated, please use SHA3")
+    SHA512(
+        literal = "SHA-512",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        isBitSizeSupported = { true },
+        defaultBitSize = 512,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.DIGEST)
+    ),
+    
+    /**
+     * This value represents the 224-bit output length variant of the SHA3 (Secure Hash Algorithm) standard, also named
+     * Keccak. SHA3 is the newest version of the SHA standard.
+     *
+     * @author Cedric Hammes
+     * @since  19/09/2024
+     *
+     * @see [SHA-3](https://en.wikipedia.org/wiki/SHA-3)
+     */
+    SHA3_224(
+        literal = "SHA3-224",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        isBitSizeSupported = { true },
+        defaultBitSize = 224,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.DIGEST)
+    ),
+    
+    /**
+     * This value represents the 256-bit output length variant of the SHA3 (Secure Hash Algorithm) standard, also named
+     * Keccak. SHA3 is the newest version of the SHA standard.
+     *
+     * @author Cedric Hammes
+     * @since  19/09/2024
+     *
+     * @see [SHA-3](https://en.wikipedia.org/wiki/SHA-3)
+     */
+    SHA3_256(
+        literal = "SHA3-256",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        isBitSizeSupported = { true },
+        defaultBitSize = 256,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.DIGEST)
+    ),
+    
+    /**
+     * This value represents the 384-bit output length variant of the SHA3 (Secure Hash Algorithm) standard, also named
+     * Keccak. SHA3 is the newest version of the SHA standard.
+     *
+     * @author Cedric Hammes
+     * @since  19/09/2024
+     *
+     * @see [SHA-3](https://en.wikipedia.org/wiki/SHA-3)
+     */
+    SHA3_384(
+        literal = "SHA3-384",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        isBitSizeSupported = { true },
+        defaultBitSize = 384,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.DIGEST)
+    ),
+    
+    /**
+     * This value represents the 512-bit output length variant of the SHA3 (Secure Hash Algorithm) standard, also named
+     * Keccak. SHA3 is the newest version of the SHA standard.
+     *
+     * @author Cedric Hammes
+     * @since  19/09/2024
+     *
+     * @see [SHA-3](https://en.wikipedia.org/wiki/SHA-3)
+     */
+    SHA3_512(
+        literal = "SHA3-512",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        isBitSizeSupported = { true },
+        defaultBitSize = 512,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.DIGEST)
+    ),
+    
     /**
      * The DES (Data Encryption Standard) block cipher is a symmetric encryption algorithm created in 1975 with a block
      * size of 64 bits. DES can be attacked by bruteforce easily and by multiple cryptanalytic attacks so the algorithm
@@ -52,6 +229,7 @@ enum class Algorithm(
         literal = "DES",
         supportedBlockModes = BlockMode.entries.filter { it == BlockMode.GCM }.toTypedArray(),
         supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS1),
+        defaultBitSize = 56,
         supportedBitSizes = intArrayOf(56),
         defaultBlockMode = BlockMode.CBC,
         defaultPadding = Padding.PKCS1,
@@ -74,6 +252,7 @@ enum class Algorithm(
         supportedBlockModes = arrayOf(BlockMode.ECB),
         supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS5, Padding.OAEP_SHA1_MGF1, Padding.OAEP_SHA256_MGF1),
         supportedBitSizes = intArrayOf(1024, 2048, 4096, 8192),
+        defaultBitSize = 4096,
         defaultBlockMode = BlockMode.ECB,
         defaultPadding = Padding.PKCS5,
         scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR)
@@ -95,6 +274,7 @@ enum class Algorithm(
         supportedBlockModes = BlockMode.entries.toTypedArray(),
         supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS1),
         supportedBitSizes = intArrayOf(128, 192, 256),
+        defaultBitSize = 256,
         defaultBlockMode = BlockMode.CBC,
         defaultPadding = Padding.NONE,
         scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR)
@@ -116,6 +296,7 @@ enum class Algorithm(
         supportedBlockModes = emptyArray(),
         supportedPaddings = emptyArray(),
         supportedBitSizes = intArrayOf(1024, 2048, 3000, 4096, 8192),
+        defaultBitSize = 2048,
         defaultBlockMode = null,
         defaultPadding = null,
         scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR, Scope.PARAMETER_GENERATOR)
@@ -137,6 +318,7 @@ enum class Algorithm(
         supportedBlockModes = emptyArray(),
         supportedPaddings = emptyArray(),
         supportedBitSizes = intArrayOf(128, 192, 256),
+        defaultBitSize = 256,
         defaultBlockMode = null,
         defaultPadding = null,
         scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR)
@@ -144,11 +326,11 @@ enum class Algorithm(
     
     /** @suppress **/
     constructor(
-        literal: String, supportedBlockModes: Array<BlockMode>?, supportedPaddings: Array<Padding>?,
-        supportedBitSizes: IntArray, defaultBlockMode: BlockMode?, defaultPadding: Padding?,
+        literal: String, supportedBlockModes: Array<BlockMode>, supportedPaddings: Array<Padding>,
+        supportedBitSizes: IntArray, defaultBitSize: Int, defaultBlockMode: BlockMode?, defaultPadding: Padding?,
         scopes: Array<Scope>
     ) : this(
-        literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) },
+        literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) }, defaultBitSize,
         defaultBlockMode, defaultPadding, scopes
     )
     
@@ -189,7 +371,8 @@ enum class Algorithm(
         KEY_GENERATOR("Key Generator"),
         KEY_AGREEMENT("Key Agreement"),
         PARAMETER_GENERATOR("Parameter generator"),
-        SIGNATURE("Signature");
+        SIGNATURE("Signature"),
+        DIGEST("Digest");
         
         override fun toString(): String = literal
     }
