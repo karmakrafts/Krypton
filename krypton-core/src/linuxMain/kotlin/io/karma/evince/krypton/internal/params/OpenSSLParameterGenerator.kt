@@ -21,7 +21,6 @@ import io.karma.evince.krypton.annotations.InternalKryptonAPI
 import io.karma.evince.krypton.key.DHKeyPairGeneratorParameters
 import io.karma.evince.krypton.key.KeyPairGeneratorParameters
 import io.karma.evince.krypton.utils.*
-import io.karma.evince.krypton.utils.ErrorHelper
 import io.karma.evince.krypton.utils.checkNotNull
 import io.karma.evince.krypton.utils.withFree
 import kotlinx.cinterop.*
