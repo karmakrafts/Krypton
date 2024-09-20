@@ -190,8 +190,6 @@ internal class DefaultDHKeyPairGenerator(params: KeyPairGeneratorParameters) :
         }
     )
 
-// TODO: Add implementation for custom generator value + custom prime (validate prime against specified length)
-
 private fun EllipticCurve.toOpenSSLId(): Int = when (this) {
     EllipticCurve.PRIME192V1 -> NID_X9_62_prime192v1
     EllipticCurve.PRIME192V2 -> NID_X9_62_prime192v2
