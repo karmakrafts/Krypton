@@ -402,6 +402,7 @@ enum class BlockMode {
     CBC,
     CFB,
     OFB,
+    OCB,
     CTR,
     GCM
 }

@@ -89,6 +89,8 @@ open class CipherParameters(
                 }"
             )
     }
+    
+    override fun toString(): String = "CipherParameters(mode=$mode, padding=$padding, blockMode=$blockMode, iv=$iv)"
 }
 
 /**
