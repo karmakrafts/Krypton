@@ -17,13 +17,13 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
+import io.karma.evince.krypton.internal.openssl.*
 import io.karma.evince.krypton.key.Key
 import io.karma.evince.krypton.key.KeyType
 import io.karma.evince.krypton.utils.ErrorHelper
 import io.karma.evince.krypton.utils.checkNotNull
 import io.karma.evince.krypton.utils.withFreeWithException
 import kotlinx.cinterop.*
-import libssl.*
 
 /** @suppress **/
 actual class Cipher actual constructor(
@@ -53,7 +53,13 @@ actual class Cipher actual constructor(
         memScoped {
             // Acquire pointer from key data
             val keyPointer = allocPointerTo<BUF_MEM>()
-            if (BIO_ctrl((key.body as Key.KeyBody.DataKeyBody).data, BIO_C_GET_BUF_MEM_PTR, 0, keyPointer.ptr) != 1L)
+            if (BIO_ctrl(
+                    (key.body as Key.KeyBody.DataKeyBody).data,
+                    BIO_C_GET_BUF_MEM_PTR,
+                    0,
+                    keyPointer.ptr
+                ).toLong() != 1L
+            )
                 throw RuntimeException("Unable to get key memory", ErrorHelper.createOpenSSLException())
             
             // Initialize cipher for encryption or decryption with key, algorithm and optionally IV

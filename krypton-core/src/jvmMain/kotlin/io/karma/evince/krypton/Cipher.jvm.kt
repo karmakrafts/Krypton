@@ -17,6 +17,7 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.key.Key
+import io.karma.evince.krypton.utils.JavaCryptoHelper
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 
@@ -36,6 +37,7 @@ actual class Cipher actual constructor(algorithm: String, key: Key, parameters: 
             this(algorithm.checkScopeOrError(Algorithm.Scope.CIPHER).toString(), key, parameters.validate(algorithm))
     
     init {
+        JavaCryptoHelper.installBouncyCastleProviders()
         val parameterSpec = when {
             parameters is GCMCipherParameters -> GCMParameterSpec(parameters.tagLen, parameters.iv)
             parameters.iv != null -> IvParameterSpec(parameters.iv)

@@ -19,7 +19,7 @@ package io.karma.evince.krypton.key
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.utils.ErrorHelper
 import kotlinx.cinterop.*
-import libssl.*
+import io.karma.evince.krypton.internal.openssl.*
 
 /** @suppress **/
 actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key) : AutoCloseable {

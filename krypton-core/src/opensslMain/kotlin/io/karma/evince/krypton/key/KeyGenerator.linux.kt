@@ -21,10 +21,7 @@ import io.karma.evince.krypton.utils.ErrorHelper
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
-import libssl.BIO_new
-import libssl.BIO_s_secmem
-import libssl.BIO_write
-import libssl.RAND_bytes
+import io.karma.evince.krypton.internal.openssl.*
 
 /** @suppress **/
 actual class KeyGenerator actual constructor(

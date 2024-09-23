@@ -8,6 +8,7 @@ dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases
 okio = "3.9.0" # https://github.com/square/okio/blob/master/CHANGELOG.md
 bignum = "0.3.10" # https://github.com/ionspin/kotlin-multiplatform-bignum/releases
 bouncycastle = "1.78.1" # http://git.bouncycastle.org/latest_releases.html
+openssl-binaries = "148410929" # https://gitlab.com/trixnity/trixnity-openssl-binaries/-/packages/
 
 [libraries]
 kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }

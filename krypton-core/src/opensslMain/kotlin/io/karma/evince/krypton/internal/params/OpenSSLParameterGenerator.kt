@@ -24,7 +24,7 @@ import io.karma.evince.krypton.utils.*
 import io.karma.evince.krypton.utils.checkNotNull
 import io.karma.evince.krypton.utils.withFree
 import kotlinx.cinterop.*
-import libssl.*
+import io.karma.evince.krypton.internal.openssl.*
 
 /** @suppress **/
 @InternalKryptonAPI

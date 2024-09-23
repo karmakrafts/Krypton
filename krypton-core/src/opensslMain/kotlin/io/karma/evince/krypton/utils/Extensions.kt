@@ -22,10 +22,7 @@ import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
-import libssl.BIGNUM
-import libssl.BN_bin2bn
-import libssl.BN_bn2bin
-import libssl.BN_num_bits
+import io.karma.evince.krypton.internal.openssl.*
 
 /** @suppress **/
 internal fun <T> T?.checkNotNull(message: String? = "The allocation of a object is failed"): T =

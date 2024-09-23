@@ -19,7 +19,7 @@ package io.karma.evince.krypton
 import io.karma.evince.krypton.utils.ErrorHelper
 import io.karma.evince.krypton.utils.checkNotNull
 import kotlinx.cinterop.*
-import libssl.*
+import io.karma.evince.krypton.internal.openssl.*
 
 /** @suppress **/
 actual class Digest actual constructor(string: String, private val size: Int) : AutoCloseable {

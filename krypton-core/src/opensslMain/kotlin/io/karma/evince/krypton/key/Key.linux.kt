@@ -17,7 +17,7 @@
 package io.karma.evince.krypton.key
 
 import kotlinx.cinterop.CPointer
-import libssl.*
+import io.karma.evince.krypton.internal.openssl.*
 
 /** @suppress **/
 actual class Key(actual val type: KeyType, actual val algorithm: String, internal val body: KeyBody) : AutoCloseable {

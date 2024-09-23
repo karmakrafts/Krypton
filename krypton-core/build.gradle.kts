@@ -1,5 +1,13 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.konan.target.KonanTarget
+import java.net.URI
+import java.net.URLConnection
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -8,25 +16,76 @@ plugins {
     id("maven-publish")
 }
 
-// TODO: Use OpenSSL on Windows x64, macOS (is it default installed on macOS and iOS?) and Linux (x64 and arm64). If
-//       changed, perform change in the README.md file.
-
 group = "io.karma.evince"
-version = "${libs.versions.krypton.get()}.${System.getenv("CI_PIPELINE_IID")?: 0}"
-val isCIEnvironment = System.getenv("CI")?.equals("true")?: false
+version = "${libs.versions.krypton.get()}.${System.getenv("CI_PIPELINE_IID") ?: 0}"
+
+val buildDirectory: Path = layout.buildDirectory.asFile.get().toPath()
+val isCIEnvironment = System.getenv("CI")?.equals("true") ?: false
 if (!isCIEnvironment)
     logger.info("Gradle build script is currently running in non-CI environment")
 
+class OpenSSLTarget(target: KonanTarget, val targetFactory: KotlinMultiplatformExtension.() -> KotlinNativeTarget) {
+    private val targetFolder: Path = buildDirectory.resolve("openssl").resolve(target.name)
+    val libFile: Path = targetFolder.resolve("lib").resolve("libcrypto.a")
+    val includeFolder: Path = targetFolder.resolve("include")
+}
+
+val openSSLTargets = listOf(
+    OpenSSLTarget(KonanTarget.LINUX_X64) { linuxX64() },
+    OpenSSLTarget(KonanTarget.MINGW_X64) { mingwX64() },
+)
+
+val openSSLBinariesTask = tasks.create("openSSLBinariesTask") {
+    outputs.upToDateWhen { Files.exists(buildDirectory.resolve("openssl")) }
+    
+    val opensslBinariesVersion = libs.versions.openssl.binaries.get()
+    val conn: URLConnection =
+        URI("https://gitlab.com/trixnity/trixnity-openssl-binaries/-/package_files/${opensslBinariesVersion}/download")
+            .toURL().openConnection()
+    Files.createDirectories(buildDirectory.resolve("tmp"))
+    Files.write(buildDirectory.resolve("tmp/openssl-binaries.zip"), conn.getInputStream().readAllBytes())
+    
+    copy {
+        from(zipTree(buildDirectory.resolve("tmp/openssl-binaries.zip")))
+        into(layout.projectDirectory.asFile.toPath())
+    }
+}
+
+// Build script begin
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
     val kotlinJvmTarget = libs.versions.jvmTarget.get()
     jvmToolchain(kotlinJvmTarget.toInt())
-
+    
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
-        optIn.add("kotlinx.cinterop.ExperimentalForeignApi")
     }
-
+    
+    // Configure native OpenSSL targets
+    openSSLTargets.forEach { target ->
+        target.targetFactory(this).apply {
+            compilations {
+                "main" {
+                    // Add CInterop for OpenSSL
+                    cinterops {
+                        val libopenssl by creating {
+                            defFile("src/opensslMain/cinterop/libopenssl.def")
+                            packageName("io.karma.evince.krypton.internal.openssl")
+                            includeDirs(target.includeFolder)
+                            tasks.named(interopProcessingTaskName) {
+                                dependsOn(openSSLBinariesTask)
+                            }
+                        }
+                    }
+                }
+            }
+            compilerOptions {
+                freeCompilerArgs.addAll("-include-binary", target.libFile.absolutePathString())
+            }
+        }
+    }
+    
     jvm {
         testRuns["test"].executionTask {
             useJUnitPlatform()
@@ -36,29 +95,36 @@ kotlin {
             jvmTarget.set(JvmTarget.valueOf("JVM_$kotlinJvmTarget"))
         }
     }
-    linuxX64 {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            freeCompilerArgs.addAll(listOf("-linker-option", "--allow-shlib-undefined"))
+    
+    sourceSets {
+        all {
+            languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
+            languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
         }
-
-        compilations.all {
-            cinterops {
-                val libssl by creating
+        
+        val commonMain by getting {
+            dependencies {
+                implementation(libs.okio)
+                implementation(libs.bignum)
             }
         }
-        binaries.sharedLib()
-    }
-
-    sourceSets {
-        commonMain.dependencies {
-            implementation(libs.okio)
-            implementation(libs.bignum)
+        
+        val opensslMain by creating {
+            dependsOn(commonMain)
         }
+        val linuxX64Main by getting {
+            dependsOn(opensslMain)
+        }
+        val mingwX64Main by getting {
+            dependsOn(opensslMain)
+        }
+        
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.bundles.kotest)
         }
+        
+        // Configure JVM source sets
         jvmMain.dependencies {
             implementation(libs.bouncycastle)
         }

@@ -21,7 +21,7 @@ import io.karma.evince.krypton.ec.EllipticCurve
 import io.karma.evince.krypton.key.*
 import io.karma.evince.krypton.utils.*
 import kotlinx.cinterop.*
-import libssl.*
+import io.karma.evince.krypton.internal.openssl.*
 
 /** @suppress **/
 @InternalKryptonAPI
