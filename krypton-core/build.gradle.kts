@@ -33,6 +33,11 @@ class OpenSSLTarget(target: KonanTarget, val targetFactory: KotlinMultiplatformE
 val openSSLTargets = listOf(
     OpenSSLTarget(KonanTarget.LINUX_X64) { linuxX64() },
     OpenSSLTarget(KonanTarget.MINGW_X64) { mingwX64() },
+    OpenSSLTarget(KonanTarget.MACOS_X64) { macosX64() },
+    OpenSSLTarget(KonanTarget.MACOS_ARM64) { macosArm64() },
+    OpenSSLTarget(KonanTarget.IOS_X64) { iosX64() },
+    OpenSSLTarget(KonanTarget.IOS_ARM64) { iosArm64() },
+    OpenSSLTarget(KonanTarget.IOS_SIMULATOR_ARM64) { iosSimulatorArm64() },
 )
 
 val openSSLBinariesTask = tasks.create("openSSLBinariesTask") {
@@ -116,6 +121,21 @@ kotlin {
             dependsOn(opensslMain)
         }
         val mingwX64Main by getting {
+            dependsOn(opensslMain)
+        }
+        val macosX64Main by getting {
+            dependsOn(opensslMain)
+        }
+        val macosArm64Main by getting {
+            dependsOn(opensslMain)
+        }
+        val iosX64Main by getting {
+            dependsOn(opensslMain)
+        }
+        val iosArm64Main by getting {
+            dependsOn(opensslMain)
+        }
+        val iosSimulatorArm64Main by getting {
             dependsOn(opensslMain)
         }
         
