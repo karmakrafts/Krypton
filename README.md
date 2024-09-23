@@ -28,16 +28,17 @@ Also a few dependencies are needed to make this project work. Below this text yo
 ## ToDo's
 - [X] Keys, Key Generator and Keypair Generator
 - [X] Hashing algorithms and digest
-- [X] Default curves and custom definable elliptic curve
+- [X] Default curves
 - [ ] Cipher class for (a)symmetric encryption algorithms
 - [X] KeyAgreement class for key agreement algorithms
 - [ ] Signature class for signature algorithms
 - [X] Rewrite supportedBitSize to bitSizePredicate and implement it into the key generators in Algorithm
-- [ ] Post-quantum algorithms like CRYSTALS-Dilithium
+- [ ] Post-quantum algorithms like CRYSTALS-Dilithium ([#3](https://git.karmakrafts.dev/kk/evince-project/krypton/-/issues/3))
 - [ ] Key derivation functions (KDF) like HDKF
 - [ ] Message Authentication Codes
 - [ ] Support for dynamic-length hash functions like SHAKE-128
 - [ ] Add support for key stores
+- [ ] Custom elliptic curves ([#2](https://git.karmakrafts.dev/kk/evince-project/krypton/-/issues/2))
 
 ## License
 This project is licensed with the Apache-2.0 License.
