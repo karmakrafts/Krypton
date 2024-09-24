@@ -49,21 +49,34 @@ val extractOpenSSLBinariesTask = tasks.create("extractOpenSSLBinaries", Copy::cl
 
 // OpenSSL targets
 // https://gitlab.com/trixnity/trixnity/-/blob/main/trixnity-crypto-core/build.gradle.kts?ref_type=heads#L16-L33
-class OpenSSLTarget(target: KonanTarget, val targetFactory: KotlinMultiplatformExtension.() -> KotlinNativeTarget) {
+class OpenSSLTarget(
+    target: KonanTarget,
+    additionalLibraries: List<Path> = emptyList(),
+    val targetFactory: KotlinMultiplatformExtension.() -> KotlinNativeTarget
+) {
     private val targetFolder: Path = opensslBinariesFolder.resolve(target.name)
     val libFile: Path = targetFolder.resolve("lib").resolve("libcrypto.a")
     val includeFolder: Path = targetFolder.resolve("include")
+    val libraries: List<String> = mutableListOf(libFile).also { it.addAll(additionalLibraries) }
+        .map { it.absolutePathString() }
 }
 
-val openSSLTargets = listOf(
+val openSSLTargets = mutableListOf(
     OpenSSLTarget(KonanTarget.LINUX_X64) { linuxX64() },
-    OpenSSLTarget(KonanTarget.MINGW_X64) { mingwX64() },
     OpenSSLTarget(KonanTarget.MACOS_X64) { macosX64() },
     OpenSSLTarget(KonanTarget.MACOS_ARM64) { macosArm64() },
     OpenSSLTarget(KonanTarget.IOS_X64) { iosX64() },
     OpenSSLTarget(KonanTarget.IOS_ARM64) { iosArm64() },
     OpenSSLTarget(KonanTarget.IOS_SIMULATOR_ARM64) { iosSimulatorArm64() },
 )
+
+val mingwLibFolder: Path = Path.of("/usr/x86_64-w64-mingw32/lib")
+if (Files.exists(mingwLibFolder)) {
+    // Add Windows target with libcrypt32 statically linked
+    logger.info("MinGW x86_64 found, add target")
+    openSSLTargets.add(OpenSSLTarget(KonanTarget.MINGW_X64,
+        listOf(mingwLibFolder.resolve("libcrypt32.a"))) { mingwX64() })
+}
 
 // Build script begin
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -96,7 +109,9 @@ kotlin {
                 }
             }
             compilerOptions {
-                freeCompilerArgs.addAll("-include-binary", target.libFile.absolutePathString())
+                for (library in target.libraries) {
+                    freeCompilerArgs.addAll("-include-binary", library)
+                }
             }
         }
     }
