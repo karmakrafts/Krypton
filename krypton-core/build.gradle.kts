@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.KonanTarget
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
@@ -15,6 +14,8 @@ plugins {
     alias(libs.plugins.dokka)
     alias(libs.plugins.download)
     id("maven-publish")
+    idea
+    eclipse
 }
 
 group = "io.karma.evince"
