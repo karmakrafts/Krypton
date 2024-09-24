@@ -1,11 +1,10 @@
 import de.undercouch.gradle.tasks.download.Download
+import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.KonanTarget
-import java.net.URI
-import java.net.URLConnection
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -70,13 +69,16 @@ val openSSLTargets = mutableListOf(
     OpenSSLTarget(KonanTarget.IOS_SIMULATOR_ARM64) { iosSimulatorArm64() },
 )
 
-val mingwLibFolder: Path = Path.of("/usr/x86_64-w64-mingw32/lib")
-if (Files.exists(mingwLibFolder)) {
-    // Add Windows target with libcrypt32 statically linked
-    logger.info("MinGW x86_64 found, add target")
-    openSSLTargets.add(OpenSSLTarget(KonanTarget.MINGW_X64,
-        listOf(mingwLibFolder.resolve("libcrypt32.a"))) { mingwX64() })
+// Windows target
+val mingwLibFolder: Path = if (OperatingSystem.current().isWindows) {
+    Path.of(System.getenv("USER_HOME")).resolve(".konan/dependencies/msys2-mingw-w64-x86_64-2/x86_64-w64-mingw32/lib")
+} else {
+    Path.of("/usr/x86_64-w64-mingw32/lib")
 }
+
+// Add Windows target with libcrypt32 statically linked
+logger.info("MinGW x86_64 found, add target")
+openSSLTargets.add(OpenSSLTarget(KonanTarget.MINGW_X64, listOf(mingwLibFolder.resolve("libcrypt32.a"))) { mingwX64() })
 
 // Build script begin
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
