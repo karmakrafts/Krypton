@@ -1,3 +1,4 @@
+import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
@@ -13,19 +14,43 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotest)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.download)
     id("maven-publish")
 }
 
 group = "io.karma.evince"
 version = "${libs.versions.krypton.get()}.${System.getenv("CI_PIPELINE_IID") ?: 0}"
 
-val buildDirectory: Path = layout.buildDirectory.asFile.get().toPath()
+val buildFolder: Path = layout.buildDirectory.asFile.get().toPath()
 val isCIEnvironment = System.getenv("CI")?.equals("true") ?: false
 if (!isCIEnvironment)
     logger.info("Gradle build script is currently running in non-CI environment")
 
+// OpenSSL Binaries download
+// https://gitlab.com/trixnity/trixnity/-/blob/main/build.gradle.kts?ref_type=heads#L17-L60
+val opensslBinariesVersion = libs.versions.openssl.binaries.get()
+val opensslBinariesFolder: Path = buildFolder.resolve("openssl").resolve(opensslBinariesVersion)
+val downloadOpenSSLBinariesTask = tasks.create("downloadOpenSSLBinaries", Download::class.java) {
+    src("https://gitlab.com/api/v4/projects/57407788/packages/generic/build/v$opensslBinariesVersion/build.zip")
+    dest(opensslBinariesFolder.resolve("binaries.zip").toFile())
+    overwrite(false)
+    retries(10)
+}
+
+val extractOpenSSLBinariesTask = tasks.create("extractOpenSSLBinaries", Copy::class.java) {
+    dependsOn(downloadOpenSSLBinariesTask)
+    from(zipTree(opensslBinariesFolder.resolve("binaries.zip"))) {
+        eachFile {
+            relativePath = RelativePath(true, *relativePath.segments.drop(2).toTypedArray())
+        }
+    }
+    into(opensslBinariesFolder)
+}
+
+// OpenSSL targets
+// https://gitlab.com/trixnity/trixnity/-/blob/main/trixnity-crypto-core/build.gradle.kts?ref_type=heads#L16-L33
 class OpenSSLTarget(target: KonanTarget, val targetFactory: KotlinMultiplatformExtension.() -> KotlinNativeTarget) {
-    private val targetFolder: Path = buildDirectory.resolve("openssl").resolve(target.name)
+    private val targetFolder: Path = opensslBinariesFolder.resolve(target.name)
     val libFile: Path = targetFolder.resolve("lib").resolve("libcrypto.a")
     val includeFolder: Path = targetFolder.resolve("include")
 }
@@ -40,22 +65,6 @@ val openSSLTargets = listOf(
     OpenSSLTarget(KonanTarget.IOS_SIMULATOR_ARM64) { iosSimulatorArm64() },
 )
 
-val openSSLBinariesTask = tasks.create("openSSLBinariesTask") {
-    outputs.upToDateWhen { Files.exists(buildDirectory.resolve("openssl")) }
-    
-    val opensslBinariesVersion = libs.versions.openssl.binaries.get()
-    val conn: URLConnection =
-        URI("https://gitlab.com/trixnity/trixnity-openssl-binaries/-/package_files/${opensslBinariesVersion}/download")
-            .toURL().openConnection()
-    Files.createDirectories(buildDirectory.resolve("tmp"))
-    Files.write(buildDirectory.resolve("tmp/openssl-binaries.zip"), conn.getInputStream().readAllBytes())
-    
-    copy {
-        from(zipTree(buildDirectory.resolve("tmp/openssl-binaries.zip")))
-        into(layout.projectDirectory.asFile.toPath())
-    }
-}
-
 // Build script begin
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
@@ -68,6 +77,7 @@ kotlin {
     }
     
     // Configure native OpenSSL targets
+    // https://gitlab.com/trixnity/trixnity/-/blob/main/trixnity-crypto-core/build.gradle.kts?ref_type=heads#L41-L65
     openSSLTargets.forEach { target ->
         target.targetFactory(this).apply {
             compilations {
@@ -79,7 +89,7 @@ kotlin {
                             packageName("io.karma.evince.krypton.internal.openssl")
                             includeDirs(target.includeFolder)
                             tasks.named(interopProcessingTaskName) {
-                                dependsOn(openSSLBinariesTask)
+                               dependsOn(extractOpenSSLBinariesTask)
                             }
                         }
                     }
