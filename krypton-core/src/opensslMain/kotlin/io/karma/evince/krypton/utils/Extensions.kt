@@ -18,15 +18,14 @@ package io.karma.evince.krypton.utils
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.Sign
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.usePinned
 import io.karma.evince.krypton.internal.openssl.*
+import kotlinx.cinterop.*
 
 /** @suppress **/
 internal fun <T> T?.checkNotNull(message: String? = "The allocation of a object is failed"): T =
     this ?: throw RuntimeException(message, ErrorHelper.createOpenSSLException())
+
+internal fun <T : Any, R> T?.pinnedNotNull(closure: (Pinned<T>) -> R?): R? = this?.usePinned(closure)
 
 /** @suppress **/
 internal fun BigInteger.toOpenSSLBigNumber(store: MutableList<CPointer<BIGNUM>>? = null): CPointer<BIGNUM> =

@@ -34,7 +34,8 @@ enum class Algorithm(
     val defaultBitSize: Int,
     val defaultBlockMode: BlockMode?,
     val defaultPadding: Padding?,
-    val scopes: Array<Scope>
+    val scopes: Array<Scope>,
+    val blockCipher: Boolean = false
 ) {
     /**
      * This value represents the MD5 algorithm. MD5 is a deprecated standard for hashing and should not be used in
@@ -268,7 +269,8 @@ enum class Algorithm(
         defaultBitSize = 4096,
         defaultBlockMode = BlockMode.ECB,
         defaultPadding = Padding.PKCS5,
-        scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR)
+        scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR),
+        blockCipher = true
     ),
     
     /**
@@ -290,7 +292,8 @@ enum class Algorithm(
         defaultBitSize = 256,
         defaultBlockMode = BlockMode.CBC,
         defaultPadding = Padding.NONE,
-        scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR)
+        scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR),
+        blockCipher = true
     ),
     
     /**
@@ -341,10 +344,10 @@ enum class Algorithm(
     constructor(
         literal: String, supportedBlockModes: Array<BlockMode>, supportedPaddings: Array<Padding>,
         supportedBitSizes: IntArray, defaultBitSize: Int, defaultBlockMode: BlockMode?, defaultPadding: Padding?,
-        scopes: Array<Scope>
+        scopes: Array<Scope>, blockCipher: Boolean = false
     ) : this(
         literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) }, defaultBitSize,
-        defaultBlockMode, defaultPadding, scopes
+        defaultBlockMode, defaultPadding, scopes, blockCipher
     )
     
     fun checkScopeOrError(scope: Scope): Algorithm = this.also {
