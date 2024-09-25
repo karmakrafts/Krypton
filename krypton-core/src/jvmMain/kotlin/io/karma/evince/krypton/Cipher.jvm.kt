@@ -44,7 +44,7 @@ actual class Cipher actual constructor(algorithm: String, key: Key, parameters: 
             else -> null
         }
         
-        if (parameters != null) {
+        if (parameterSpec != null) {
             internal.init(parameters.mode.javaCipherMode, key.internalValue, parameterSpec)
         } else {
             internal.init(parameters.mode.javaCipherMode, key.internalValue)

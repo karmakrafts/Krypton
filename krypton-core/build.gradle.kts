@@ -1,5 +1,6 @@
 import de.undercouch.gradle.tasks.download.Download
 import org.gradle.internal.os.OperatingSystem
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
@@ -25,6 +26,13 @@ val buildFolder: Path = layout.buildDirectory.asFile.get().toPath()
 val isCIEnvironment = System.getenv("CI")?.equals("true") ?: false
 if (!isCIEnvironment)
     logger.info("Gradle build script is currently running in non-CI environment")
+
+// Set html documentation output folder for dokkaHtml task to docs web server's folder when running in CI environment
+if (isCIEnvironment) {
+    tasks.named<DokkaTask>("dokkaHtml").configure {
+        outputDirectory.set(File("/var/www/docs/krypton-core"))
+    }
+}
 
 // OpenSSL Binaries download
 // https://gitlab.com/trixnity/trixnity/-/blob/main/build.gradle.kts?ref_type=heads#L17-L60
@@ -55,7 +63,8 @@ class OpenSSLTarget(
     val targetFactory: KotlinMultiplatformExtension.() -> KotlinNativeTarget
 ) {
     private val targetFolder: Path = opensslBinariesFolder.resolve(target.name)
-    val libFile: Path = targetFolder.resolve("lib").resolve("libcrypto.a")
+    private val libFile: Path = targetFolder.resolve("lib").resolve("libcrypto.a")
+    
     val includeFolder: Path = targetFolder.resolve("include")
     val libraries: List<String> = mutableListOf(libFile).also { it.addAll(additionalLibraries) }
         .map { it.absolutePathString() }
@@ -72,7 +81,7 @@ val openSSLTargets = mutableListOf(
 
 // Windows target
 val mingwLibFolder: Path = if (OperatingSystem.current().isWindows) {
-    Path.of(System.getenv("USER_HOME")).resolve(".konan/dependencies/msys2-mingw-w64-x86_64-2/x86_64-w64-mingw32/lib")
+    Path.of(System.getProperty("user.home")).resolve(".konan/dependencies/msys2-mingw-w64-x86_64-2/x86_64-w64-mingw32/lib")
 } else {
     Path.of("/usr/x86_64-w64-mingw32/lib")
 }
@@ -187,6 +196,22 @@ publishing {
         from(tasks.dokkaHtml.flatMap { it.outputDirectory })
         archiveClassifier.set("javadoc")
         dependsOn(tasks.dokkaHtml)
+    }
+    
+    repositories {
+        maven {
+            url = uri("https://git.karmakrafts.dev/api/v4/projects/303/packages/maven")
+            name = "KarmaKrafts"
+            credentials(HttpHeaderCredentials::class) {
+                name = if (isCIEnvironment) "Job-Token" else "Private-Token"
+                value = if (isCIEnvironment) System.getenv("CI_JOB_TOKEN") else
+                    findProperty("krypton_ci_token").toString()
+            }
+            authentication {
+                create("header", HttpHeaderAuthentication::class)
+            }
+            
+        }
     }
     
     publications.configureEach {

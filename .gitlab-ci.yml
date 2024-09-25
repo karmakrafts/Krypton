@@ -1,0 +1,46 @@
+stages:
+  - build
+  - tests
+  - publish
+
+.cache-linux: &cache-linux
+  - key: krypton-core-cache-linux
+    policy: pull-push
+    paths:
+      - $CI_PROJECT_DIR/.konan
+      - $CI_PROJECT_DIR/.gradle
+
+.if-main: &if-main
+  - if: $CI_PIPELINE_SOURCE == "schedule"
+    when: never
+  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+build:linux:
+  stage: build
+  tags: ["linux", "x86_64"]
+  image: java:21-jdk
+  cache:
+    - *cache-linux
+  script:
+    - ./gradlew compileKotlin{Jvm,LinuxX64,MingwX64} linkDebugTest{LinuxX64,MingwX64} --stacktrace
+
+tests:linux:
+  stage: tests
+  needs: ["build:linux"]
+  tags: ["linux", "x86_64"]
+  image: java:21-jdk
+  cache:
+    - *cache-linux
+  script:
+    - ./gradlew {jvm,linuxX64}Test --stacktrace
+
+publish:linux:
+  stage: publish
+  needs: ["tests:linux"]
+  tags: ["linux", "x86_64"]
+  cache:
+    - *cache-linux
+  rules:
+    - *if-main
+  script:
+    - ./gradlew dokkaHtml publishAllPublicationsToKarmaKraftsRepository --stacktrace
