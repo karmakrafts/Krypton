@@ -15,3 +15,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactor internal key generator API
 - Refactor internal parameter generator API
 - Refactor internal cipher API
+- Downgrade Kotlin from 2.0.20 to 2.0.10
