@@ -36,7 +36,7 @@ class KeyPairGeneratorTests : ShouldSpec() {
         }
         
         should("test DH") {
-            val parameters = ParameterGenerator(Algorithm.DH, ParameterGeneratorParameters(512)).use { it.generate() }
+            val parameters = ParameterGenerator(Algorithm.DH, ParameterGeneratorParameters(512)).generate()
             KeyPairGenerator(Algorithm.DH, parameters).generate().use { keyPair ->
                 assertEquals("DH", keyPair.publicKey.algorithm)
                 assertEquals(KeyType.PUBLIC, keyPair.publicKey.type)

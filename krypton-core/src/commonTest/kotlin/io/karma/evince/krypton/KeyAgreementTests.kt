@@ -39,7 +39,7 @@ class KeyAgreementTests : ShouldSpec() {
         }
         
         should("test DH agreement") {
-            val parameters = ParameterGenerator(Algorithm.DH, ParameterGeneratorParameters(512)).use { it.generate() }
+            val parameters = ParameterGenerator(Algorithm.DH, ParameterGeneratorParameters(512)).generate()
             val generator = KeyPairGenerator(Algorithm.DH, parameters)
             generator.generate().use { kp1 ->
                 generator.generate().use { kp2 ->

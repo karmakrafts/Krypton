@@ -23,11 +23,12 @@ import kotlin.test.assertEquals
 class ParameterGeneratorTests : ShouldSpec() {
     init {
         should("test DH parameter generation") {
-            ParameterGenerator(Algorithm.DH, ParameterGeneratorParameters(512)).use { parameterGenerator ->
-                val keyPairGenerationParameters = parameterGenerator.generate() as DHKeyPairGeneratorParameters
-                assertEquals(512, keyPairGenerationParameters.p.toByteArray().size * 8)
-                assertEquals(512, keyPairGenerationParameters.size)
-            }
+            val parameters = ParameterGenerator(
+                Algorithm.DH,
+                ParameterGeneratorParameters(512)
+            ).generate() as DHKeyPairGeneratorParameters
+            assertEquals(512, parameters.p.toByteArray().size * 8)
+            assertEquals(512, parameters.size)
         }
     }
 }

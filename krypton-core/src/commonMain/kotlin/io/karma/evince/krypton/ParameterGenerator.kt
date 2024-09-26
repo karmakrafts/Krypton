@@ -29,10 +29,10 @@ import io.karma.evince.krypton.key.KeyPairGeneratorParameters
 expect class ParameterGenerator @UncheckedKryptonAPI constructor(
     algorithm: String,
     parameters: ParameterGeneratorParameters
-) : AutoCloseable {
+) {
     constructor(algorithm: Algorithm, parameters: ParameterGeneratorParameters)
+    
     fun generate(): KeyPairGeneratorParameters
-    override fun close()
 }
 
 /**

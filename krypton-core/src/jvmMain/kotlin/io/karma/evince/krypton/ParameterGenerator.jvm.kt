@@ -38,7 +38,7 @@ internal fun java.math.BigInteger.toBigInteger(): BigInteger =
 actual class ParameterGenerator actual constructor(
     private val algorithm: String,
     private val parameters: ParameterGeneratorParameters
-) : AutoCloseable {
+) {
     private val generator: AlgorithmParameterGenerator = AlgorithmParameterGenerator.getInstance(algorithm)
     
     actual constructor(algorithm: Algorithm, parameters: ParameterGeneratorParameters) :
@@ -56,6 +56,4 @@ actual class ParameterGenerator actual constructor(
             else -> throw IllegalArgumentException("Unsupported algorithm '$algorithm'")
         }
     }
-    
-    actual override fun close() {}
 }

@@ -36,7 +36,7 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
     actual constructor(algorithm: Algorithm, parameters: KeyPairGeneratorParameters) :
             this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameters)
     
-    actual fun generate(): KeyPair = generatorFunction.invoke(parameters)
+    actual fun generate(): KeyPair = generatorFunction(parameters)
     
     companion object {
         /** @suppress **/
@@ -135,8 +135,8 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
 
 /**
  * This function allows a developer to create a keypair generation function based on the specified algorithm based on
- * the OpenSSL EVP_PKEY API. You can create the key generation context and the context configuration step after the
- * initialization of the context for key generation.
+ * the OpenSSL EVP_PKEY API. You can create the key generation context and configure the context after the
+ * initialization.
  *
  * @param algorithm The target algorithm of this generator
  *
