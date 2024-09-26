@@ -22,7 +22,7 @@ import io.karma.evince.krypton.internal.openssl.*
 import kotlinx.cinterop.*
 
 /** @suppress **/
-internal fun <T> T?.checkNotNull(message: String? = "The allocation of a object is failed"): T =
+fun <T> T?.checkNotNull(message: String? = "The allocation of a object is failed"): T =
     this ?: throw RuntimeException(message, ErrorHelper.createOpenSSLException())
 
 internal fun <T : Any, R> T?.pinnedNotNull(closure: (Pinned<T>) -> R?): R? = this?.usePinned(closure)

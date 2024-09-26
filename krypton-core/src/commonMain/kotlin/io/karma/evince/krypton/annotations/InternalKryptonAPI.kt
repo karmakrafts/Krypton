@@ -25,5 +25,8 @@ package io.karma.evince.krypton.annotations
  * @since  08/09/2024
  */
 @Retention(AnnotationRetention.BINARY)
-@RequiresOptIn(level = RequiresOptIn.Level.ERROR, message = "This API is only intended for Krypton modules")
+@RequiresOptIn(
+    level = RequiresOptIn.Level.ERROR,
+    message = "These APIs are internal and not as documented and safe as the main Krypton API"
+)
 annotation class InternalKryptonAPI

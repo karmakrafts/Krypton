@@ -39,17 +39,32 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
     actual fun generate(): KeyPair = generatorFunction.invoke(parameters)
     
     companion object {
+        /** @suppress **/
         @InternalKryptonAPI
         private val _INTERNAL_FACTORIES: MutableMap<String, (KeyPairGeneratorParameters) -> KeyPair> = mutableMapOf()
         
+        /**
+         * This field maps algorithm names to a keypair generation function which takes the keypair generator parameters
+         * as input.
+         *
+         * @author Cedric Hammes
+         * @since  26/09/2024
+         */
         @InternalKryptonAPI
         val INTERNAL_FACTORIES: Map<String, (KeyPairGeneratorParameters) -> KeyPair>
             get() = _INTERNAL_FACTORIES
         
+        /**
+         * This constructor registers the default generators for RSA, ECDH and DH into the list of internal
+         * factories.
+         *
+         * @author Cedric Hammes
+         * @since  26/09/2024
+         */
         init {
             registerInternalGenerator(Algorithm.RSA, nidKeyPairGenerator<KeyPairGeneratorParameters>(
                 nid = EVP_PKEY_RSA,
-                algorithm = Algorithm.RSA,
+                algorithm = "RSA",
                 contextConfigurator = { context, parameters ->
                     if (EVP_PKEY_CTX_set_rsa_keygen_bits(context, parameters.size) != 1) {
                         throw InitializationException(
@@ -61,7 +76,7 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
             ))
             registerInternalGenerator(Algorithm.ECDH, nidKeyPairGenerator<ECKeyPairGeneratorParameters>(
                 nid = EVP_PKEY_EC,
-                algorithm = Algorithm.ECDH,
+                algorithm = "ECDH",
                 contextConfigurator = { context, parameters ->
                     if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(context, parameters.curve.toOpenSSLId()) != 1) {
                         throw InitializationException(
@@ -72,7 +87,7 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
                 }
             ))
             registerInternalGenerator(Algorithm.DH, rawKeyPairGenerator<DHKeyPairGeneratorParameters>(
-                algorithm = Algorithm.DH,
+                algorithm = "DH",
                 contextGenerator = { parameters ->
                     val dh = DH_new().checkNotNull().freeAfter(::DH_free)
                     val prime = parameters.p.toOpenSSLBigNumber().checkNotNull()
@@ -118,9 +133,19 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
     }
 }
 
+/**
+ * This function allows a developer to create a keypair generation function based on the specified algorithm based on
+ * the OpenSSL EVP_PKEY API. You can create the key generation context and the context configuration step after the
+ * initialization of the context for key generation.
+ *
+ * @param algorithm The target algorithm of this generator
+ *
+ * @author Cedric Hammes
+ * @since  26/09/2024
+ */
 @InternalKryptonAPI
-internal inline fun <reified P : KeyPairGeneratorParameters> rawKeyPairGenerator(
-    algorithm: Algorithm,
+inline fun <reified P : KeyPairGeneratorParameters> rawKeyPairGenerator(
+    algorithm: String,
     crossinline contextGenerator: WithFree.(P) -> CPointer<EVP_PKEY_CTX>?,
     crossinline contextConfigurator: (CPointer<EVP_PKEY_CTX>, P) -> Unit
 ): (KeyPairGeneratorParameters) -> KeyPair = { parameters ->
@@ -145,16 +170,24 @@ internal inline fun <reified P : KeyPairGeneratorParameters> rawKeyPairGenerator
         }
         
         KeyPair(
-            Key(KeyType.PUBLIC, algorithm.toString(), key),
-            Key(KeyType.PRIVATE, algorithm.toString(), EVP_PKEY_dup(key).checkNotNull())
+            Key(KeyType.PUBLIC, algorithm, key),
+            Key(KeyType.PRIVATE, algorithm, EVP_PKEY_dup(key).checkNotNull())
         )
     }
 }
 
+/**
+ * This function allows a developer to create a keypair generation function based on the specified algorithm name and
+ * OpenSSL NID based on the OpenSSL EVP_PKEY API. After the automatic creation of the key generation context, you can
+ * configure the generation context.
+ *
+ * @author Cedric Hammes
+ * @since  26/09/2024
+ */
 @InternalKryptonAPI
-internal inline fun <reified P : KeyPairGeneratorParameters> nidKeyPairGenerator(
+inline fun <reified P : KeyPairGeneratorParameters> nidKeyPairGenerator(
     nid: Int,
-    algorithm: Algorithm,
+    algorithm: String,
     crossinline contextConfigurator: (CPointer<EVP_PKEY_CTX>, P) -> Unit
 ): (KeyPairGeneratorParameters) -> KeyPair = rawKeyPairGenerator(
     algorithm = algorithm,
@@ -162,7 +195,14 @@ internal inline fun <reified P : KeyPairGeneratorParameters> nidKeyPairGenerator
     contextConfigurator = contextConfigurator
 )
 
-private fun EllipticCurve.toOpenSSLId(): Int = when (this) {
+/**
+ * This function converts the Elliptic Curve enum to the OpenSSL NID. This function is used by the elliptic curve key
+ * pair generator.
+ *
+ * @author Cedric Hammes
+ * @since  26/09/2024
+ */
+fun EllipticCurve.toOpenSSLId(): Int = when (this) {
     EllipticCurve.PRIME192V1 -> NID_X9_62_prime192v1
     EllipticCurve.PRIME192V2 -> NID_X9_62_prime192v2
     EllipticCurve.PRIME192V3 -> NID_X9_62_prime192v3
