@@ -35,6 +35,7 @@ object InternalCipherFactoryRegistry {
     
     init {
         registerFactory(Algorithm.AES) { key, params -> AESCipher(key, params) }
+        registerFactory(Algorithm.RSA) { key, params -> OpenSSLAsymmetricCipher(params, Algorithm.RSA, key) }
     }
     
     fun registerFactory(algorithm: String, factory: (Key, CipherParameters) -> InternalCipher) {

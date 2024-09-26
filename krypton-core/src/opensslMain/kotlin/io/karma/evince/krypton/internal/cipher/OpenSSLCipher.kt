@@ -16,17 +16,130 @@
 
 package io.karma.evince.krypton.internal.cipher
 
-import io.karma.evince.krypton.Algorithm
-import io.karma.evince.krypton.BlockMode
-import io.karma.evince.krypton.Cipher
-import io.karma.evince.krypton.CipherParameters
+import io.karma.evince.krypton.*
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
 import io.karma.evince.krypton.internal.openssl.*
 import io.karma.evince.krypton.key.Key
 import io.karma.evince.krypton.utils.ErrorHelper
 import io.karma.evince.krypton.utils.checkNotNull
-import io.karma.evince.krypton.utils.withFreeWithException
+import io.karma.evince.krypton.utils.withFree
 import kotlinx.cinterop.*
+import platform.posix.size_t
+
+internal fun Padding.toRSAPadding(): Int = when(this) {
+    Padding.NONE -> RSA_NO_PADDING
+    Padding.PKCS1 -> RSA_PKCS1_PADDING
+    else -> throw RuntimeException("Padding '$this' not supported for RSA")
+}
+
+/** @suppress **/
+@InternalKryptonAPI
+class OpenSSLAsymmetricCipher(
+    private val parameters: CipherParameters,
+    algorithm: Algorithm,
+    key: Key
+) : InternalCipher {
+    private val keyData: CPointer<EVP_PKEY> = (key.body as Key.KeyBody.EVPKeyBody).key
+    private val padding: Int = requireNotNull((parameters.padding?: algorithm.defaultPadding)).toRSAPadding()
+    
+    override fun process(data: ByteArray, aad: ByteArray?): ByteArray = withFree {
+        val cipherContext = EVP_PKEY_CTX_new(keyData, null).checkNotNull().freeAfter(::EVP_PKEY_CTX_free)
+        when (parameters.mode) {
+            Cipher.Mode.DECRYPT -> {
+                if (EVP_PKEY_decrypt_init(cipherContext) != 1)
+                    throw RuntimeException("Unable to initialize decryption", ErrorHelper.createOpenSSLException())
+                
+                // TODO: Remove if more algorithms than RSA are implemented
+                if (EVP_PKEY_CTX_set_rsa_padding(cipherContext, padding) != 1)
+                    throw RuntimeException("Unable to set padding", ErrorHelper.createOpenSSLException())
+                
+                memScoped {
+                    val outputSize = alloc<size_t>(0U)
+                    data.usePinned { input ->
+                        // Determine length
+                        if (EVP_PKEY_decrypt(
+                                ctx = cipherContext,
+                                out = null,
+                                outlen = outputSize.ptr,
+                                `in` = input.addressOf(0).reinterpret(),
+                                inlen = data.size.toULong()
+                            ) != 1
+                        ) {
+                            throw RuntimeException("Unable to get output length", ErrorHelper.createOpenSSLException())
+                        }
+                        
+                        // Decrypt
+                        val output = ByteArray(outputSize.value.toInt())
+                        output.usePinned { out ->
+                            if (EVP_PKEY_decrypt(
+                                    ctx = cipherContext,
+                                    out = out.addressOf(0).reinterpret(),
+                                    outlen = outputSize.ptr,
+                                    `in` = input.addressOf(0).reinterpret(),
+                                    inlen = data.size.toULong()
+                                ) != 1
+                            ) {
+                                throw RuntimeException(
+                                    "Unable to decrypt",
+                                    ErrorHelper.createOpenSSLException()
+                                )
+                            }
+                        }
+                        output.copyOf(outputSize.value.toInt())
+                    }
+                }
+            }
+            
+            Cipher.Mode.ENCRYPT -> {
+                if (EVP_PKEY_encrypt_init(cipherContext) != 1)
+                    throw RuntimeException("Unable to initialize decryption", ErrorHelper.createOpenSSLException())
+                
+                // TODO: Remove if more algorithms than RSA are implemented
+                if (EVP_PKEY_CTX_set_rsa_padding(cipherContext, padding) != 1)
+                    throw RuntimeException("Unable to set padding", ErrorHelper.createOpenSSLException())
+                
+                memScoped {
+                    val outputSize = alloc<size_t>(0U)
+                    data.usePinned { input ->
+                        // Determine length
+                        if (EVP_PKEY_encrypt(
+                                ctx = cipherContext,
+                                out = null,
+                                outlen = outputSize.ptr,
+                                `in` = input.addressOf(0).reinterpret(),
+                                inlen = data.size.toULong()
+                            ) != 1
+                        ) {
+                            throw RuntimeException("Unable to get output length", ErrorHelper.createOpenSSLException())
+                        }
+                        
+                        // Encrypt
+                        val output = ByteArray(outputSize.value.toInt())
+                        output.usePinned { out ->
+                            if (EVP_PKEY_encrypt(
+                                    ctx = cipherContext,
+                                    out = out.addressOf(0).reinterpret(),
+                                    outlen = outputSize.ptr,
+                                    `in` = input.addressOf(0).reinterpret(),
+                                    inlen = data.size.toULong()
+                                ) != 1
+                            ) {
+                                throw RuntimeException(
+                                    "Unable to get encrypt",
+                                    ErrorHelper.createOpenSSLException()
+                                )
+                            }
+                        }
+                        output
+                    }
+                }
+            }
+        }
+    }
+    
+    override fun close() {
+    }
+}
 
 /** @suppress **/
 @InternalKryptonAPI
@@ -38,7 +151,7 @@ open class OpenSSLSymmetricCipher<P : CipherParameters>(
 ) : InternalCipher {
     private val keyData = (key.body as Key.KeyBody.DataKeyBody).data
     
-    override fun process(data: ByteArray, aad: ByteArray?): ByteArray = withFreeWithException {
+    override fun process(data: ByteArray, aad: ByteArray?): ByteArray = withFree {
         val context = EVP_CIPHER_CTX_new().checkNotNull().freeAfter(::EVP_CIPHER_CTX_free)
         memScoped {
             val keyPointer = allocPointerTo<BUF_MEM>()

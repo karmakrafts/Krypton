@@ -20,7 +20,6 @@ import io.karma.evince.krypton.annotations.InternalKryptonAPI
 import io.karma.evince.krypton.internal.cipher.InternalCipher
 import io.karma.evince.krypton.internal.cipher.InternalCipherFactoryRegistry
 import io.karma.evince.krypton.key.Key
-import io.karma.evince.krypton.key.KeyType
 
 /** @suppress **/
 @OptIn(InternalKryptonAPI::class)
@@ -29,11 +28,6 @@ actual class Cipher actual constructor(algorithm: String, key: Key, parameters: 
     
     actual constructor(algorithm: Algorithm, key: Key, parameters: CipherParameters) :
             this(algorithm.checkScopeOrError(Algorithm.Scope.CIPHER).toString(), key, parameters.validate(algorithm))
-    
-    init {
-        if (key.type != KeyType.SYMMETRIC || key.body !is Key.KeyBody.DataKeyBody)
-            throw IllegalArgumentException("Invalid type '${key.type}', expected '${KeyType.SYMMETRIC}'")
-    }
     
     actual fun process(data: ByteArray, aad: ByteArray?): ByteArray = internal.process(data, aad)
     

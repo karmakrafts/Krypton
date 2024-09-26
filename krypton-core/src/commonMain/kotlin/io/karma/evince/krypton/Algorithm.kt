@@ -268,7 +268,7 @@ enum class Algorithm(
         supportedBitSizes = intArrayOf(1024, 2048, 4096, 8192),
         defaultBitSize = 4096,
         defaultBlockMode = BlockMode.ECB,
-        defaultPadding = Padding.PKCS5,
+        defaultPadding = Padding.PKCS1,
         scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR),
         blockCipher = true
     ),
