@@ -19,6 +19,17 @@ package io.karma.evince.krypton
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 import io.karma.evince.krypton.key.Key
 
+/**
+ * This class is the implementation for a cipher. A cipher is used to encrypt or decrypt data transmitted over an
+ * insecure tunnel.
+ * 
+ * @param algorithm  The algorithm used
+ * @param key        The key for the operation
+ * @param parameters Extra parameters for the cipher
+ *
+ * @author Cedric Hammes
+ * @param  20/09/2024
+ */
 expect class Cipher(algorithm: Algorithm, key: Key, parameters: CipherParameters) {
     /**
      * This constructor initializes the cipher with string-defined algorithm. The correctness of this string in the
