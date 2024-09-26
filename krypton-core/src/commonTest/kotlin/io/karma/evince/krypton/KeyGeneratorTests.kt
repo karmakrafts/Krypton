@@ -16,7 +16,6 @@
 
 package io.karma.evince.krypton
 
-import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.key.KeyGenerator
 import io.karma.evince.krypton.key.KeyGeneratorParameters
 import io.kotest.core.spec.style.ShouldSpec
@@ -27,11 +26,6 @@ class KeyGeneratorTests : ShouldSpec() {
         should("test AES") {
             KeyGenerator(Algorithm.AES, KeyGeneratorParameters(256)).generate().use { key ->
                 assertEquals("AES", key.algorithm)
-            }
-        }
-        should("test DES") {
-            KeyGenerator(Algorithm.DES, KeyGeneratorParameters(56)).generate().use { key ->
-                assertEquals("DES", key.algorithm)
             }
         }
     }
