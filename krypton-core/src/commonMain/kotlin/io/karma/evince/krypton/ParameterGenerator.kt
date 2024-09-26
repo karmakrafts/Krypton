@@ -20,6 +20,9 @@ import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 import io.karma.evince.krypton.key.KeyPairGeneratorParameters
 
 /**
+ * This class is the parameter generator. The parameter generator is used to generate secure parameters for procedures
+ * like key agreements. Currently only Diffie-Hellman is supported.
+ *
  * @author Cedric Hammes
  * @since  18/09/2024
  */
