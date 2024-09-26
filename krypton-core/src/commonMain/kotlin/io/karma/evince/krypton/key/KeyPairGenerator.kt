@@ -32,7 +32,7 @@ import io.karma.evince.krypton.ec.EllipticCurve
 expect class KeyPairGenerator @UncheckedKryptonAPI constructor(
     algorithm: String,
     parameters: KeyPairGeneratorParameters
-) : AutoCloseable {
+) {
     constructor(algorithm: Algorithm, parameters: KeyPairGeneratorParameters)
     
     /**
@@ -43,7 +43,6 @@ expect class KeyPairGenerator @UncheckedKryptonAPI constructor(
      * @since  26/09/2024
      */
     fun generate(): KeyPair
-    override fun close()
 }
 
 /**

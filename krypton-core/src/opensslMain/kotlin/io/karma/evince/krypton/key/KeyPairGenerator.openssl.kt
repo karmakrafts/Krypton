@@ -17,22 +17,171 @@
 package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
+import io.karma.evince.krypton.GenerationException
+import io.karma.evince.krypton.InitializationException
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
-import io.karma.evince.krypton.internal.key.InternalKeyPairGenerator
-import io.karma.evince.krypton.internal.key.InternalKeyPairGeneratorRegistry
+import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
+import io.karma.evince.krypton.ec.EllipticCurve
+import io.karma.evince.krypton.internal.openssl.*
+import io.karma.evince.krypton.utils.*
+import kotlinx.cinterop.*
 
-/** @suppress **/
-@OptIn(InternalKryptonAPI::class)
-actual class KeyPairGenerator actual constructor(
+actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
     algorithm: String,
-    parameters: KeyPairGeneratorParameters
-) : AutoCloseable {
-    private val internal: InternalKeyPairGenerator =
-        InternalKeyPairGeneratorRegistry.createGenerator(algorithm, parameters)
+    private val parameters: KeyPairGeneratorParameters
+) {
+    private val generatorFunction: (KeyPairGeneratorParameters) -> KeyPair =
+        requireNotNull(INTERNAL_FACTORIES[algorithm])
     
     actual constructor(algorithm: Algorithm, parameters: KeyPairGeneratorParameters) :
             this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameters)
     
-    actual fun generate(): KeyPair = this.internal.generate()
-    actual override fun close() = this.internal.close()
+    actual fun generate(): KeyPair = generatorFunction.invoke(parameters)
+    
+    companion object {
+        @InternalKryptonAPI
+        private val _INTERNAL_FACTORIES: MutableMap<String, (KeyPairGeneratorParameters) -> KeyPair> = mutableMapOf()
+        
+        @InternalKryptonAPI
+        val INTERNAL_FACTORIES: Map<String, (KeyPairGeneratorParameters) -> KeyPair>
+            get() = _INTERNAL_FACTORIES
+        
+        init {
+            registerInternalGenerator(Algorithm.RSA, nidKeyPairGenerator<KeyPairGeneratorParameters>(
+                nid = EVP_PKEY_RSA,
+                algorithm = Algorithm.RSA,
+                contextConfigurator = { context, parameters ->
+                    if (EVP_PKEY_CTX_set_rsa_keygen_bits(context, parameters.size) != 1) {
+                        throw InitializationException(
+                            message = "Unable to set key bits for keypair generator",
+                            cause = ErrorHelper.createOpenSSLException()
+                        )
+                    }
+                }
+            ))
+            registerInternalGenerator(Algorithm.ECDH, nidKeyPairGenerator<ECKeyPairGeneratorParameters>(
+                nid = EVP_PKEY_EC,
+                algorithm = Algorithm.ECDH,
+                contextConfigurator = { context, parameters ->
+                    if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(context, parameters.curve.toOpenSSLId()) != 1) {
+                        throw InitializationException(
+                            message = "Unable to set curve information for ECDH generator",
+                            cause = ErrorHelper.createOpenSSLException()
+                        )
+                    }
+                }
+            ))
+            registerInternalGenerator(Algorithm.DH, rawKeyPairGenerator<DHKeyPairGeneratorParameters>(
+                algorithm = Algorithm.DH,
+                contextGenerator = { parameters ->
+                    val dh = DH_new().checkNotNull().freeAfter(::DH_free)
+                    val prime = parameters.p.toOpenSSLBigNumber().checkNotNull()
+                    val generator = parameters.g.toOpenSSLBigNumber().checkNotNull()
+                    if (DH_set0_pqg(dh, prime, null, generator) != 1) {
+                        throw RuntimeException(
+                            message = "Unable to initialize prime and generator parameter",
+                            cause = ErrorHelper.createOpenSSLException()
+                        )
+                    }
+                    
+                    val keyGeneratorParameters = EVP_PKEY_new().checkNotNull()
+                    if (EVP_PKEY_set1_DH(keyGeneratorParameters, dh) != 1) {
+                        throw RuntimeException(
+                            message = "Unable to apply DH parameters to keypair generator",
+                            cause = ErrorHelper.createOpenSSLException()
+                        )
+                    }
+                    
+                    EVP_PKEY_CTX_new(keyGeneratorParameters, null)
+                },
+                contextConfigurator = { _, _ -> }
+            ))
+        }
+        
+        /**
+         * This function registers an internal keypair generator for the specified algorithm if the scope list of the
+         * algorithm contains the 'keypair generator' scope.
+         *
+         * @param algorithm The algorithm to register the keypair generator for
+         * @param generator The generator itself
+         *
+         * @author Cedric Hammes
+         * @since  26/09/2024
+         */
+        @InternalKryptonAPI
+        fun registerInternalGenerator(algorithm: Algorithm, generator: (KeyPairGeneratorParameters) -> KeyPair) {
+            algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR)
+            if (INTERNAL_FACTORIES.containsKey(algorithm.name))
+                throw RuntimeException("Generator for algorithm '$algorithm' is already registered")
+            _INTERNAL_FACTORIES[algorithm.name] = generator
+        }
+    }
+}
+
+@InternalKryptonAPI
+internal inline fun <reified P : KeyPairGeneratorParameters> rawKeyPairGenerator(
+    algorithm: Algorithm,
+    crossinline contextGenerator: WithFree.(P) -> CPointer<EVP_PKEY_CTX>?,
+    crossinline contextConfigurator: (CPointer<EVP_PKEY_CTX>, P) -> Unit
+): (KeyPairGeneratorParameters) -> KeyPair = { parameters ->
+    if (parameters !is P) {
+        throw InitializationException("Invalid parameter type '${parameters::class.qualifiedName}'")
+    }
+    
+    withFreeWithException {
+        val generatorContext = contextGenerator(parameters).checkNotNull().freeAfter(::EVP_PKEY_CTX_free)
+        if (EVP_PKEY_keygen_init(generatorContext) != 1) {
+            throw InitializationException("Unable to init keypair generator", ErrorHelper.createOpenSSLException())
+        }
+        contextConfigurator(generatorContext, parameters)
+        
+        val key = EVP_PKEY_new().checkNotNull().freeAfterOnException(::EVP_PKEY_free)
+        memScoped {
+            val keyPointer = allocPointerTo<EVP_PKEY>()
+            keyPointer.value = key
+            if (EVP_PKEY_keygen(generatorContext, keyPointer.ptr) != 1) {
+                throw GenerationException("Unable to generate private key", ErrorHelper.createOpenSSLException())
+            }
+        }
+        
+        KeyPair(
+            Key(KeyType.PUBLIC, algorithm.toString(), key),
+            Key(KeyType.PRIVATE, algorithm.toString(), EVP_PKEY_dup(key).checkNotNull())
+        )
+    }
+}
+
+@InternalKryptonAPI
+internal inline fun <reified P : KeyPairGeneratorParameters> nidKeyPairGenerator(
+    nid: Int,
+    algorithm: Algorithm,
+    crossinline contextConfigurator: (CPointer<EVP_PKEY_CTX>, P) -> Unit
+): (KeyPairGeneratorParameters) -> KeyPair = rawKeyPairGenerator(
+    algorithm = algorithm,
+    contextGenerator = { EVP_PKEY_CTX_new_id(nid, null) },
+    contextConfigurator = contextConfigurator
+)
+
+private fun EllipticCurve.toOpenSSLId(): Int = when (this) {
+    EllipticCurve.PRIME192V1 -> NID_X9_62_prime192v1
+    EllipticCurve.PRIME192V2 -> NID_X9_62_prime192v2
+    EllipticCurve.PRIME192V3 -> NID_X9_62_prime192v3
+    EllipticCurve.PRIME239V1 -> NID_X9_62_prime239v1
+    EllipticCurve.PRIME239V2 -> NID_X9_62_prime239v2
+    EllipticCurve.PRIME239V3 -> NID_X9_62_prime192v3
+    EllipticCurve.PRIME256V1 -> NID_X9_62_prime256v1
+    EllipticCurve.BRAINPOOL_P160T1 -> NID_brainpoolP160t1
+    EllipticCurve.BRAINPOOL_P192T1 -> NID_brainpoolP192t1
+    EllipticCurve.BRAINPOOL_P224T1 -> NID_brainpoolP224t1
+    EllipticCurve.BRAINPOOL_P256T1 -> NID_brainpoolP256t1
+    EllipticCurve.BRAINPOOL_P320T1 -> NID_brainpoolP320t1
+    EllipticCurve.BRAINPOOL_P384T1 -> NID_brainpoolP384t1
+    EllipticCurve.BRAINPOOL_P512T1 -> NID_brainpoolP512t1
+    EllipticCurve.BRAINPOOL_P160R1 -> NID_brainpoolP160r1
+    EllipticCurve.BRAINPOOL_P192R1 -> NID_brainpoolP192r1
+    EllipticCurve.BRAINPOOL_P256R1 -> NID_brainpoolP256r1
+    EllipticCurve.BRAINPOOL_P224R1 -> NID_brainpoolP224r1
+    EllipticCurve.BRAINPOOL_P320R1 -> NID_brainpoolP320r1
+    EllipticCurve.BRAINPOOL_P384R1 -> NID_brainpoolP384r1
+    EllipticCurve.BRAINPOOL_P512R1 -> NID_brainpoolP512r1
 }
