@@ -221,30 +221,6 @@ enum class Algorithm(
     ),
     
     /**
-     * The DES (Data Encryption Standard) block cipher is a symmetric encryption algorithm created in 1975 with a block
-     * size of 64 bits. DES can be attacked by bruteforce easily and by multiple cryptanalytic attacks so the algorithm
-     * is considered as deprecated and was replaced with Triple-DES and the algorithm AES is recommended for symmetric
-     * encryption. The security in bit can be reduced to the half by Grover's algorithm.
-     *
-     * @author Cedric Hammes
-     * @since  08/09/2024
-     *
-     * @see [Wikipedia, DES](https://en.wikipedia.org/wiki/Data_Encryption_Standard)
-     * @see [Wikipedia, Grover's Algorithm](https://en.wikipedia.org/wiki/Grover%27s_algorithm)
-     */
-    @Deprecated("DES is deprecated, please use DES3 or AES")
-    DES(
-        literal = "DES",
-        supportedBlockModes = BlockMode.entries.filter { it == BlockMode.GCM }.toTypedArray(),
-        supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS1),
-        defaultBitSize = 56,
-        supportedBitSizes = intArrayOf(56),
-        defaultBlockMode = BlockMode.CBC,
-        defaultPadding = Padding.PKCS1,
-        scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR)
-    ),
-    
-    /**
      * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature crypto system created in
      * 1977 by Ron Rivest, Adi Shamir and Leonard Adleman. According to the NIST's Recommendation for Key Management
      * the key length 2048 is recommended. Most security recommendations recommend elliptic curve cryptography over
