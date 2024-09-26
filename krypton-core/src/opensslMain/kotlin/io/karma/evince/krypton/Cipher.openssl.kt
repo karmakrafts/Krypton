@@ -69,7 +69,7 @@ actual class Cipher actual constructor(
          */
         init {
             registerInternalCipher(Algorithm.RSA, asymmetricCipher { context, parameters ->
-                val padding = when(requireNotNull((parameters.padding ?: Algorithm.RSA.defaultPadding))) {
+                val padding = when (requireNotNull((parameters.padding ?: Algorithm.RSA.defaultPadding))) {
                     Padding.NONE -> RSA_NO_PADDING
                     Padding.PKCS1 -> RSA_PKCS1_PADDING
                     else -> throw RuntimeException("Padding '$this' not supported for RSA")
@@ -135,7 +135,7 @@ actual class Cipher actual constructor(
          * contains the 'cipher' scope.
          *
          * @param algorithm The algorithm to register the cipher for
-         * @param cipher The cipher itself
+         * @param cipher    The cipher itself
          *
          * @author Cedric Hammes
          * @since  27/09/2024
@@ -146,9 +146,26 @@ actual class Cipher actual constructor(
             cipher: (Key, CipherParameters, ByteArray, ByteArray?) -> ByteArray
         ) {
             algorithm.checkScopeOrError(Algorithm.Scope.CIPHER)
-            if (INTERNAL_FACTORIES.containsKey(algorithm.name))
+            registerInternalCipher(algorithm.toString(), cipher)
+        }
+        
+        /**
+         * This function registers an internal cipher for the specified algorithm.
+         *
+         * @param algorithm The algorithm to register the cipher for
+         * @param cipher    The cipher itself
+         *
+         * @author Cedric Hammes
+         * @since  27/09/2024
+         */
+        @InternalKryptonAPI
+        fun registerInternalCipher(
+            algorithm: String,
+            cipher: (Key, CipherParameters, ByteArray, ByteArray?) -> ByteArray
+        ) {
+            if (INTERNAL_FACTORIES.containsKey(algorithm))
                 throw RuntimeException("Generator for algorithm '$algorithm' is already registered")
-            _INTERNAL_FACTORIES[algorithm.name] = cipher
+            _INTERNAL_FACTORIES[algorithm] = cipher
         }
     }
 }

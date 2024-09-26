@@ -100,9 +100,26 @@ actual class ParameterGenerator actual constructor(
             generator: (ParameterGeneratorParameters) -> KeyPairGeneratorParameters
         ) {
             algorithm.checkScopeOrError(Algorithm.Scope.PARAMETER_GENERATOR)
-            if (INTERNAL_FACTORIES.containsKey(algorithm.name))
+            registerInternalGenerator(algorithm.toString(), generator)
+        }
+        
+        /**
+         * This function registers an internal parameter generator for the specified algorithm.
+         *
+         * @param algorithm The algorithm to register the keypair generator for
+         * @param generator The generator itself
+         *
+         * @author Cedric Hammes
+         * @since  26/09/2024
+         */
+        @InternalKryptonAPI
+        fun registerInternalGenerator(
+            algorithm: String,
+            generator: (ParameterGeneratorParameters) -> KeyPairGeneratorParameters
+        ) {
+            if (INTERNAL_FACTORIES.containsKey(algorithm))
                 throw RuntimeException("Generator for algorithm '$algorithm' is already registered")
-            _INTERNAL_FACTORIES[algorithm.name] = generator
+            _INTERNAL_FACTORIES[algorithm] = generator
         }
     }
 }
