@@ -16,9 +16,35 @@
 
 package io.karma.evince.krypton
 
-/** @suppress **/
+/**
+ * This exception is thrown if an operation with the Krypton API fails.
+ *
+ * @author Cedric Hammes
+ * @since  26/09/2024
+ */
 open class KryptonException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
-/** @suppress **/
+
+/**
+ * This exception is thrown when the initialization of a cryptographic API like the key generation API or the cipher
+ * API fails.
+ *
+ * @author Cedric Hammes
+ * @since  26/09/2024
+ */
 class InitializationException(message: String, cause: Throwable? = null) : KryptonException(message, cause)
-/** @suppress **/
+
+/**
+ * This exception is thrown when the generation of keys or parameters fails.
+ *
+ * @author Cedric Hammes
+ * @since  26/09/2024
+ */
 class GenerationException(message: String, cause: Throwable? = null) : KryptonException(message, cause)
+
+/**
+ * This exception is thrown if a cipher operation (encrypt data or decrypt data) fails.
+ *
+ * @author Cedric Hammes
+ * @since 27/09/2024
+ */
+class CipherOperationException(message: String, cause: Throwable? = null) : KryptonException(message, cause)

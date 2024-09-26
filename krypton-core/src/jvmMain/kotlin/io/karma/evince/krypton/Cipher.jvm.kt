@@ -30,7 +30,7 @@ private val Cipher.Mode.javaCipherMode: Int
     get() = if (this == Cipher.Mode.ENCRYPT) JavaCipher.ENCRYPT_MODE else JavaCipher.DECRYPT_MODE
 
 /** @suppress **/
-actual class Cipher actual constructor(algorithm: String, key: Key, parameters: CipherParameters) : AutoCloseable {
+actual class Cipher actual constructor(algorithm: String, key: Key, parameters: CipherParameters) {
     private val internal: JavaCipher = JavaCipher.getInstance(parameters.toAlgorithmSpecification(algorithm))
     
     actual constructor(algorithm: Algorithm, key: Key, parameters: CipherParameters) :
@@ -55,8 +55,6 @@ actual class Cipher actual constructor(algorithm: String, key: Key, parameters: 
         aad?.let { internal.updateAAD(it) }
         return internal.doFinal(data)
     }
-    
-    actual override fun close() {}
     
     actual enum class Mode {
         ENCRYPT, DECRYPT

@@ -29,7 +29,6 @@ import kotlinx.cinterop.*
 /**
  * @author Cedric Hammes
  * @since  18/09/2024
- * @suppress
  */
 @OptIn(InternalKryptonAPI::class)
 actual class ParameterGenerator actual constructor(

@@ -19,7 +19,7 @@ package io.karma.evince.krypton
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 import io.karma.evince.krypton.key.Key
 
-expect class Cipher(algorithm: Algorithm, key: Key, parameters: CipherParameters) : AutoCloseable {
+expect class Cipher(algorithm: Algorithm, key: Key, parameters: CipherParameters) {
     /**
      * This constructor initializes the cipher with string-defined algorithm. The correctness of this string in the
      * cipher is not pre-checked by the algorithm system so you can encounter exceptions from the backends.
@@ -46,8 +46,6 @@ expect class Cipher(algorithm: Algorithm, key: Key, parameters: CipherParameters
      * @since  20/09/2024
      */
     fun process(data: ByteArray, aad: ByteArray? = null): ByteArray
-    
-    override fun close()
     
     enum class Mode {
         ENCRYPT,
