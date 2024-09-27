@@ -21,6 +21,7 @@ import io.karma.evince.krypton.GenerationException
 import io.karma.evince.krypton.InitializationException
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
+import io.karma.evince.krypton.annotations.UnstableKryptonAPI
 import io.karma.evince.krypton.ec.EllipticCurve
 import io.karma.evince.krypton.internal.openssl.*
 import io.karma.evince.krypton.utils.*
@@ -75,6 +76,7 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
                 }
             ))
             registerInternalGenerator(Algorithm.ECDH, ecKeyPairGenerator("ECDH"))
+            @OptIn(UnstableKryptonAPI::class)
             registerInternalGenerator(Algorithm.ECDSA, ecKeyPairGenerator("ECDSA"))
             registerInternalGenerator(Algorithm.DH, rawKeyPairGenerator<DHKeyPairGeneratorParameters>(
                 algorithm = "DH",
@@ -137,20 +139,6 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
     }
 }
 
-@InternalKryptonAPI
-internal fun ecKeyPairGenerator(algorithm: String) = nidKeyPairGenerator<ECKeyPairGeneratorParameters>(
-    nid = EVP_PKEY_EC,
-    algorithm = algorithm,
-    contextConfigurator = { context, parameters ->
-        if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(context, parameters.curve.toOpenSSLId()) != 1) {
-            throw InitializationException(
-                message = "Unable to set curve information for $algorithm generator",
-                cause = ErrorHelper.createOpenSSLException()
-            )
-        }
-    }
-)
-
 /**
  * This function allows a developer to create a keypair generation function based on the specified algorithm based on
  * the OpenSSL EVP_PKEY API. You can create the key generation context and configure the context after the
@@ -178,13 +166,12 @@ inline fun <reified P : KeyPairGeneratorParameters> rawKeyPairGenerator(
         }
         contextConfigurator(generatorContext, parameters)
         
-        val key = EVP_PKEY_new().checkNotNull().freeAfterOnException(::EVP_PKEY_free)
-        memScoped {
+        val key = memScoped {
             val keyPointer = allocPointerTo<EVP_PKEY>()
-            keyPointer.value = key
             if (EVP_PKEY_keygen(generatorContext, keyPointer.ptr) != 1) {
                 throw GenerationException("Unable to generate private key", ErrorHelper.createOpenSSLException())
             }
+            keyPointer.value.checkNotNull()
         }
         
         KeyPair(
@@ -211,6 +198,29 @@ inline fun <reified P : KeyPairGeneratorParameters> nidKeyPairGenerator(
     algorithm = algorithm,
     contextGenerator = { EVP_PKEY_CTX_new_id(nid, null) },
     contextConfigurator = contextConfigurator
+)
+
+/**
+ * This function allows the developer to create an elliptic curve specific keypair generation function.
+ *
+ * @param algorithm The name of the target algorithm
+ * @returns         The function closure
+ *
+ * @author Cedric Hammes
+ * @since  27/09/2024
+ */
+@InternalKryptonAPI
+fun ecKeyPairGenerator(algorithm: String) = nidKeyPairGenerator<ECKeyPairGeneratorParameters>(
+    nid = EVP_PKEY_EC,
+    algorithm = algorithm,
+    contextConfigurator = { context, parameters ->
+        if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(context, parameters.curve.toOpenSSLId()) != 1) {
+            throw InitializationException(
+                message = "Unable to set curve information for $algorithm generator",
+                cause = ErrorHelper.createOpenSSLException()
+            )
+        }
+    }
 )
 
 /**

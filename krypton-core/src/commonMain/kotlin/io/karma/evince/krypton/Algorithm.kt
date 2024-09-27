@@ -16,6 +16,7 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.annotations.UnstableKryptonAPI
 import kotlin.jvm.JvmStatic
 
 /**
@@ -298,6 +299,7 @@ enum class Algorithm(
      * @author Cedric Hammes
      * @since  27/09/2024
      */
+    @UnstableKryptonAPI
     ECDSA(
         literal = "ECDSA",
         supportedBlockModes = emptyArray(),
