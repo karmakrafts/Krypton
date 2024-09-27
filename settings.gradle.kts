@@ -9,6 +9,12 @@ dependencyResolutionManagement {
     }
 }
 
+buildCache {
+    local {
+        directory = File(rootDir, ".gradle").resolve("buildcache")
+    }
+}
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
