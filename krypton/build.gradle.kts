@@ -128,6 +128,21 @@ kotlin {
         }
     }
     
+    js {
+        browser {
+            testTask {
+                useKarma {
+                    useFirefoxHeadless()
+                }
+            }
+        }
+        nodejs {
+            testTask {
+                useMocha()
+            }
+        }
+    }
+    
     jvm {
         testRuns["test"].executionTask {
             useJUnitPlatform()

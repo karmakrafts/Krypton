@@ -15,6 +15,7 @@ Below this text you can see the list of backends used on different platforms:
 
 - **Native (Linux, Windows, macOS and iOS):** [OpenSSL](https://www.openssl.org/) ([Apache License 2.0](https://github.com/openssl/openssl/blob/master/LICENSE.txt)) by [The OpenSSL Project](https://github.com/OpenSSL/OpenSSL)
 - **JVM:** [Java Cryptography Architecture](https://en.wikipedia.org/wiki/Java_Cryptography_Architecture) ([Oracle Binary Code License](https://www.oracle.com/downloads/licenses/binary-code-license.html)) by Oracle and Sun Microsystems and [BouncyCastle](https://github.com/bcgit/bc-java) ([MIT License](https://github.com/bcgit/bc-java/blob/main/LICENSE.md)) by [Legion of the Bouncy Castle Inc](https://github.com/bcgit)
+- **JS:** [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API) by [W3C](https://en.wikipedia.org/wiki/World_Wide_Web_Consortium)
 
 ## Credits
 
