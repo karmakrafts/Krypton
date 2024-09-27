@@ -38,7 +38,7 @@ build:macos:
   cache:
     - *cache-macos
   script:
-    - ./gradlew compileKotlinMacosArm64 linkDebugTestMacosArm64 --stacktrace
+    - ./gradlew compileKotlin{MacosArm64,IosSimulatorArm64,IosX64} linkDebugTest{MacosArm64,IosSimulatorArm64,IosX64} --stacktrace
 
 tests:linux:
   stage: tests
@@ -58,7 +58,7 @@ tests:macos:
   cache:
     - *cache-macos
   script:
-    - ./gradlew macosArm64Test --stacktrace
+    - ./gradlew {macos,iosSimulator,iosX64}Arm64Test --stacktrace
 
 publish:linux:
   stage: publish
@@ -70,3 +70,14 @@ publish:linux:
     - *if-main
   script:
     - ./gradlew dokkaHtml publishAllPublicationsToKarmaKraftsRepository --stacktrace
+
+publish:macos:
+  stage: publish
+  needs: ["tests:macos"]
+  tags: ["macos", "x86_64"]
+  cache:
+    - *cache-macos
+  rules:
+    - *if-main
+  script:
+    - ./gradlew dokkaHtml publish{IosArm64,IosSimulatorArm64,IosX64}PublicationToKarmaKraftsRepository --stacktrace
