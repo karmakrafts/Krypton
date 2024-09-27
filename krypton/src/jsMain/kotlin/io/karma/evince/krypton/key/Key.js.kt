@@ -16,19 +16,25 @@
 
 package io.karma.evince.krypton.key
 
-import io.karma.evince.krypton.Algorithm
-import javax.crypto.KeyGenerator
+import node.buffer.Buffer
+import web.crypto.CryptoKey
 
-/** @suppress **/
-actual class KeyGenerator actual constructor(algorithm: String, parameters: KeyGeneratorParameters) {
-    private val keyGenerator: KeyGenerator = KeyGenerator.getInstance(algorithm)
-    
-    actual constructor(algorithm: Algorithm, parameters: KeyGeneratorParameters) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameters)
-    
-    init {
-        this.keyGenerator.init(parameters.size)
+/**
+ * This class is a cross-platform implementation for a key (with support for symmetric and asymmetric keys) that can be
+ * used in all parts of the Krypton API like Key generation and signing.
+ *
+ * @author Cedric Hammes
+ * @since  08/09/2024
+ */
+actual class Key(
+    actual val algorithm: String,
+    actual val type: KeyType,
+    internal val body: KeyBody
+) : AutoCloseable {
+    actual override fun close() {}
+
+    sealed interface KeyBody {
+        class NodeKeyBody(internal val internal: Buffer): KeyBody
+        class BrowserKeyBody(internal val internal: CryptoKey): KeyBody
     }
-    
-    actual suspend fun generate(): Key = Key(KeyType.SYMMETRIC, keyGenerator.generateKey())
 }

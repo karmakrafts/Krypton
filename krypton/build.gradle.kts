@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.kotest)
     alias(libs.plugins.dokka)
     alias(libs.plugins.download)
+    // alias(libs.plugins.android.library)
     id("maven-publish")
     idea
     eclipse
@@ -153,6 +154,13 @@ kotlin {
         }
     }
     
+    /*androidTarget {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            jvmTarget.set(JvmTarget.valueOf("JVM_$kotlinJvmTarget"))
+        }
+    }*/
+    
     sourceSets {
         all {
             languageSettings.optIn("io.karma.evince.krypton.annotations.UncheckedKryptonAPI")
@@ -166,6 +174,10 @@ kotlin {
                 implementation(libs.okio)
                 implementation(libs.bignum)
             }
+        }
+        jsMain.dependencies {
+            implementation(libs.kotlin.web)
+            implementation(libs.kotlin.node)
         }
         
         val opensslMain by creating {
@@ -207,6 +219,14 @@ kotlin {
         }
     }
 }
+
+/*android {
+    namespace = project.group.toString()
+    compileSdk = libs.versions.android.sdk.compile.get().toInt()
+    defaultConfig {
+        minSdk = libs.versions.android.sdk.min.get().toInt()
+    }
+}*/
 
 publishing {
     val dokkaJar by tasks.registering(Jar::class) {
