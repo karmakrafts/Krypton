@@ -58,7 +58,7 @@ tests:macos:
   cache:
     - *cache-macos
   script:
-    - ./gradlew {macos,iosSimulator,iosX64}Test --stacktrace
+    - ./gradlew {macosArm64,iosSimulatorArm64,iosX64}Test --stacktrace
 
 publish:linux:
   stage: publish
