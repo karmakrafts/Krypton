@@ -25,3 +25,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactor internal parameter generator API
 - Refactor internal cipher API
 - Downgrade Kotlin from 2.0.20 to 2.0.10
+- Add macOS and iOS building, testing and publication tasks to CI configuration
