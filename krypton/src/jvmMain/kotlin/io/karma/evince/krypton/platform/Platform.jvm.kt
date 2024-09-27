@@ -14,20 +14,6 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton
+package io.karma.evince.krypton.platform
 
-internal object PlatformHelper {
-    val IS_BROWSER: Boolean = !hasNodeApi()
-
-    private fun hasNodeApi(): Boolean = js(
-        """
-(typeof process !== 'undefined' 
-    && process.versions != null 
-    && process.versions.node != null) ||
-(typeof window !== 'undefined' 
-    && typeof window.process !== 'undefined' 
-    && window.process.versions != null 
-    && window.process.versions.node != null)
-"""
-    ) as Boolean
-}
+internal actual fun determinePlatform(): Platform = Platform.JVM

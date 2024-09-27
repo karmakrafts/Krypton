@@ -17,8 +17,8 @@
 package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
-import io.karma.evince.krypton.PlatformHelper
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
+import io.karma.evince.krypton.platform.Platform
 import web.crypto.AesKeyGenParams
 import web.crypto.KeyUsage
 import web.crypto.crypto
@@ -35,7 +35,7 @@ actual class KeyGenerator @UncheckedKryptonAPI actual constructor(
     actual constructor(algorithm: Algorithm, parameters: KeyGeneratorParameters) :
             this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameters)
 
-    actual suspend fun generate(): Key = if (PlatformHelper.IS_BROWSER) {
+    actual suspend fun generate(): Key = if (Platform.IS_BROWSER) {
         when(algorithm) {
             "AES" -> Key(
                 algorithm = algorithm,

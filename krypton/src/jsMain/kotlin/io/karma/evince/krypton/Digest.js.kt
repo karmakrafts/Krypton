@@ -17,6 +17,10 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
+import io.karma.evince.krypton.platform.Platform
+import js.typedarrays.Int8Array
+import js.typedarrays.toUint8Array
+import web.crypto.crypto
 
 /**
  * This class is the implementation of digests like the SHA3 family into Kotlin for multiple platforms. It also allows
@@ -28,15 +32,18 @@ import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
  * @since  08/09/2024
  */
 actual class Digest @UncheckedKryptonAPI actual constructor(
-    string: String,
+    private val algorithm: String,
     size: Int
 ) : AutoCloseable {
     actual constructor(algorithm: Algorithm, size: Int) :
             this(algorithm.checkScopeOrError(Algorithm.Scope.DIGEST).toString(), size)
 
-    actual fun hash(value: ByteArray): ByteArray {
-        TODO("Not yet implemented")
-    }
+    actual suspend fun hash(value: ByteArray): ByteArray =
+        Int8Array(if (Platform.IS_BROWSER) {
+            crypto.subtle.digest(algorithm, value.toUint8Array())
+        } else {
+            node.crypto.subtle.digest(algorithm, value.toUint8Array())
+        }).asByteArray()
 
     actual override fun close() {
     }

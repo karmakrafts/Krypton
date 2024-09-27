@@ -27,10 +27,13 @@ import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
  * @author Cedric Hammes
  * @since  08/09/2024
  */
-expect class Digest @UncheckedKryptonAPI constructor(string: String, size: Int = 0) : AutoCloseable {
+expect class Digest @UncheckedKryptonAPI constructor(
+    algorithm: String,
+    size: Int = 0
+) : AutoCloseable {
     constructor(algorithm: Algorithm, size: Int = algorithm.defaultBitSize / 8)
-    
-    fun hash(value: ByteArray): ByteArray
+
+    suspend fun hash(value: ByteArray): ByteArray
     override fun close()
 }
 
@@ -40,7 +43,7 @@ expect class Digest @UncheckedKryptonAPI constructor(string: String, size: Int =
  * @author Cedric Hammes
  * @since  08/09/2024
  */
-fun Digest.hash(value: String): ByteArray = hash(value.encodeToByteArray())
+suspend fun Digest.hash(value: String): ByteArray = hash(value.encodeToByteArray())
 
 /**
  * This extension method allows to hash the specified string into a string.
@@ -49,7 +52,7 @@ fun Digest.hash(value: String): ByteArray = hash(value.encodeToByteArray())
  * @since  08/09/2024
  */
 @OptIn(ExperimentalStdlibApi::class)
-fun Digest.hashToString(value: String): String = hash(value).toHexString()
+suspend fun Digest.hashToString(value: String): String = hash(value).toHexString()
 
 /**
  * This extension method allows to hash the specified byte array into a hex string.
@@ -58,4 +61,4 @@ fun Digest.hashToString(value: String): String = hash(value).toHexString()
  * @since  08/09/2024
  */
 @OptIn(ExperimentalStdlibApi::class)
-fun Digest.hashToString(value: ByteArray): String = hash(value).toHexString()
+suspend fun Digest.hashToString(value: ByteArray): String = hash(value).toHexString()

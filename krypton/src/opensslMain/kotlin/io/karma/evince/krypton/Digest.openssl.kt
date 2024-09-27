@@ -22,28 +22,33 @@ import kotlinx.cinterop.*
 import io.karma.evince.krypton.internal.openssl.*
 
 /** @suppress **/
-actual class Digest actual constructor(string: String, private val size: Int) : AutoCloseable {
+actual class Digest actual constructor(algorithm: String, private val size: Int) : AutoCloseable {
     private val context = requireNotNull(EVP_MD_CTX_new())
     
     actual constructor(algorithm: Algorithm, size: Int) :
             this(algorithm.checkScopeOrError(Algorithm.Scope.DIGEST).toString(), size)
     
     init {
-        val digest = EVP_get_digestbyname(string).checkNotNull()
+        val digest = EVP_get_digestbyname(algorithm).checkNotNull()
         if (size == 0) {
-            throw IllegalArgumentException("The size of the '$string' digest is not set, please set a size manually")
+            throw IllegalArgumentException("The size of the '$algorithm' digest is not set, please set a size manually")
         }
         
         if (EVP_DigestInit_ex(context, digest, null) != 1) {
             EVP_MD_CTX_free(context)
-            throw RuntimeException("Unable to initialize digest for '$string'", ErrorHelper.createOpenSSLException())
+            throw InitializationException(
+                message = "Unable to initialize digest for '$algorithm'",
+                cause = ErrorHelper.createOpenSSLException())
         }
     }
     
-    actual fun hash(value: ByteArray): ByteArray {
+    actual suspend fun hash(value: ByteArray): ByteArray {
         value.usePinned { valuePtr ->
             if (EVP_DigestUpdate(context, valuePtr.addressOf(0), value.size.toULong()) != 1)
-                throw RuntimeException("Unable to update digest", ErrorHelper.createOpenSSLException())
+                throw KryptonException(
+                    message = "Unable to update digest",
+                    cause = ErrorHelper.createOpenSSLException()
+                )
         }
         
         val output = ByteArray(size)
@@ -52,7 +57,10 @@ actual class Digest actual constructor(string: String, private val size: Int) : 
             size.value = output.size.toUInt()
             output.usePinned { outputPtr ->
                 if (EVP_DigestFinal_ex(context, outputPtr.addressOf(0).reinterpret(), size.ptr) != 1)
-                    throw RuntimeException("Unable to final digest", ErrorHelper.createOpenSSLException())
+                    throw KryptonException(
+                        message = "Unable to final digest",
+                        cause = ErrorHelper.createOpenSSLException()
+                    )
             }
         }
         return output
