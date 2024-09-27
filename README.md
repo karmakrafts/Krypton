@@ -43,7 +43,7 @@ Also, a few dependencies are needed to make this project work. Below this text y
 - [X] Default curves
 - [X] Cipher class for (a)symmetric encryption algorithms
 - [X] KeyAgreement class for key agreement algorithms
-- [ ] Signature class for signature algorithms
+- [X] Signature class for signature algorithms
 - [X] Rewrite supportedBitSize to bitSizePredicate and implement it into the key generators in Algorithm
 - [ ] Post-quantum algorithms like
   CRYSTALS-Dilithium ([#3](https://git.karmakrafts.dev/kk/evince-project/krypton/-/issues/3))
