@@ -25,6 +25,7 @@ Some parts of this project are based on the work of other great people. In this 
 
 - [trixnity-openssl-binaries](https://gitlab.com/trixnity/trixnity-openssl-binaries) - The OpenSSL binaries are acquired by the publications of this repository
 - [trixnity-crypto-core](https://gitlab.com/trixnity/trixnity/-/tree/main/trixnity-crypto-core?ref_type=heads) - The integration of OpenSSL over multiple targets is heavily inspired that builscript code
+- [ktor-utils](https://github.com/ktorio/ktor/tree/main) - Code of the [`hasNodeApi`](https://github.com/ktorio/ktor/blob/main/ktor-utils/jsAndWasmShared/src/io/ktor/util/PlatformUtilsJs.kt#L14-L24) function
 
 ### Dependencies
 

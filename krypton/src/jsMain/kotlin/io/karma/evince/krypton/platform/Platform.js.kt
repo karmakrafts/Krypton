@@ -16,7 +16,7 @@
 
 package io.karma.evince.krypton.platform
 
-
+// https://github.com/ktorio/ktor/blob/6ab2a63747a5c0d58c882155b905a3601f5927cd/ktor-utils/jsAndWasmShared/src/io/ktor/util/PlatformUtilsJs.kt#L14-L24
 private fun hasNodeApi(): Boolean = js(
     """
 (typeof process !== 'undefined' 
