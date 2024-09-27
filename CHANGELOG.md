@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+## v1.0.0.3
+
+### Added
 - Add documentation to internal APIs
 - Add more documentation to the project
 - Add documentation for common cipher
