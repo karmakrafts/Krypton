@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add documentation to internal APIs
 - Add more documentation to the project
 - Add documentation for common cipher
+- Add signature
 
 ### Changed
 - Refactor internal key generator API

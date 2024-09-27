@@ -7,7 +7,7 @@ functions and more:
 
 - **Hash Functions:** SHA3 (224, 256, 384 and 512 bits), SHA (224, 256, 384 and 512 bits) and MD5
 - **Ciphers:** AES (128, 192 and 256 bits) and RSA
-- **Signatures**: AES (128, 192 and 256 bits), RSA and ECDSA
+- **Signatures**: RSA and ECDSA
 - **Key Agreements:** Diffie-Hellman (DH) and Elliptic Curve Diffie-Hellman (ECDH)
 - **Elliptic curves:** All curves supported by all platforms together
 

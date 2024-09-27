@@ -74,18 +74,8 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
                     }
                 }
             ))
-            registerInternalGenerator(Algorithm.ECDH, nidKeyPairGenerator<ECKeyPairGeneratorParameters>(
-                nid = EVP_PKEY_EC,
-                algorithm = "ECDH",
-                contextConfigurator = { context, parameters ->
-                    if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(context, parameters.curve.toOpenSSLId()) != 1) {
-                        throw InitializationException(
-                            message = "Unable to set curve information for ECDH generator",
-                            cause = ErrorHelper.createOpenSSLException()
-                        )
-                    }
-                }
-            ))
+            registerInternalGenerator(Algorithm.ECDH, ecKeyPairGenerator("ECDH"))
+            registerInternalGenerator(Algorithm.ECDSA, ecKeyPairGenerator("ECDSA"))
             registerInternalGenerator(Algorithm.DH, rawKeyPairGenerator<DHKeyPairGeneratorParameters>(
                 algorithm = "DH",
                 contextGenerator = { parameters ->
@@ -146,6 +136,20 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
         }
     }
 }
+
+@InternalKryptonAPI
+internal fun ecKeyPairGenerator(algorithm: String) = nidKeyPairGenerator<ECKeyPairGeneratorParameters>(
+    nid = EVP_PKEY_EC,
+    algorithm = algorithm,
+    contextConfigurator = { context, parameters ->
+        if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(context, parameters.curve.toOpenSSLId()) != 1) {
+            throw InitializationException(
+                message = "Unable to set curve information for $algorithm generator",
+                cause = ErrorHelper.createOpenSSLException()
+            )
+        }
+    }
+)
 
 /**
  * This function allows a developer to create a keypair generation function based on the specified algorithm based on

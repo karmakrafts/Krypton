@@ -21,6 +21,12 @@ import io.karma.evince.krypton.key.Key
 import io.karma.evince.krypton.key.KeyType
 
 /**
+ * This class is the implementation for signatures. It can be used to sign arbitrary data and verify them with the
+ * original data.
+ *
+ * @param key        The key used for verification and signing
+ * @param algorithm  The algorithm used for signing
+ * @param parameters Extra parameters for the signature
  *
  * @author Cedric Hammes
  * @since  27/09/2024

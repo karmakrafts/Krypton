@@ -16,6 +16,8 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.ec.EllipticCurve
+import io.karma.evince.krypton.key.ECKeyPairGeneratorParameters
 import io.karma.evince.krypton.key.KeyPairGenerator
 import io.karma.evince.krypton.key.KeyPairGeneratorParameters
 import io.kotest.core.spec.style.ShouldSpec
@@ -30,12 +32,32 @@ class SignatureTests : ShouldSpec() {
                     algorithm = Algorithm.RSA,
                     parameters = SignatureParameters(Algorithm.SHA3_256, SignatureParameters.EnumType.SIGN)
                 ).sign("Test".encodeToByteArray())
-                assertTrue(Signature(
-                    key = keyPair.publicKey,
-                    algorithm = Algorithm.RSA,
-                    parameters = SignatureParameters(Algorithm.SHA3_256, SignatureParameters.EnumType.VERIFY)
-                ).verify(signature, "Test".encodeToByteArray()))
+                assertTrue(
+                    Signature(
+                        key = keyPair.publicKey,
+                        algorithm = Algorithm.RSA,
+                        parameters = SignatureParameters(Algorithm.SHA3_256, SignatureParameters.EnumType.VERIFY)
+                    ).verify(signature, "Test".encodeToByteArray())
+                )
             }
+        }
+        
+        should("test SHA3-256 with ECDSA") {
+            KeyPairGenerator(Algorithm.ECDSA, ECKeyPairGeneratorParameters(EllipticCurve.PRIME192V1)).generate()
+                .use { keyPair ->
+                    val signature = Signature(
+                        key = keyPair.privateKey,
+                        algorithm = Algorithm.ECDSA,
+                        parameters = SignatureParameters(Algorithm.SHA3_256, SignatureParameters.EnumType.SIGN)
+                    ).sign("Test".encodeToByteArray())
+                    assertTrue(
+                        Signature(
+                            key = keyPair.publicKey,
+                            algorithm = Algorithm.ECDSA,
+                            parameters = SignatureParameters(Algorithm.SHA3_256, SignatureParameters.EnumType.VERIFY)
+                        ).verify(signature, "Test".encodeToByteArray())
+                    )
+                }
         }
     }
 }

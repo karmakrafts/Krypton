@@ -17,6 +17,7 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.key.Key
+import io.karma.evince.krypton.utils.JavaCryptoHelper
 import java.security.PrivateKey
 import java.security.PublicKey
 
@@ -28,12 +29,18 @@ private typealias JavaSignature = java.security.Signature
  * @suppress
  */
 actual class Signature actual constructor(key: Key, algorithm: String, private val parameters: SignatureParameters) {
-    private val internal: JavaSignature = JavaSignature.getInstance("${parameters.digest}with${algorithm}")
+    private val internal: JavaSignature
     
     actual constructor(key: Key, algorithm: Algorithm, parameters: SignatureParameters) :
             this(key, algorithm.checkScopeOrError(Algorithm.Scope.SIGNATURE).toString(), parameters)
     
     init {
+        if (parameters.type.keyType != key.type) {
+            throw InitializationException("Invalid key type '${key.type}', expected ${parameters.type.keyType}")
+        }
+        
+        JavaCryptoHelper.installBouncyCastleProviders()
+        internal = JavaSignature.getInstance("${parameters.digest}with${algorithm}")
         if (parameters.type == SignatureParameters.EnumType.VERIFY)
             internal.initVerify(key.internalValue as PublicKey)
         else

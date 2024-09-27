@@ -36,6 +36,12 @@ actual class Signature actual constructor(
     actual constructor(key: Key, algorithm: Algorithm, parameters: SignatureParameters) :
             this(key, algorithm.checkScopeOrError(Algorithm.Scope.SIGNATURE).toString(), parameters)
     
+    init {
+        if (parameters.type.keyType != key.type) {
+            throw InitializationException("Invalid key type '${key.type}', expected ${parameters.type.keyType}")
+        }
+    }
+    
     actual fun sign(data: ByteArray): ByteArray = withFree {
         val context = EVP_MD_CTX_new().checkNotNull().freeAfter(::EVP_MD_CTX_free)
         val digest = EVP_get_digestbyname(parameters.digest).checkNotNull().freeAfter(::EVP_MD_free)
@@ -64,6 +70,7 @@ actual class Signature actual constructor(
                     throw KryptonException("Unable to acquire size of output", ErrorHelper.createOpenSSLException())
                 }
             }
+            
             output
         }
     }

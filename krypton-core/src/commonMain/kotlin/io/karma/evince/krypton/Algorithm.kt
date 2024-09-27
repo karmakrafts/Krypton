@@ -295,6 +295,21 @@ enum class Algorithm(
     ),
     
     /**
+     * @author Cedric Hammes
+     * @since  27/09/2024
+     */
+    ECDSA(
+        literal = "ECDSA",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        supportedBitSizes = intArrayOf(128, 192, 256),
+        defaultBitSize = 256,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.KEYPAIR_GENERATOR, Scope.SIGNATURE)
+    ),
+    
+    /**
      * The ECDH (Elliptic-Curve Diffie-Hellman) is the elliptic-curve equivalent of the Diffie-Hellman key agreement
      * algorithm. The advantage of ECDH is the higher security with lower key sizes compared to DH. This algorithm
      * is used in the Signal Protocol and other implementations. It can be broken by Shor's algorithm.
@@ -364,8 +379,7 @@ enum class Algorithm(
         KEY_AGREEMENT("Key Agreement"),
         PARAMETER_GENERATOR("Parameter generator"),
         SIGNATURE("Signature"),
-        DIGEST("Digest"),
-        SIGNATURE_DIGEST("Signature digest");
+        DIGEST("Digest");
         
         override fun toString(): String = literal
     }
