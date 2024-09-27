@@ -31,7 +31,7 @@ actual class KeyPairGenerator actual constructor(algorithm: String, parameters: 
     
     actual constructor(
         algorithm: Algorithm, parameters: KeyPairGeneratorParameters
-    ) : this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameters)
+    ) : this(algorithm.validOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameters)
     
     init {
         JavaCryptoHelper.installBouncyCastleProviders()

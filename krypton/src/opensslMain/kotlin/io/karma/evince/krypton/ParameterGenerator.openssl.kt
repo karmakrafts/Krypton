@@ -39,7 +39,7 @@ actual class ParameterGenerator actual constructor(
         requireNotNull(INTERNAL_FACTORIES[algorithm])
     
     actual constructor(algorithm: Algorithm, parameters: ParameterGeneratorParameters) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.PARAMETER_GENERATOR).toString(), parameters)
+            this(algorithm.validOrError(Algorithm.Scope.PARAMETER_GENERATOR).toString(), parameters)
     
     actual fun generate(): KeyPairGeneratorParameters = generatorFunction(parameters)
     
@@ -99,7 +99,7 @@ actual class ParameterGenerator actual constructor(
             algorithm: Algorithm,
             generator: (ParameterGeneratorParameters) -> KeyPairGeneratorParameters
         ) {
-            algorithm.checkScopeOrError(Algorithm.Scope.PARAMETER_GENERATOR)
+            algorithm.validOrError(Algorithm.Scope.PARAMETER_GENERATOR)
             registerInternalGenerator(algorithm.toString(), generator)
         }
         

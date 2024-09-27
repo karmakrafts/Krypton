@@ -35,7 +35,7 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
         requireNotNull(INTERNAL_FACTORIES[algorithm])
     
     actual constructor(algorithm: Algorithm, parameters: KeyPairGeneratorParameters) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameters)
+            this(algorithm.validOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameters)
     
     actual fun generate(): KeyPair = generatorFunction(parameters)
     
@@ -117,7 +117,7 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
          */
         @InternalKryptonAPI
         fun registerInternalGenerator(algorithm: Algorithm, generator: (KeyPairGeneratorParameters) -> KeyPair) {
-            algorithm.checkScopeOrError(Algorithm.Scope.KEYPAIR_GENERATOR)
+            algorithm.validOrError(Algorithm.Scope.KEYPAIR_GENERATOR)
             registerInternalGenerator(algorithm.toString(), generator)
         }
         

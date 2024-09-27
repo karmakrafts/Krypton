@@ -36,7 +36,7 @@ actual class Cipher actual constructor(
         requireNotNull(INTERNAL_FACTORIES[algorithm])
     
     actual constructor(algorithm: Algorithm, key: Key, parameters: CipherParameters) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.CIPHER).toString(), key, parameters.validate(algorithm))
+            this(algorithm.validOrError(Algorithm.Scope.CIPHER).toString(), key, parameters.validate(algorithm))
     
     actual fun process(data: ByteArray, aad: ByteArray?): ByteArray = internal(key, parameters, data, aad)
     
@@ -145,7 +145,7 @@ actual class Cipher actual constructor(
             algorithm: Algorithm,
             cipher: (Key, CipherParameters, ByteArray, ByteArray?) -> ByteArray
         ) {
-            algorithm.checkScopeOrError(Algorithm.Scope.CIPHER)
+            algorithm.validOrError(Algorithm.Scope.CIPHER)
             registerInternalCipher(algorithm.toString(), cipher)
         }
         

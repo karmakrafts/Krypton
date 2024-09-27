@@ -34,7 +34,7 @@ actual class Cipher actual constructor(algorithm: String, key: Key, parameters: 
     private val internal: JavaCipher = JavaCipher.getInstance(parameters.toAlgorithmSpecification(algorithm))
     
     actual constructor(algorithm: Algorithm, key: Key, parameters: CipherParameters) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.CIPHER).toString(), key, parameters.validate(algorithm))
+            this(algorithm.validOrError(Algorithm.Scope.CIPHER).toString(), key, parameters.validate(algorithm))
     
     init {
         JavaCryptoHelper.installBouncyCastleProviders()

@@ -16,21 +16,23 @@
 
 package io.karma.evince.krypton
 
-import io.karma.evince.krypton.utils.JavaCryptoHelper
-import java.security.MessageDigest
+import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
+import io.karma.evince.krypton.key.KeyPairGeneratorParameters
 
-/** @suppress **/
-actual class Digest actual constructor(algorithm: String, size: Int) : AutoCloseable {
-    private val digest: MessageDigest
-    
-    actual constructor(algorithm: Algorithm, size: Int) :
-            this(algorithm.validOrError(Algorithm.Scope.DIGEST).toString(), size)
-    
-    init {
-        JavaCryptoHelper.installBouncyCastleProviders()
-        digest = MessageDigest.getInstance(algorithm)
+/**
+ * @author Cedric Hammes
+ * @since  28/09/2024
+ * @suppress
+ */
+actual class ParameterGenerator @UncheckedKryptonAPI actual constructor(
+    algorithm: String,
+    parameters: ParameterGeneratorParameters
+) {
+    actual constructor(algorithm: Algorithm, parameters: ParameterGeneratorParameters) :
+            this(algorithm.validOrError(Algorithm.Scope.PARAMETER_GENERATOR).toString(), parameters)
+
+    actual fun generate(): KeyPairGeneratorParameters {
+        TODO("Not yet implemented")
     }
-    
-    actual suspend fun hash(value: ByteArray): ByteArray = digest.digest(value)
-    actual override fun close() {}
+
 }

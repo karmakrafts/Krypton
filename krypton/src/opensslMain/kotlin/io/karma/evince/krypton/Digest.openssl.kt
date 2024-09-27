@@ -26,7 +26,7 @@ actual class Digest actual constructor(algorithm: String, private val size: Int)
     private val context = requireNotNull(EVP_MD_CTX_new())
     
     actual constructor(algorithm: Algorithm, size: Int) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.DIGEST).toString(), size)
+            this(algorithm.validOrError(Algorithm.Scope.DIGEST).toString(), size)
     
     init {
         val digest = EVP_get_digestbyname(algorithm).checkNotNull()

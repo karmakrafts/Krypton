@@ -42,7 +42,7 @@ actual class ParameterGenerator actual constructor(
     private val generator: AlgorithmParameterGenerator = AlgorithmParameterGenerator.getInstance(algorithm)
     
     actual constructor(algorithm: Algorithm, parameters: ParameterGeneratorParameters) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.PARAMETER_GENERATOR).toString(), parameters)
+            this(algorithm.validOrError(Algorithm.Scope.PARAMETER_GENERATOR).toString(), parameters)
     
     init {
         generator.init(parameters.bits)

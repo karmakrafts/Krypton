@@ -16,21 +16,4 @@
 
 package io.karma.evince.krypton
 
-import io.karma.evince.krypton.utils.JavaCryptoHelper
-import java.security.MessageDigest
-
-/** @suppress **/
-actual class Digest actual constructor(algorithm: String, size: Int) : AutoCloseable {
-    private val digest: MessageDigest
-    
-    actual constructor(algorithm: Algorithm, size: Int) :
-            this(algorithm.validOrError(Algorithm.Scope.DIGEST).toString(), size)
-    
-    init {
-        JavaCryptoHelper.installBouncyCastleProviders()
-        digest = MessageDigest.getInstance(algorithm)
-    }
-    
-    actual suspend fun hash(value: ByteArray): ByteArray = digest.digest(value)
-    actual override fun close() {}
-}
+internal actual fun currentPlatform(): Platform = Platform.JVM

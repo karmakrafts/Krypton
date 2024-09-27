@@ -16,21 +16,18 @@
 
 package io.karma.evince.krypton
 
-import io.karma.evince.krypton.utils.JavaCryptoHelper
-import java.security.MessageDigest
+// https://github.com/ktorio/ktor/blob/6ab2a63747a5c0d58c882155b905a3601f5927cd/ktor-utils/jsAndWasmShared/src/io/ktor/util/PlatformUtilsJs.kt#L14-L24
+private fun hasNodeApi(): Boolean = js(
+    """
+(typeof process !== 'undefined' 
+    && process.versions != null 
+    && process.versions.node != null) ||
+(typeof window !== 'undefined' 
+    && typeof window.process !== 'undefined' 
+    && window.process.versions != null 
+    && window.process.versions.node != null)
+"""
+) as Boolean
 
-/** @suppress **/
-actual class Digest actual constructor(algorithm: String, size: Int) : AutoCloseable {
-    private val digest: MessageDigest
-    
-    actual constructor(algorithm: Algorithm, size: Int) :
-            this(algorithm.validOrError(Algorithm.Scope.DIGEST).toString(), size)
-    
-    init {
-        JavaCryptoHelper.installBouncyCastleProviders()
-        digest = MessageDigest.getInstance(algorithm)
-    }
-    
-    actual suspend fun hash(value: ByteArray): ByteArray = digest.digest(value)
-    actual override fun close() {}
-}
+
+internal actual fun currentPlatform(): Platform = if (hasNodeApi()) Platform.NODEJS else Platform.BROWSER

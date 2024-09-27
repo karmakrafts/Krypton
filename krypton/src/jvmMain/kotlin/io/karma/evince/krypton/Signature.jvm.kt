@@ -32,7 +32,7 @@ actual class Signature actual constructor(key: Key, algorithm: String, private v
     private val internal: JavaSignature
     
     actual constructor(key: Key, algorithm: Algorithm, parameters: SignatureParameters) :
-            this(key, algorithm.checkScopeOrError(Algorithm.Scope.SIGNATURE).toString(), parameters)
+            this(key, algorithm.validOrError(Algorithm.Scope.SIGNATURE).toString(), parameters)
     
     init {
         if (parameters.type.keyType != key.type) {

@@ -36,7 +36,7 @@ enum class Algorithm(
     val defaultBlockMode: BlockMode?,
     val defaultPadding: Padding?,
     val scopes: Array<Scope>,
-    val blockCipher: Boolean = false
+    internal val supportedPlatforms: Array<Platform>
 ) {
     /**
      * This value represents the MD5 algorithm. MD5 is a deprecated standard for hashing and should not be used in
@@ -54,7 +54,8 @@ enum class Algorithm(
         defaultBitSize = 128,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST)
+        scopes = arrayOf(Scope.DIGEST),
+        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
     
     /**
@@ -74,7 +75,8 @@ enum class Algorithm(
         defaultBitSize = 224,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST)
+        scopes = arrayOf(Scope.DIGEST),
+        supportedPlatforms = Platform.entries.toTypedArray()
     ),
     
     /**
@@ -94,7 +96,8 @@ enum class Algorithm(
         defaultBitSize = 256,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST)
+        scopes = arrayOf(Scope.DIGEST),
+        supportedPlatforms = Platform.entries.toTypedArray()
     ),
     
     /**
@@ -114,7 +117,8 @@ enum class Algorithm(
         defaultBitSize = 384,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST)
+        scopes = arrayOf(Scope.DIGEST),
+        supportedPlatforms = Platform.entries.toTypedArray()
     ),
     
     /**
@@ -134,7 +138,8 @@ enum class Algorithm(
         defaultBitSize = 512,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST)
+        scopes = arrayOf(Scope.DIGEST),
+        supportedPlatforms = Platform.entries.toTypedArray()
     ),
     
     /**
@@ -154,7 +159,8 @@ enum class Algorithm(
         defaultBitSize = 224,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST)
+        scopes = arrayOf(Scope.DIGEST),
+        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
     
     /**
@@ -174,7 +180,8 @@ enum class Algorithm(
         defaultBitSize = 256,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST)
+        scopes = arrayOf(Scope.DIGEST),
+        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
     
     /**
@@ -194,7 +201,8 @@ enum class Algorithm(
         defaultBitSize = 384,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST)
+        scopes = arrayOf(Scope.DIGEST),
+        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
     
     /**
@@ -214,7 +222,8 @@ enum class Algorithm(
         defaultBitSize = 512,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST)
+        scopes = arrayOf(Scope.DIGEST),
+        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
     
     /**
@@ -243,7 +252,7 @@ enum class Algorithm(
         defaultBlockMode = BlockMode.ECB,
         defaultPadding = Padding.PKCS1,
         scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR),
-        blockCipher = true
+        supportedPlatforms = Platform.entries.toTypedArray()
     ),
     
     /**
@@ -266,7 +275,7 @@ enum class Algorithm(
         defaultBlockMode = BlockMode.CBC,
         defaultPadding = Padding.NONE,
         scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR),
-        blockCipher = true
+        supportedPlatforms = Platform.entries.toTypedArray()
     ),
     
     /**
@@ -288,7 +297,8 @@ enum class Algorithm(
         defaultBitSize = 2048,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR, Scope.PARAMETER_GENERATOR)
+        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR, Scope.PARAMETER_GENERATOR),
+        supportedPlatforms = Platform.entries.toTypedArray()
     ),
     
     /**
@@ -304,7 +314,8 @@ enum class Algorithm(
         defaultBitSize = 256,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.KEYPAIR_GENERATOR, Scope.SIGNATURE)
+        scopes = arrayOf(Scope.KEYPAIR_GENERATOR, Scope.SIGNATURE),
+        supportedPlatforms = Platform.entries.toTypedArray()
     ),
     
     /**
@@ -326,20 +337,30 @@ enum class Algorithm(
         defaultBitSize = 256,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR)
+        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR),
+        supportedPlatforms = Platform.entries.toTypedArray()
     );
     
     /** @suppress **/
     constructor(
         literal: String, supportedBlockModes: Array<BlockMode>, supportedPaddings: Array<Padding>,
         supportedBitSizes: IntArray, defaultBitSize: Int, defaultBlockMode: BlockMode?, defaultPadding: Padding?,
-        scopes: Array<Scope>, blockCipher: Boolean = false
+        scopes: Array<Scope>, supportedPlatforms: Array<Platform>
     ) : this(
         literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) }, defaultBitSize, defaultBlockMode,
-        defaultPadding, scopes, blockCipher
+        defaultPadding, scopes, supportedPlatforms
     )
-    
-    fun checkScopeOrError(scope: Scope): Algorithm = this.also {
+
+    /**
+     * This function validates the current platform used and the scope specified. If one of these parameters are not matching this function
+     * throws an exception.
+     *
+     * @author Cedric Hammes
+     * @since  17/09/2024
+     */
+    fun validOrError(scope: Scope): Algorithm = this.also {
+        if (!it.supportedPlatforms.contains(Platform.CURRENT))
+            throw RuntimeException("Algorithm '$it' is not supported on platform '${Platform.CURRENT}'")
         if (!it.scopes.contains(scope)) {
             val supported = Algorithm.byScope(listOf(scope)).joinToString(", ")
             throw IllegalArgumentException("Algorithm '$literal' cannot be found for $scope. Please use: one of the following: $supported")

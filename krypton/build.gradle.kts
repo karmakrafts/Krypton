@@ -138,7 +138,22 @@ kotlin {
             jvmTarget.set(JvmTarget.valueOf("JVM_$kotlinJvmTarget"))
         }
     }
-    
+
+    js {
+        browser {
+            testTask {
+                useKarma {
+                    useFirefoxHeadless()
+                }
+            }
+        }
+        nodejs {
+            testTask {
+                useMocha()
+            }
+        }
+    }
+
     /*androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {

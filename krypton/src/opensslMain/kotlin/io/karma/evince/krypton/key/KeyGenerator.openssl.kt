@@ -29,7 +29,7 @@ actual class KeyGenerator actual constructor(
     private val parameters: KeyGeneratorParameters
 ) {
     actual constructor(algorithm: Algorithm, parameters: KeyGeneratorParameters) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameters)
+            this(algorithm.validOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameters)
     
     actual suspend fun generate(): Key {
         return Key(KeyType.SYMMETRIC, algorithm, requireNotNull(BIO_new(BIO_s_secmem())).let { data ->

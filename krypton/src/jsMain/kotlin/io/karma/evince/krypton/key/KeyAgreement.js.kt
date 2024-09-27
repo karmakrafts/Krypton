@@ -17,27 +17,22 @@
 package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
-import io.karma.evince.krypton.utils.JavaCryptoHelper
+import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 
-private typealias JavaKeyAgreement = javax.crypto.KeyAgreement
-
-/** @suppress **/
-actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key) : AutoCloseable {
-    private val keyAgreement: JavaKeyAgreement
-    
+/**
+ * @author Cedric Hammes
+ * @since  28/09/2024
+ * @suppress
+ */
+actual class KeyAgreement @UncheckedKryptonAPI actual constructor(algorithm: String, privateKey: Key) : AutoCloseable {
     actual constructor(algorithm: Algorithm, privateKey: Key) :
             this(algorithm.validOrError(Algorithm.Scope.KEY_AGREEMENT).toString(), privateKey)
-    
-    init {
-        JavaCryptoHelper.installBouncyCastleProviders()
-        this.keyAgreement = JavaKeyAgreement.getInstance(algorithm)
-        this.keyAgreement.init(privateKey.internalValue)
-    }
-    
+
     actual fun generateSecret(peerPublicKey: Key): ByteArray {
-        this.keyAgreement.doPhase(peerPublicKey.internalValue, true) // TODO: Add compatibility for doPhase = false
-        return this.keyAgreement.generateSecret()
+        TODO("Not yet implemented")
     }
-    
-    actual override fun close() {}
+
+    actual override fun close() {
+    }
+
 }

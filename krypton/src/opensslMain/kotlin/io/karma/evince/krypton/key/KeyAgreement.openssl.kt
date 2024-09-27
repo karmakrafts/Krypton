@@ -26,7 +26,7 @@ actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key)
     private val derivationContext: CPointer<EVP_PKEY_CTX>
     
     actual constructor(algorithm: Algorithm, privateKey: Key) :
-            this(algorithm.checkScopeOrError(Algorithm.Scope.KEY_AGREEMENT).toString(), privateKey)
+            this(algorithm.validOrError(Algorithm.Scope.KEY_AGREEMENT).toString(), privateKey)
     
     init {
         if (privateKey.body !is Key.KeyBody.EVPKeyBody || privateKey.type != KeyType.PRIVATE)

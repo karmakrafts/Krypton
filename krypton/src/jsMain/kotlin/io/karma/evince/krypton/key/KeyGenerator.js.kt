@@ -17,18 +17,22 @@
 package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
-import javax.crypto.KeyGenerator
+import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 
-/** @suppress **/
-actual class KeyGenerator actual constructor(algorithm: String, parameters: KeyGeneratorParameters) {
-    private val keyGenerator: KeyGenerator = KeyGenerator.getInstance(algorithm)
-    
+/**
+ * @author Cedric Hammes
+ * @since  28/09/2024
+ * @suppress
+ */
+actual class KeyGenerator @UncheckedKryptonAPI actual constructor(
+    algorithm: String,
+    parameters: KeyGeneratorParameters
+) {
     actual constructor(algorithm: Algorithm, parameters: KeyGeneratorParameters) :
             this(algorithm.validOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameters)
-    
-    init {
-        this.keyGenerator.init(parameters.size)
+
+    actual suspend fun generate(): Key {
+        TODO("Not yet implemented")
     }
-    
-    actual suspend fun generate(): Key = Key(KeyType.SYMMETRIC, keyGenerator.generateKey())
+
 }

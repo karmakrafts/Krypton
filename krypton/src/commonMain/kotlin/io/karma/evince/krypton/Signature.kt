@@ -47,7 +47,7 @@ expect class Signature(key: Key, algorithm: Algorithm, parameters: SignaturePara
  */
 data class SignatureParameters(val digest: String, val type: EnumType) {
     constructor(digest: Algorithm, type: EnumType) :
-            this(digest.checkScopeOrError(Algorithm.Scope.DIGEST).toString(), type)
+            this(digest.validOrError(Algorithm.Scope.DIGEST).toString(), type)
     
     enum class EnumType(internal val keyType: KeyType) {
         VERIFY(KeyType.PUBLIC),
