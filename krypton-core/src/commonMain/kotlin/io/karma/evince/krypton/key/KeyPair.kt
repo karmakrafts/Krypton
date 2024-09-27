@@ -20,6 +20,9 @@ package io.karma.evince.krypton.key
  * This class holds a private-public key pair. These key pairs are used while operating with asymmetric algorithms like
  * RSA or key agreements like Diffie-Hellman.
  *
+ * @param privateKey The private key of the keypair
+ * @param publicKey  The public key of the keypair
+ *
  * @author Cedric Hammes
  * @since  08/09/2024
  */

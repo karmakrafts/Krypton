@@ -1,9 +1,8 @@
 [versions]
 krypton = "1.0.0"
 jvmTarget = "17"
-kotlin = "2.0.20" # https://kotlinlang.org/docs/releases.html
+kotlin = "2.0.10" # https://kotlinlang.org/docs/releases.html
 kotest = "5.9.1" # https://github.com/kotest/kotest/releases
-kotest-plugin = "6.0.0-SNAPSHOT" # https://github.com/kotest/kotest/releases
 dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases
 okio = "3.9.0" # https://github.com/square/okio/blob/master/CHANGELOG.md
 bignum = "0.3.10" # https://github.com/ionspin/kotlin-multiplatform-bignum/releases
@@ -26,6 +25,6 @@ kotest = ["kotest-common", "kotest-engine-framework", "kotest-dataset-framework"
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotest = { id = "io.kotest.multiplatform", version.ref = "kotest-plugin" }
+kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 download = { id = "de.undercouch.download", version.ref = "download-plugin" }

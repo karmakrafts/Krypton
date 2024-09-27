@@ -6,7 +6,8 @@ the risk of more bugs in the cryptological core. Below this text you can see a l
 functions and more:
 
 - **Hash Functions:** SHA3 (224, 256, 384 and 512 bits), SHA (224, 256, 384 and 512 bits) and MD5
-- **Ciphers:** AES (128, 192 and 256 bits), RSA, DES and Triple-DES
+- **Ciphers:** AES (128, 192 and 256 bits) and RSA
+- **Signatures**: RSA (ECSDA is implemented but unstable)
 - **Key Agreements:** Diffie-Hellman (DH) and Elliptic Curve Diffie-Hellman (ECDH)
 - **Elliptic curves:** All curves supported by all platforms together
 
@@ -40,9 +41,9 @@ Also, a few dependencies are needed to make this project work. Below this text y
 - [X] Keys, Key Generator and Keypair Generator
 - [X] Hashing algorithms and digest
 - [X] Default curves
-- [ ] Cipher class for (a)symmetric encryption algorithms
+- [X] Cipher class for (a)symmetric encryption algorithms
 - [X] KeyAgreement class for key agreement algorithms
-- [ ] Signature class for signature algorithms
+- [X] Signature class for signature algorithms
 - [X] Rewrite supportedBitSize to bitSizePredicate and implement it into the key generators in Algorithm
 - [ ] Post-quantum algorithms like
   CRYSTALS-Dilithium ([#3](https://git.karmakrafts.dev/kk/evince-project/krypton/-/issues/3))
@@ -51,6 +52,7 @@ Also, a few dependencies are needed to make this project work. Below this text y
 - [ ] Support for dynamic-length hash functions like SHAKE-128
 - [ ] Add support for key stores
 - [ ] Custom elliptic curves ([#2](https://git.karmakrafts.dev/kk/evince-project/krypton/-/issues/2))
+- [ ] Deprecated or unsecure ciphers like DES or Triple-DES
 
 ## License
 

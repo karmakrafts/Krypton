@@ -32,11 +32,17 @@ import io.karma.evince.krypton.ec.EllipticCurve
 expect class KeyPairGenerator @UncheckedKryptonAPI constructor(
     algorithm: String,
     parameters: KeyPairGeneratorParameters
-) : AutoCloseable {
+) {
     constructor(algorithm: Algorithm, parameters: KeyPairGeneratorParameters)
     
+    /**
+     * This function generates a private key and derives the public key from the private key. These operations are done
+     * in the backend and the backend-internal structure is wrapped into a key.
+     *
+     * @author Cedric Hammes
+     * @since  26/09/2024
+     */
     fun generate(): KeyPair
-    override fun close()
 }
 
 /**

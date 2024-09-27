@@ -16,54 +16,38 @@
 
 package io.karma.evince.krypton
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.ec.EllipticCurve
-import io.karma.evince.krypton.key.*
+import io.karma.evince.krypton.key.ECKeyPairGeneratorParameters
+import io.karma.evince.krypton.key.KeyAgreement
+import io.karma.evince.krypton.key.KeyPairGenerator
 import io.kotest.core.spec.style.ShouldSpec
 import kotlin.test.assertTrue
 
 class KeyAgreementTests : ShouldSpec() {
     init {
         should("test ECDH agreement") {
-            KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameters(EllipticCurve.PRIME256V1)).use { gen ->
-                gen.generate().use { kp1 ->
-                    gen.generate().use { kp2 ->
-                        val secret1 = KeyAgreement(Algorithm.ECDH, kp1.privateKey)
-                            .use { it.generateSecret(kp2.publicKey) }
-                        val secret2 = KeyAgreement(Algorithm.ECDH, kp2.privateKey)
-                            .use { it.generateSecret(kp1.publicKey) }
-                        assertTrue(secret1.contentEquals(secret2))
-                    }
+            val generator = KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameters(EllipticCurve.PRIME256V1))
+            generator.generate().use { kp1 ->
+                generator.generate().use { kp2 ->
+                    val secret1 = KeyAgreement(Algorithm.ECDH, kp1.privateKey)
+                        .use { it.generateSecret(kp2.publicKey) }
+                    val secret2 = KeyAgreement(Algorithm.ECDH, kp2.privateKey)
+                        .use { it.generateSecret(kp1.publicKey) }
+                    assertTrue(secret1.contentEquals(secret2))
                 }
             }
         }
         
         should("test DH agreement") {
-            KeyPairGenerator(Algorithm.DH, KeyPairGeneratorParameters(1024)).use { gen ->
-                gen.generate().use { kp1 ->
-                    gen.generate().use { kp2 ->
-                        val secret1 = KeyAgreement(Algorithm.DH, kp1.privateKey)
-                            .use { it.generateSecret(kp2.publicKey) }
-                        val secret2 = KeyAgreement(Algorithm.DH, kp2.privateKey)
-                            .use { it.generateSecret(kp1.publicKey) }
-                        assertTrue(secret1.contentEquals(secret2))
-                    }
-                }
-            }
-        }
-        
-        should("test DH agreement with custom parameters") {
-            val parameters = ParameterGenerator(Algorithm.DH, ParameterGeneratorParameters(512)).use { it.generate() }
-            KeyPairGenerator(Algorithm.DH, parameters).use { gen ->
-                gen.generate().use { kp1 ->
-                    gen.generate().use { kp2 ->
-                        val secret1 = KeyAgreement(Algorithm.DH, kp1.privateKey)
-                            .use { it.generateSecret(kp2.publicKey) }
-                        val secret2 = KeyAgreement(Algorithm.DH, kp2.privateKey)
-                            .use { it.generateSecret(kp1.publicKey) }
-                        assertTrue(secret1.contentEquals(secret2))
-                    }
+            val parameters = ParameterGenerator(Algorithm.DH, ParameterGeneratorParameters(512)).generate()
+            val generator = KeyPairGenerator(Algorithm.DH, parameters)
+            generator.generate().use { kp1 ->
+                generator.generate().use { kp2 ->
+                    val secret1 = KeyAgreement(Algorithm.DH, kp1.privateKey)
+                        .use { it.generateSecret(kp2.publicKey) }
+                    val secret2 = KeyAgreement(Algorithm.DH, kp2.privateKey)
+                        .use { it.generateSecret(kp1.publicKey) }
+                    assertTrue(secret1.contentEquals(secret2))
                 }
             }
         }

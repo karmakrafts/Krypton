@@ -23,8 +23,8 @@ import io.karma.evince.krypton.internal.openssl.ERR_error_string
 import io.karma.evince.krypton.internal.openssl.ERR_get_error
 
 /** @suppress **/
-internal object ErrorHelper {
-    internal fun createOpenSSLException(): Exception = getOpenSSLErrors().let { errors ->
+object ErrorHelper {
+    fun createOpenSSLException(): Exception = getOpenSSLErrors().let { errors ->
         throw when {
             errors.isEmpty() -> OpenSSLException("No OpenSSL errors captured (ERR_get_error() == 0)")
             else -> OpenSSLException(errors.joinToString(", "))

@@ -16,6 +16,7 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.annotations.UnstableKryptonAPI
 import kotlin.jvm.JvmStatic
 
 /**
@@ -34,7 +35,8 @@ enum class Algorithm(
     val defaultBitSize: Int,
     val defaultBlockMode: BlockMode?,
     val defaultPadding: Padding?,
-    val scopes: Array<Scope>
+    val scopes: Array<Scope>,
+    val blockCipher: Boolean = false
 ) {
     /**
      * This value represents the MD5 algorithm. MD5 is a deprecated standard for hashing and should not be used in
@@ -220,30 +222,6 @@ enum class Algorithm(
     ),
     
     /**
-     * The DES (Data Encryption Standard) block cipher is a symmetric encryption algorithm created in 1975 with a block
-     * size of 64 bits. DES can be attacked by bruteforce easily and by multiple cryptanalytic attacks so the algorithm
-     * is considered as deprecated and was replaced with Triple-DES and the algorithm AES is recommended for symmetric
-     * encryption. The security in bit can be reduced to the half by Grover's algorithm.
-     *
-     * @author Cedric Hammes
-     * @since  08/09/2024
-     *
-     * @see [Wikipedia, DES](https://en.wikipedia.org/wiki/Data_Encryption_Standard)
-     * @see [Wikipedia, Grover's Algorithm](https://en.wikipedia.org/wiki/Grover%27s_algorithm)
-     */
-    @Deprecated("DES is deprecated, please use DES3 or AES")
-    DES(
-        literal = "DES",
-        supportedBlockModes = BlockMode.entries.filter { it == BlockMode.GCM }.toTypedArray(),
-        supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS1),
-        defaultBitSize = 56,
-        supportedBitSizes = intArrayOf(56),
-        defaultBlockMode = BlockMode.CBC,
-        defaultPadding = Padding.PKCS1,
-        scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR)
-    ),
-    
-    /**
      * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature crypto system created in
      * 1977 by Ron Rivest, Adi Shamir and Leonard Adleman. According to the NIST's Recommendation for Key Management
      * the key length 2048 is recommended. Most security recommendations recommend elliptic curve cryptography over
@@ -267,8 +245,9 @@ enum class Algorithm(
         supportedBitSizes = intArrayOf(1024, 2048, 4096, 8192),
         defaultBitSize = 4096,
         defaultBlockMode = BlockMode.ECB,
-        defaultPadding = Padding.PKCS5,
-        scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR)
+        defaultPadding = Padding.PKCS1,
+        scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR),
+        blockCipher = true
     ),
     
     /**
@@ -290,7 +269,8 @@ enum class Algorithm(
         defaultBitSize = 256,
         defaultBlockMode = BlockMode.CBC,
         defaultPadding = Padding.NONE,
-        scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR)
+        scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR),
+        blockCipher = true
     ),
     
     /**
@@ -313,6 +293,22 @@ enum class Algorithm(
         defaultBlockMode = null,
         defaultPadding = null,
         scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR, Scope.PARAMETER_GENERATOR)
+    ),
+    
+    /**
+     * @author Cedric Hammes
+     * @since  27/09/2024
+     */
+    @UnstableKryptonAPI
+    ECDSA(
+        literal = "ECDSA",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        supportedBitSizes = intArrayOf(128, 192, 256),
+        defaultBitSize = 256,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.KEYPAIR_GENERATOR, Scope.SIGNATURE)
     ),
     
     /**
@@ -341,10 +337,10 @@ enum class Algorithm(
     constructor(
         literal: String, supportedBlockModes: Array<BlockMode>, supportedPaddings: Array<Padding>,
         supportedBitSizes: IntArray, defaultBitSize: Int, defaultBlockMode: BlockMode?, defaultPadding: Padding?,
-        scopes: Array<Scope>
+        scopes: Array<Scope>, blockCipher: Boolean = false
     ) : this(
         literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) }, defaultBitSize,
-        defaultBlockMode, defaultPadding, scopes
+        defaultBlockMode, defaultPadding, scopes, blockCipher
     )
     
     fun checkScopeOrError(scope: Scope): Algorithm = this.also {

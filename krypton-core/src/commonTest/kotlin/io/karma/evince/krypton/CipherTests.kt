@@ -18,6 +18,8 @@ package io.karma.evince.krypton
 
 import io.karma.evince.krypton.key.KeyGenerator
 import io.karma.evince.krypton.key.KeyGeneratorParameters
+import io.karma.evince.krypton.key.KeyPairGenerator
+import io.karma.evince.krypton.key.KeyPairGeneratorParameters
 import io.kotest.core.spec.style.ShouldSpec
 import kotlin.test.assertEquals
 
@@ -26,9 +28,20 @@ class CipherTests : ShouldSpec() {
         should("test AES") {
             val key = KeyGenerator(Algorithm.AES, KeyGeneratorParameters(128)).generate()
             val string = "This is a secret".encodeToByteArray()
-            val enc = Cipher(Algorithm.AES, key, CipherParameters(Cipher.Mode.ENCRYPT)).use { it.process(string) }
-            val dec = Cipher(Algorithm.AES, key, CipherParameters(Cipher.Mode.DECRYPT)).use { it.process(enc) }
+            val enc = Cipher(Algorithm.AES, key, CipherParameters(Cipher.Mode.ENCRYPT)).process(string)
+            val dec = Cipher(Algorithm.AES, key, CipherParameters(Cipher.Mode.DECRYPT)).process(enc)
             assertEquals("This is a secret", dec.decodeToString())
+        }
+        
+        should("test RSA") {
+            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameters(2048)).generate().use { keyPair ->
+                val string = "This is a secret".encodeToByteArray()
+                val enc = Cipher(Algorithm.RSA, keyPair.publicKey, CipherParameters(Cipher.Mode.ENCRYPT))
+                    .process(string)
+                val dec = Cipher(Algorithm.RSA, keyPair.privateKey, CipherParameters(Cipher.Mode.DECRYPT))
+                    .process(enc)
+                assertEquals("This is a secret", dec.decodeToString())
+            }
         }
     }
 }

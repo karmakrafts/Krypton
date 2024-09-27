@@ -55,7 +55,7 @@ class WithFree {
 }
 
 /** @suppress **/
-internal inline fun <T> withFree(block: WithFree.() -> T): T {
+inline fun <T> withFree(block: WithFree.() -> T): T {
     val withFree = WithFree()
     return try {
         withFree.block()
@@ -65,7 +65,7 @@ internal inline fun <T> withFree(block: WithFree.() -> T): T {
 }
 
 /** @suppress **/
-internal inline fun <T> withFreeWithException(closure: WithFree.() -> T): T {
+inline fun <T> withFreeWithException(closure: WithFree.() -> T): T {
     val withFree = WithFree()
     return try {
         withFree.closure()

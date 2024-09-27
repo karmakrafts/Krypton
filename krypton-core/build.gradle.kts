@@ -140,6 +140,8 @@ kotlin {
     
     sourceSets {
         all {
+            languageSettings.optIn("io.karma.evince.krypton.annotations.UncheckedKryptonAPI")
+            languageSettings.optIn("io.karma.evince.krypton.annotations.InternalKryptonAPI")
             languageSettings.optIn("kotlinx.cinterop.UnsafeNumber")
             languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
         }

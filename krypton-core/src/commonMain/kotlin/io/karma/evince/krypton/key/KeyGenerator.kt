@@ -30,6 +30,13 @@ import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 expect class KeyGenerator @UncheckedKryptonAPI constructor(algorithm: String, parameters: KeyGeneratorParameters) {
     constructor(algorithm: Algorithm, parameters: KeyGeneratorParameters)
     
+    /**
+     * This function uses the internal backend to generate a key. That key is wrapped in the platform-dependant Key
+     * class.
+     *
+     * @author Cedric Hammes
+     * @since  26/09/2024
+     */
     fun generate(): Key
 }
 
