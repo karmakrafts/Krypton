@@ -129,21 +129,6 @@ kotlin {
         }
     }
     
-    js {
-        browser {
-            testTask {
-                useKarma {
-                    useFirefoxHeadless()
-                }
-            }
-        }
-        nodejs {
-            testTask {
-                useMocha()
-            }
-        }
-    }
-    
     jvm {
         testRuns["test"].executionTask {
             useJUnitPlatform()
@@ -174,10 +159,6 @@ kotlin {
                 implementation(libs.okio)
                 implementation(libs.bignum)
             }
-        }
-        jsMain.dependencies {
-            implementation(libs.kotlin.web)
-            implementation(libs.kotlin.node)
         }
         
         val opensslMain by creating {

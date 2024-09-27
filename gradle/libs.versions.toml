@@ -12,10 +12,6 @@ android-gradle-plugin = "8.5.0" # https://developer.android.com/build/releases/g
 download-plugin = "5.6.0" # https://github.com/michel-kraemer/gradle-download-task/releases
 dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases
 
-## Libraries for Web and Node ##
-kotlin-web = "1.0.0-pre.814" # https://github.com/JetBrains/kotlin-wrappers
-kotlin-node = "22.5.4-pre.814" # https://github.com/JetBrains/kotlin-wrappers
-
 ## Binaries ##
 openssl-binaries = "1.0.4" # https://gitlab.com/trixnity/trixnity-openssl-binaries/-/releases
 
@@ -32,8 +28,6 @@ kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5", version.ref =
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 bignum = { module = "com.ionspin.kotlin:bignum", version.ref = "bignum" }
-kotlin-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web", version.ref = "kotlin-web" }
-kotlin-node = { module = "org.jetbrains.kotlin-wrappers:kotlin-node", version.ref = "kotlin-node" }
 
 [bundles]
 kotest = ["kotest-common", "kotest-engine-framework", "kotest-dataset-framework", "kotest-assertion-core"]

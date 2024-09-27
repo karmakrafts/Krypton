@@ -17,7 +17,6 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.annotations.UnstableKryptonAPI
-import io.karma.evince.krypton.platform.Platform
 import kotlin.jvm.JvmStatic
 
 /**
@@ -37,8 +36,7 @@ enum class Algorithm(
     val defaultBlockMode: BlockMode?,
     val defaultPadding: Padding?,
     val scopes: Array<Scope>,
-    val blockCipher: Boolean = false,
-    val platformsSupporting: Array<Platform>
+    val blockCipher: Boolean = false
 ) {
     /**
      * This value represents the MD5 algorithm. MD5 is a deprecated standard for hashing and should not be used in
@@ -56,8 +54,7 @@ enum class Algorithm(
         defaultBitSize = 128,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        platformsSupporting = Platform.entries.filter { !it.isWeb() }.toTypedArray()
+        scopes = arrayOf(Scope.DIGEST)
     ),
     
     /**
@@ -77,8 +74,7 @@ enum class Algorithm(
         defaultBitSize = 224,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        platformsSupporting = Platform.entries.filter { !it.isWeb() }.toTypedArray()
+        scopes = arrayOf(Scope.DIGEST)
     ),
     
     /**
@@ -98,8 +94,7 @@ enum class Algorithm(
         defaultBitSize = 256,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        platformsSupporting = Platform.entries.toTypedArray()
+        scopes = arrayOf(Scope.DIGEST)
     ),
     
     /**
@@ -119,8 +114,7 @@ enum class Algorithm(
         defaultBitSize = 384,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        platformsSupporting = Platform.entries.toTypedArray()
+        scopes = arrayOf(Scope.DIGEST)
     ),
     
     /**
@@ -140,8 +134,7 @@ enum class Algorithm(
         defaultBitSize = 512,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        platformsSupporting = Platform.entries.toTypedArray()
+        scopes = arrayOf(Scope.DIGEST)
     ),
     
     /**
@@ -161,8 +154,7 @@ enum class Algorithm(
         defaultBitSize = 224,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        platformsSupporting = Platform.entries.filter { !it.isWeb() }.toTypedArray()
+        scopes = arrayOf(Scope.DIGEST)
     ),
     
     /**
@@ -182,8 +174,7 @@ enum class Algorithm(
         defaultBitSize = 256,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        platformsSupporting = Platform.entries.filter { !it.isWeb() }.toTypedArray()
+        scopes = arrayOf(Scope.DIGEST)
     ),
     
     /**
@@ -203,8 +194,7 @@ enum class Algorithm(
         defaultBitSize = 384,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        platformsSupporting = Platform.entries.filter { !it.isWeb() }.toTypedArray()
+        scopes = arrayOf(Scope.DIGEST)
     ),
     
     /**
@@ -224,8 +214,7 @@ enum class Algorithm(
         defaultBitSize = 512,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        platformsSupporting = Platform.entries.filter { !it.isWeb() }.toTypedArray()
+        scopes = arrayOf(Scope.DIGEST)
     ),
     
     /**
@@ -254,8 +243,7 @@ enum class Algorithm(
         defaultBlockMode = BlockMode.ECB,
         defaultPadding = Padding.PKCS1,
         scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR),
-        blockCipher = true,
-        platformsSupporting = Platform.entries.toTypedArray()
+        blockCipher = true
     ),
     
     /**
@@ -278,8 +266,7 @@ enum class Algorithm(
         defaultBlockMode = BlockMode.CBC,
         defaultPadding = Padding.NONE,
         scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR),
-        blockCipher = true,
-        platformsSupporting = Platform.entries.toTypedArray()
+        blockCipher = true
     ),
     
     /**
@@ -301,8 +288,7 @@ enum class Algorithm(
         defaultBitSize = 2048,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR, Scope.PARAMETER_GENERATOR),
-        platformsSupporting = Platform.entries.filter { !it.isWeb() }.toTypedArray()
+        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR, Scope.PARAMETER_GENERATOR)
     ),
     
     /**
@@ -318,8 +304,7 @@ enum class Algorithm(
         defaultBitSize = 256,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.KEYPAIR_GENERATOR, Scope.SIGNATURE),
-        platformsSupporting = Platform.entries.filter { !it.isWeb() }.toTypedArray()
+        scopes = arrayOf(Scope.KEYPAIR_GENERATOR, Scope.SIGNATURE)
     ),
     
     /**
@@ -341,19 +326,17 @@ enum class Algorithm(
         defaultBitSize = 256,
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR),
-        platformsSupporting = Platform.entries.filter { !it.isWeb() }.toTypedArray()
+        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR)
     );
     
     /** @suppress **/
     constructor(
         literal: String, supportedBlockModes: Array<BlockMode>, supportedPaddings: Array<Padding>,
         supportedBitSizes: IntArray, defaultBitSize: Int, defaultBlockMode: BlockMode?, defaultPadding: Padding?,
-        scopes: Array<Scope>, blockCipher: Boolean = false, platformsSupporting: Array<Platform>
+        scopes: Array<Scope>, blockCipher: Boolean = false
     ) : this(
-        literal, supportedBlockModes, supportedPaddings,
-        { value -> supportedBitSizes.contains(value) }, defaultBitSize, defaultBlockMode,
-        defaultPadding, scopes, blockCipher, platformsSupporting
+        literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) }, defaultBitSize, defaultBlockMode,
+        defaultPadding, scopes, blockCipher
     )
     
     fun checkScopeOrError(scope: Scope): Algorithm = this.also {
