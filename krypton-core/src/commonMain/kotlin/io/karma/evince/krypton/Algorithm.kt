@@ -364,7 +364,8 @@ enum class Algorithm(
         KEY_AGREEMENT("Key Agreement"),
         PARAMETER_GENERATOR("Parameter generator"),
         SIGNATURE("Signature"),
-        DIGEST("Digest");
+        DIGEST("Digest"),
+        SIGNATURE_DIGEST("Signature digest");
         
         override fun toString(): String = literal
     }
