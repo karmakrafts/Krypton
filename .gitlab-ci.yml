@@ -10,6 +10,13 @@ stages:
       - $CI_PROJECT_DIR/.konan
       - $CI_PROJECT_DIR/.gradle
 
+.cache-macos: &cache-macos
+  - key: krypton-core-cache-macos
+    policy: pull-push
+    paths:
+      - $CI_PROJECT_DIR/.konan
+      - $CI_PROJECT_DIR/.gradle
+
 .if-main: &if-main
   - if: $CI_PIPELINE_SOURCE == "schedule"
     when: never
@@ -24,6 +31,15 @@ build:linux:
   script:
     - ./gradlew compileKotlin{Jvm,LinuxX64,MingwX64} linkDebugTest{LinuxX64,MingwX64} --stacktrace
 
+build:macos:
+  stage: build
+  tags: ["macos", "arm64"]
+  image: java:21-jdk
+  cache:
+    - *cache-macos
+  script:
+    - ./gradlew compileKotlinMacosArm64 linkDebugTestMacosArm64 --stacktrace
+
 tests:linux:
   stage: tests
   needs: ["build:linux"]
@@ -33,6 +49,16 @@ tests:linux:
     - *cache-linux
   script:
     - ./gradlew {jvm,linuxX64}Test --stacktrace
+
+tests:macos:
+  stage: tests
+  needs: ["build:macos"]
+  tags: ["macos", "arm64"]
+  image: java:21-jdk
+  cache:
+    - *cache-macos
+  script:
+    - ./gradlew macosArm64Test --stacktrace
 
 publish:linux:
   stage: publish
