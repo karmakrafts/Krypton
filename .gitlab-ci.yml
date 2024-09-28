@@ -8,7 +8,7 @@ stages:
   when: always
   paths: ["**/build/reports"]
   reports:
-    junit: "**/build/test-results/**/Test-*.xml"
+    junit: "**/build/test-results/**/TEST-*.xml"
 
 .cache-linux: &cache-linux
   - key: krypton-core-cache-linux
