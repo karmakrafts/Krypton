@@ -175,7 +175,10 @@ kotlin {
                 implementation(libs.bignum)
             }
         }
-        
+        jsMain.dependencies {
+            implementation(libs.kotlin.web)
+        }
+
         val opensslMain by creating {
             dependsOn(commonMain)
         }
