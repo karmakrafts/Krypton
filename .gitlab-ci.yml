@@ -1,4 +1,5 @@
 stages:
+  - security
   - build
   - tests
   - publish
@@ -29,18 +30,31 @@ stages:
     when: never
   - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+trivy:
+  stage: security
+  tags: ["linux", "x86_64"]
+  artifacts:
+    when: always
+    reports:
+      dependency_scanning: .dependency-reort.json
+  script:
+    - ./gradlew krypton:dependencies --write-locks
+    - trivy fs --security-checks vuln --severity MEDIUM,HIGH,CRITICAL --exit-code 1 --format template --template "@/contrib/gitlab.tpl" --output .dependency-report.json .
+
 build:linux:
   stage: build
   tags: ["linux", "x86_64"]
+  needs: ["trivy"]
   image: java:21-jdk
   cache:
     - *cache-linux
   script:
-    - ./gradlew compileKotlin{Jvm,LinuxX64,MingwX64} linkDebugTest{LinuxX64,MingwX64} --stacktrace
+    - ./gradlew compileKotlin{Js,Jvm,LinuxX64,MingwX64} linkDebugTest{LinuxX64,MingwX64} --stacktrace
 
 build:macos:
   stage: build
   tags: ["macos", "arm64"]
+  needs: ["trivy"]
   image: java:21-jdk
   cache:
     - *cache-macos
@@ -56,7 +70,7 @@ tests:linux:
   cache:
     - *cache-linux
   script:
-    - ./gradlew {jvm,linuxX64}Test --stacktrace
+    - ./gradlew {js,jvm,linuxX64}Test --stacktrace
 
 tests:macos:
   stage: tests
@@ -78,7 +92,7 @@ publish:linux:
   rules:
     - *if-main
   script:
-    - ./gradlew dokkaHtml publishAllPublicationsToKarmaKraftsRepository --stacktrace
+    - ./gradlew dokkaHtml publish{KotlinMultiplatform,Jvm,Js,LinuxX64,MingwX64}PublicationToKarmaKraftsRepository --stacktrace
 
 publish:macos:
   stage: publish
