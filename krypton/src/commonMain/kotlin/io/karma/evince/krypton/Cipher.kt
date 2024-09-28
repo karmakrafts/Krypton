@@ -106,13 +106,38 @@ open class CipherParameters(
  * This class is a cipher parameters class with an extra field for the length of the GCM tag. These tags are used in the
  * GCM block mode to provide integrity checks of the encrypted message.
  *
+ * @param mode      The mode for the cipher (encrypt or decrypt)
+ * @param padding   The padding applied after the cipher
+ * @param blockMode The block mode of the cipher used
+ * @param iv        The initialization vector
+ * @param tagLen    The length of the tag
+ *
  * @author Cedric Hammes
  * @since  20/09/2024
  */
 class GCMCipherParameters(
     mode: Cipher.Mode,
-    padding: Padding?,
-    blockMode: BlockMode?,
-    iv: ByteArray?,
-    val tagLen: Int
+    val tagLen: Int,
+    padding: Padding? = null,
+    blockMode: BlockMode? = null,
+    iv: ByteArray? = null,
 ) : CipherParameters(mode, padding, blockMode, iv)
+
+/**
+ * This class is a cipher parameters class with an extra field for the counter used while encrypting and decrypting this files. These
+ * counter must be the same while encryption and decryption.
+ *
+ * @param mode      The mode for the cipher (encrypt or decrypt)
+ * @param counter   The counter used for the cipher operation
+ * @param padding   The padding applied after the cipher
+ * @param blockMode The block mode of the cipher used
+ *
+ * @author Cedric Hammes
+ * @since  20/09/2024
+ */
+class CTRCipherParameters(
+    mode: Cipher.Mode,
+    counter: ByteArray,
+    padding: Padding? = null,
+    blockMode: BlockMode? = null,
+) : CipherParameters(mode, padding, blockMode, counter)

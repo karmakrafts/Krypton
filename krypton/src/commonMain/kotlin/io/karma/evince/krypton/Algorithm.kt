@@ -339,9 +339,9 @@ enum class Algorithm(
     ),
     
     /**
-     * The ECDH (Elliptic-Curve Diffie-Hellman) is the elliptic-curve equivalent of the Diffie-Hellman key agreement
-     * algorithm. The advantage of ECDH is the higher security with lower key sizes compared to DH. This algorithm
-     * is used in the Signal Protocol and other implementations. It can be broken by Shor's algorithm.
+     * The ECDH (Elliptic-Curve Diffie-Hellman) is the elliptic-curve equivalent of the Diffie-Hellman key agreement algorithm. The
+     * advantage of ECDH is the higher security with lower key sizes compared to DH. This algorithm is used in the Signal Protocol and
+     * other implementations. It can be broken by Shor's algorithm.
      *
      * @author Cedric Hammes
      * @since  10/09/2024
@@ -436,7 +436,29 @@ enum class BlockMode {
     CFB,
     OFB,
     OCB,
+
+    /**
+     * This enum value represents the Counter (CTR) mode for block cipher and is used to create a stream cipher out of a block cipher. The
+     * developer needs to use a [CTRCipherParameters] for perform cipher operations in CTR mode.
+     *
+     * @see [Counter Mode, Wikipedia](https://de.wikipedia.org/wiki/Counter_Mode)
+     * @see [CTRCipherParameters]
+     *
+     * @author Cedric Hammes
+     * @since  09/09/2024
+     */
     CTR,
+
+    /**
+     * This enum value represents the Galois/Counter (GCM) mode for block cipher. GCM supports Authenticated Encryption with Associated Data
+     * and allows to ensure the authentication of data.
+     *
+     * @see [Galois/Counter mode, Wikipedia](https://de.wikipedia.org/wiki/Galois/Counter_Mode)
+     * @see [Authenticated Encryption, Wikipedia](https://de.wikipedia.org/wiki/Authenticated_Encryption)
+     *
+     * @author Cedric Hammes
+     * @since  09/09/2024
+     */
     GCM
 }
 

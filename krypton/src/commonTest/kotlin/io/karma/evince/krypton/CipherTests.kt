@@ -26,11 +26,29 @@ import kotlin.test.assertEquals
 
 class CipherTests : ShouldSpec() {
     init {
-        should("test AES") {
+        should("test AES-CBC") {
             val key = KeyGenerator(Algorithm.AES, KeyGeneratorParameters(128)).generate()
             val string = "This is a secret".encodeToByteArray()
             val enc = Cipher(Algorithm.AES, key, CipherParameters(Cipher.Mode.ENCRYPT)).process(string)
             val dec = Cipher(Algorithm.AES, key, CipherParameters(Cipher.Mode.DECRYPT)).process(enc)
+            assertEquals("This is a secret", dec.decodeToString())
+        }
+
+        should("test AES-GCM") {
+            val key = KeyGenerator(Algorithm.AES, KeyGeneratorParameters(128)).generate()
+            val string = "This is a secret".encodeToByteArray()
+
+            val enc = Cipher(Algorithm.AES, key, GCMCipherParameters(Cipher.Mode.ENCRYPT, 2)).process(string, byteArrayOf(0x1, 0x2))
+            val dec = Cipher(Algorithm.AES, key, GCMCipherParameters(Cipher.Mode.DECRYPT, 2)).process(enc, byteArrayOf(0x1, 0x2))
+            assertEquals("This is a secret", dec.decodeToString())
+        }
+
+        should("test AES-CTR") {
+            val key = KeyGenerator(Algorithm.AES, KeyGeneratorParameters(128)).generate()
+            val string = "This is a secret".encodeToByteArray()
+
+            val enc = Cipher(Algorithm.AES, key, GCMCipherParameters(Cipher.Mode.ENCRYPT, 2)).process(string)
+            val dec = Cipher(Algorithm.AES, key, GCMCipherParameters(Cipher.Mode.DECRYPT, 2)).process(enc)
             assertEquals("This is a secret", dec.decodeToString())
         }
         
