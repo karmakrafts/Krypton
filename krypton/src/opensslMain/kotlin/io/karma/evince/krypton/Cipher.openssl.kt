@@ -69,13 +69,16 @@ actual class Cipher actual constructor(
          */
         init {
             registerInternalCipher(Algorithm.RSA, asymmetricCipher { context, parameters ->
-                val padding = when (requireNotNull((parameters.padding ?: Algorithm.RSA.defaultPadding))) {
-                    Padding.NONE -> RSA_NO_PADDING
-                    Padding.PKCS1 -> RSA_PKCS1_PADDING
-                    else -> throw RuntimeException("Padding '$this' not supported for RSA")
-                }
-                if (EVP_PKEY_CTX_set_rsa_padding(context, padding) != 1) {
-                    throw InitializationException("Unable to set padding", ErrorHelper.createOpenSSLException())
+                when (val padding = requireNotNull((parameters.padding ?: Algorithm.RSA.defaultPadding))) {
+                    Padding.NONE, Padding.PKCS1 -> {
+                        if (EVP_PKEY_CTX_set_rsa_padding(context, if (padding == Padding.NONE) RSA_NO_PADDING else RSA_PKCS1_PADDING) != 1)
+                            throw InitializationException("Unable to set padding", ErrorHelper.createOpenSSLException())
+                    }
+                    Padding.OAEP_SHA256, Padding.OAEP_SHA1 -> {
+                        if (EVP_PKEY_CTX_set_rsa_oaep_md(context, if (padding == Padding.OAEP_SHA1) EVP_sha1() else EVP_sha256()) != 1)
+                            throw InitializationException("Unable to set OAEP digest", ErrorHelper.createOpenSSLException())
+                    }
+                    else -> throw RuntimeException("Padding '$padding' not supported for RSA")
                 }
             })
             registerInternalCipher(Algorithm.AES, symmetricCipher(true) { key, parameters ->

@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Add macOS and iOS building, testing and publication tasks to CI configuration
-- Add support for Android targets
+- macOS and iOS building, testing and publication tasks to CI configuration
+- Support for SHA-1 digest algorithm
+- Support for JS targets
 
-### Changed
+### Fixed
+- OAEPWithSHA-1AndMGF1Padding and OAEPWithSHA-256AndMGF1Padding work on OpenSSL targets
 
 ## v1.0.0.25
 

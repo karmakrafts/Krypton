@@ -23,9 +23,14 @@ import web.crypto.KeyUsage
 import web.crypto.crypto
 
 /**
+ * This is the JS-only implementation for the key-generation with Krypton. This API uses the Web Cryptography API which was specified by the
+ * W3C.
+ *
  * @author Cedric Hammes
  * @since  28/09/2024
- * @suppress
+ *
+ * @see [AES-CBC, Web Cryptography API Examples](https://github.com/diafygi/webcrypto-examples?tab=readme-ov-file#aes-cbc---generatekey)
+ * @see [Web Cryptography API, W3C](https://w3c.github.io/webcrypto/#crypto-interface)
  */
 actual class KeyGenerator @UncheckedKryptonAPI actual constructor(
     private val algorithm: String,
@@ -34,6 +39,13 @@ actual class KeyGenerator @UncheckedKryptonAPI actual constructor(
     actual constructor(algorithm: Algorithm, parameters: KeyGeneratorParameters) :
             this(algorithm.validOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameters)
 
+    /**
+     * This function generates a private key and derives the public key from the private key. These operations are done
+     * in the backend and the backend-internal structure is wrapped into a key.
+     *
+     * @author Cedric Hammes
+     * @since  28/09/2024
+     */
     actual suspend fun generate(): Key = Key(
         algorithm = algorithm,
         type = KeyType.SYMMETRIC,

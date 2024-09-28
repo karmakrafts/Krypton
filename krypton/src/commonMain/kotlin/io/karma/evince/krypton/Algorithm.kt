@@ -57,6 +57,26 @@ enum class Algorithm(
         scopes = arrayOf(Scope.DIGEST),
         supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
+
+    /**
+     * This value represents the SHA1 algorithm. SHA1 is a deprecated standard for hashing and should not be used in
+     * security relevant usage.
+     *
+     * @author Cedric Hames
+     * @since  28/09/2024
+     */
+    @Deprecated("SHA-1 is deprecated <https://en.wikipedia.org/wiki/SHA-1>")
+    SHA1(
+        literal = "SHA-1",
+        supportedBlockModes = emptyArray(),
+        supportedPaddings = emptyArray(),
+        isBitSizeSupported = { true },
+        defaultBitSize = 160,
+        defaultBlockMode = null,
+        defaultPadding = null,
+        scopes = arrayOf(Scope.DIGEST),
+        supportedPlatforms = Platform.entries.toTypedArray()
+    ),
     
     /**
      * This value represents the 224-bit output length variant of the SHA (Secure Hash Algorithm) standard, also named
@@ -246,11 +266,11 @@ enum class Algorithm(
     RSA(
         literal = "RSA",
         supportedBlockModes = arrayOf(BlockMode.ECB),
-        supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS5, Padding.OAEP_SHA1_MGF1, Padding.OAEP_SHA256_MGF1),
+        supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS5, Padding.OAEP_SHA1, Padding.OAEP_SHA256),
         supportedBitSizes = intArrayOf(1024, 2048, 4096, 8192),
         defaultBitSize = 4096,
         defaultBlockMode = BlockMode.ECB,
-        defaultPadding = Padding.PKCS1,
+        defaultPadding = Padding.OAEP_SHA256,
         scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR),
         supportedPlatforms = Platform.entries.toTypedArray()
     ),
@@ -430,8 +450,8 @@ enum class Padding(private val literal: String) {
     NONE("NoPadding"),
     PKCS5("PKCS5Padding"),
     PKCS1("PKCS1Padding"),
-    OAEP_SHA1_MGF1("OAEPWithSHA-1AndMGF1Padding"),
-    OAEP_SHA256_MGF1("OAEPWithSHA-1AndMGF1Padding");
+    OAEP_SHA1("OAEPWithSHA-1AndMGF1Padding"),
+    OAEP_SHA256("OAEPWithSHA-1AndMGF1Padding");
     
     override fun toString(): String = literal
 }

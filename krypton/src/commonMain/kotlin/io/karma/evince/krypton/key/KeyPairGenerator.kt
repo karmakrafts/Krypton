@@ -18,6 +18,7 @@ package io.karma.evince.krypton.key
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.karma.evince.krypton.Algorithm
+import io.karma.evince.krypton.Padding
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 import io.karma.evince.krypton.ec.EllipticCurve
 
@@ -42,7 +43,7 @@ expect class KeyPairGenerator @UncheckedKryptonAPI constructor(
      * @author Cedric Hammes
      * @since  26/09/2024
      */
-    fun generate(): KeyPair
+    suspend fun generate(): KeyPair
 }
 
 /**
@@ -52,7 +53,7 @@ expect class KeyPairGenerator @UncheckedKryptonAPI constructor(
  * @author Cedric Hammes
  * @since  09/09/2024
  */
-open class KeyPairGeneratorParameters(internal val size: Int)
+open class KeyPairGeneratorParameters(internal val size: Int, internal val padding: Padding? = null)
 
 /**
  * This class defines the required parameters for the generation of keys for elliptic curve based algorithms like the
@@ -61,7 +62,7 @@ open class KeyPairGeneratorParameters(internal val size: Int)
  * @author Cedric Hammes
  * @since  09/09/2024
  */
-class ECKeyPairGeneratorParameters(internal val curve: EllipticCurve) : KeyPairGeneratorParameters(0)
+class ECKeyPairGeneratorParameters(internal val curve: EllipticCurve) : KeyPairGeneratorParameters(0, null)
 
 /**
  * This class defines the optional parameters for the generation of keys for the Diffie-Hellman key exchange
@@ -72,4 +73,4 @@ class ECKeyPairGeneratorParameters(internal val curve: EllipticCurve) : KeyPairG
  * @since  17/09/2024
  */
 class DHKeyPairGeneratorParameters(internal val p: BigInteger, internal val g: BigInteger, bits: Int)
-    : KeyPairGeneratorParameters(bits)
+    : KeyPairGeneratorParameters(bits, null)

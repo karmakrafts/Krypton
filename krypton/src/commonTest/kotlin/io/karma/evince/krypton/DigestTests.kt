@@ -21,6 +21,14 @@ import kotlin.test.assertEquals
 
 class DigestTests : ShouldSpec() {
     init {
+        should("test SHA-1") {
+            Digest(Algorithm.SHA1).use { digest ->
+                assertEquals(
+                    "640ab2bae07bedc4c163f679a746f7ab7fb5d1fa",
+                    digest.hashToString("Test")
+                )
+            }
+        }
         should("test SHA") {
             Digest(Algorithm.SHA256).use { digest ->
                 assertEquals(

@@ -37,7 +37,7 @@ actual class KeyPairGenerator @UncheckedKryptonAPI actual constructor(
     actual constructor(algorithm: Algorithm, parameters: KeyPairGeneratorParameters) :
             this(algorithm.validOrError(Algorithm.Scope.KEYPAIR_GENERATOR).toString(), parameters)
     
-    actual fun generate(): KeyPair = generatorFunction(parameters)
+    actual suspend fun generate(): KeyPair = generatorFunction(parameters)
     
     companion object {
         /** @suppress **/

@@ -49,6 +49,6 @@ actual class KeyPairGenerator actual constructor(algorithm: String, parameters: 
         }
     }
     
-    actual fun generate(): KeyPair = keyPairGenerator.generateKeyPair()
+    actual suspend fun generate(): KeyPair = keyPairGenerator.generateKeyPair()
         .let { KeyPair(Key(KeyType.PUBLIC, it.public), Key(KeyType.PRIVATE, it.private)) }
 }
