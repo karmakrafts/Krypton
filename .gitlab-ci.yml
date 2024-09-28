@@ -36,7 +36,7 @@ trivy:
   artifacts:
     when: always
     reports:
-      dependency_scanning: .dependency-reort.json
+      dependency_scanning: .dependency-report.json
   script:
     - ./gradlew krypton:dependencies --write-locks
     - trivy fs --security-checks vuln --severity MEDIUM,HIGH,CRITICAL --exit-code 1 --format template --template "@/contrib/gitlab.tpl" --output .dependency-report.json .
