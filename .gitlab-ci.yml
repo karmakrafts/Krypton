@@ -3,6 +3,7 @@ stages:
   - build
   - tests
   - publish
+  - release
 
 .reports: &reports
   name: reports
@@ -104,3 +105,14 @@ publish:macos:
     - *if-main
   script:
     - ./gradlew dokkaHtml publish{MacosArm64,MacosX64,IosArm64,IosSimulatorArm64,IosX64}PublicationToKarmaKraftsRepository --stacktrace
+
+gitlab-release:
+  stage: release
+  needs: ["publish:linux", "publish:macos"]
+  tags: ["linux", "x86_64"]
+  rules:
+    - *if-main
+  release:
+    tag_name: '${cat .version}.$CI_PIPELINE_IID'
+    description: '${cat .version}.$CI_PIPELINE_IID'
+    ref: '$CI_COMMIT_SHA'

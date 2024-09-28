@@ -21,7 +21,7 @@ plugins {
 }
 
 group = "io.karma.evince"
-version = "${libs.versions.krypton.get()}.${System.getenv("CI_PIPELINE_IID") ?: 0}"
+version = "${rootDir.resolve(".version").readText()}.${System.getenv("CI_PIPELINE_IID") ?: 0}"
 
 val buildFolder: Path = layout.buildDirectory.asFile.get().toPath()
 val isCIEnvironment = System.getenv("CI")?.equals("true") ?: false
@@ -73,6 +73,7 @@ class OpenSSLTarget(
 
 val openSSLTargets = mutableListOf(
     OpenSSLTarget(KonanTarget.LINUX_X64) { linuxX64() },
+    OpenSSLTarget(KonanTarget.LINUX_ARM64) { linuxArm64() },
     OpenSSLTarget(KonanTarget.MACOS_X64) { macosX64() },
     OpenSSLTarget(KonanTarget.MACOS_ARM64) { macosArm64() },
     OpenSSLTarget(KonanTarget.IOS_X64) { iosX64() },

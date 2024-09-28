@@ -37,7 +37,7 @@ actual class Cipher actual constructor(
     actual constructor(algorithm: Algorithm, key: Key, parameters: CipherParameters) :
             this(algorithm.validOrError(Algorithm.Scope.CIPHER).toString(), key, parameters.validate(algorithm))
     
-    actual fun process(data: ByteArray, aad: ByteArray?): ByteArray = internal(key, parameters, data, aad)
+    actual suspend fun process(data: ByteArray, aad: ByteArray?): ByteArray = internal(key, parameters, data, aad)
     
     actual enum class Mode {
         ENCRYPT, DECRYPT

@@ -18,6 +18,17 @@ package io.karma.evince.krypton
 
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 import io.karma.evince.krypton.key.Key
+import js.buffer.ArrayBuffer
+import js.buffer.BufferSource
+import js.typedarrays.Uint8Array
+import js.typedarrays.asInt8Array
+import js.typedarrays.toUint8Array
+import web.crypto.AesCbcParams
+import web.crypto.AesGcmParams
+import web.crypto.CryptoKey
+import web.crypto.crypto
+
+private typealias WebCryptoAlgorithm = web.crypto.Algorithm
 
 /**
  * @author Cedric Hammes
@@ -25,19 +36,43 @@ import io.karma.evince.krypton.key.Key
  * @suppress
  */
 actual class Cipher actual constructor(
-    algorithm: String,
-    key: Key,
-    parameters: CipherParameters
+    private val algorithm: String,
+    private val key: Key,
+    private val parameters: CipherParameters
 ) {
-    @UncheckedKryptonAPI actual constructor(algorithm: Algorithm, key: Key, parameters: CipherParameters) :
+    @UncheckedKryptonAPI
+    actual constructor(algorithm: Algorithm, key: Key, parameters: CipherParameters) :
             this(algorithm.validOrError(Algorithm.Scope.CIPHER).toString(), key, parameters)
 
-    actual fun process(data: ByteArray, aad: ByteArray?): ByteArray {
-        TODO("Not yet implemented")
+    actual suspend fun process(data: ByteArray, aad: ByteArray?): ByteArray {
+        val iv = parameters.tryIV(algorithm)?.toUint8Array()
+        return Uint8Array(
+            parameters.mode.operation(
+                when (algorithm) {
+                    "AES" -> {
+                        when (parameters.blockMode?: Algorithm.AES.defaultBlockMode) {
+                            BlockMode.CBC -> AesCbcParams.invoke("AES-CBC", requireNotNull(iv))
+                            BlockMode.GCM -> AesGcmParams.invoke(
+                                name = "AES-GCM",
+                                tagLength = (parameters as? GCMCipherParameters)?.tagLen?.toShort(),
+                                iv = requireNotNull(iv),
+                                additionalData = aad?.asInt8Array()
+                            )
+                            // TODO: Add support for CTR and the other modes
+                            else -> WebCryptoAlgorithm.invoke(algorithm)
+                        }
+                    }
+                    else -> WebCryptoAlgorithm.invoke(algorithm)
+                },
+                key.internal,
+                data.toUint8Array()
+            )
+        ).toByteArray()
     }
 
-    actual enum class Mode {
-        ENCRYPT, DECRYPT
+    actual enum class Mode(internal val operation: suspend (WebCryptoAlgorithm, CryptoKey, BufferSource) -> ArrayBuffer) {
+        ENCRYPT(crypto.subtle::encrypt),
+        DECRYPT(crypto.subtle::decrypt)
     }
 
 }

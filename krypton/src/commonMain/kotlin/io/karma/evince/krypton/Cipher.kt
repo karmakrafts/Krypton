@@ -22,7 +22,7 @@ import io.karma.evince.krypton.key.Key
 /**
  * This class is the implementation for a cipher. A cipher is used to encrypt or decrypt data transmitted over an
  * insecure tunnel.
- * 
+ *
  * @param algorithm  The algorithm used
  * @param key        The key for the operation
  * @param parameters Extra parameters for the cipher
@@ -44,7 +44,7 @@ expect class Cipher(algorithm: Algorithm, key: Key, parameters: CipherParameters
      */
     @UncheckedKryptonAPI
     constructor(algorithm: String, key: Key, parameters: CipherParameters)
-    
+
     /**
      * This function passes the data to the encryption/decryption backend like OpenSSL and returns the output data of
      * the cipher operation done.
@@ -56,8 +56,8 @@ expect class Cipher(algorithm: Algorithm, key: Key, parameters: CipherParameters
      * @author Cedric Hammes
      * @since  20/09/2024
      */
-    fun process(data: ByteArray, aad: ByteArray? = null): ByteArray
-    
+    suspend fun process(data: ByteArray, aad: ByteArray? = null): ByteArray
+
     enum class Mode {
         ENCRYPT,
         DECRYPT
@@ -98,7 +98,22 @@ open class CipherParameters(
                 }"
             )
     }
-    
+
+    /**
+     * This method tries to acquire the initialization vector from the parameters. Otherwise we try to get the algorithm instance and get
+     * the block size. If all of these operations fail, we return null. The default generated IV is insecure and should not be used in a
+     * production environment.
+     *
+     * TODO: Should I random generate the IV at default?
+     *
+     * @param algorithm The name of the algorithm
+     * @returns iv      The acquire or generated IV, otherwise null.
+     *
+     * @author Cedric Hammes
+     * @since  28/09/2024
+     */
+    fun tryIV(algorithm: String): ByteArray? = iv ?: (Algorithm.firstOrNull(algorithm)?.let { ByteArray(it.blockSize.toInt() / 8) { 0 } })
+
     override fun toString(): String = "CipherParameters(mode=$mode, padding=$padding, blockMode=$blockMode, iv=$iv)"
 }
 

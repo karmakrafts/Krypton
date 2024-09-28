@@ -29,17 +29,19 @@ class CipherTests : ShouldSpec() {
         should("test AES-CBC") {
             val key = KeyGenerator(Algorithm.AES, KeyGeneratorParameters(128)).generate()
             val string = "This is a secret".encodeToByteArray()
-            val enc = Cipher(Algorithm.AES, key, CipherParameters(Cipher.Mode.ENCRYPT)).process(string)
-            val dec = Cipher(Algorithm.AES, key, CipherParameters(Cipher.Mode.DECRYPT)).process(enc)
+            val iv = ByteArray(16) { 0 }
+            val enc = Cipher(Algorithm.AES, key, CipherParameters(Cipher.Mode.ENCRYPT, iv = iv)).process(string)
+            val dec = Cipher(Algorithm.AES, key, CipherParameters(Cipher.Mode.DECRYPT, iv = iv)).process(enc)
             assertEquals("This is a secret", dec.decodeToString())
         }
 
         should("test AES-GCM") {
             val key = KeyGenerator(Algorithm.AES, KeyGeneratorParameters(128)).generate()
             val string = "This is a secret".encodeToByteArray()
-
-            val enc = Cipher(Algorithm.AES, key, GCMCipherParameters(Cipher.Mode.ENCRYPT, 2)).process(string, byteArrayOf(0x1, 0x2))
-            val dec = Cipher(Algorithm.AES, key, GCMCipherParameters(Cipher.Mode.DECRYPT, 2)).process(enc, byteArrayOf(0x1, 0x2))
+            val iv = ByteArray(16) { 0 }
+            val enc =
+                Cipher(Algorithm.AES, key, GCMCipherParameters(Cipher.Mode.ENCRYPT, 2, iv = iv)).process(string, byteArrayOf(0x1, 0x2))
+            val dec = Cipher(Algorithm.AES, key, GCMCipherParameters(Cipher.Mode.DECRYPT, 2, iv = iv)).process(enc, byteArrayOf(0x1, 0x2))
             assertEquals("This is a secret", dec.decodeToString())
         }
 
@@ -47,11 +49,11 @@ class CipherTests : ShouldSpec() {
             val key = KeyGenerator(Algorithm.AES, KeyGeneratorParameters(128)).generate()
             val string = "This is a secret".encodeToByteArray()
 
-            val enc = Cipher(Algorithm.AES, key, GCMCipherParameters(Cipher.Mode.ENCRYPT, 2)).process(string)
-            val dec = Cipher(Algorithm.AES, key, GCMCipherParameters(Cipher.Mode.DECRYPT, 2)).process(enc)
+            val enc = Cipher(Algorithm.AES, key, CTRCipherParameters(Cipher.Mode.ENCRYPT, byteArrayOf(1, 0, 1))).process(string)
+            val dec = Cipher(Algorithm.AES, key, CTRCipherParameters(Cipher.Mode.DECRYPT, byteArrayOf(1, 0, 1))).process(enc)
             assertEquals("This is a secret", dec.decodeToString())
         }
-        
+
         should("test RSA") {
             KeyPairGenerator(
                 algorithm = Algorithm.RSA,

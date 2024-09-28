@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - macOS and iOS building, testing and publication tasks to CI configuration
+- Linux ARM64 target support
 - Support for SHA-1 digest algorithm
 - Support for JS targets
 

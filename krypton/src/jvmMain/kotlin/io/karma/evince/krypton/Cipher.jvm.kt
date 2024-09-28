@@ -51,7 +51,7 @@ actual class Cipher actual constructor(algorithm: String, key: Key, parameters: 
         }
     }
     
-    actual fun process(data: ByteArray, aad: ByteArray?): ByteArray {
+    actual suspend fun process(data: ByteArray, aad: ByteArray?): ByteArray {
         aad?.let { internal.updateAAD(it) }
         return internal.doFinal(data)
     }

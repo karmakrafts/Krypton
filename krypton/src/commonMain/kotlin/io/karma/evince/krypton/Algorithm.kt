@@ -36,7 +36,8 @@ enum class Algorithm(
     val defaultBlockMode: BlockMode?,
     val defaultPadding: Padding?,
     val scopes: Array<Scope>,
-    internal val supportedPlatforms: Array<Platform>
+    internal val supportedPlatforms: Array<Platform>,
+    val blockSize: UByte = 0U
 ) {
     /**
      * This value represents the MD5 algorithm. MD5 is a deprecated standard for hashing and should not be used in
@@ -55,7 +56,7 @@ enum class Algorithm(
         defaultBlockMode = null,
         defaultPadding = null,
         scopes = arrayOf(Scope.DIGEST),
-        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
+        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray(),
     ),
 
     /**
@@ -295,7 +296,8 @@ enum class Algorithm(
         defaultBlockMode = BlockMode.CBC,
         defaultPadding = Padding.NONE,
         scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR),
-        supportedPlatforms = Platform.entries.toTypedArray()
+        supportedPlatforms = Platform.entries.toTypedArray(),
+        blockSize = 128U
     ),
     
     /**
@@ -365,10 +367,10 @@ enum class Algorithm(
     constructor(
         literal: String, supportedBlockModes: Array<BlockMode>, supportedPaddings: Array<Padding>,
         supportedBitSizes: IntArray, defaultBitSize: Int, defaultBlockMode: BlockMode?, defaultPadding: Padding?,
-        scopes: Array<Scope>, supportedPlatforms: Array<Platform>
+        scopes: Array<Scope>, supportedPlatforms: Array<Platform>, blockSize: UByte = 0U
     ) : this(
         literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) }, defaultBitSize, defaultBlockMode,
-        defaultPadding, scopes, supportedPlatforms
+        defaultPadding, scopes, supportedPlatforms, blockSize
     )
 
     /**

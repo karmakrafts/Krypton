@@ -23,7 +23,6 @@ import js.typedarrays.Uint8Array
 import web.crypto.CryptoKeyPair
 import web.crypto.EcKeyGenParams
 import web.crypto.KeyAlgorithm
-import web.crypto.KeyUsage
 import web.crypto.RsaHashedKeyGenParams
 import web.crypto.crypto
 
