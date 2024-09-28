@@ -18,6 +18,9 @@ package io.karma.evince.krypton.key
 
 import io.karma.evince.krypton.Algorithm
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
+import web.crypto.AesKeyGenParams
+import web.crypto.KeyUsage
+import web.crypto.crypto
 
 /**
  * @author Cedric Hammes
@@ -25,14 +28,22 @@ import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
  * @suppress
  */
 actual class KeyGenerator @UncheckedKryptonAPI actual constructor(
-    algorithm: String,
-    parameters: KeyGeneratorParameters
+    private val algorithm: String,
+    private val parameters: KeyGeneratorParameters
 ) {
     actual constructor(algorithm: Algorithm, parameters: KeyGeneratorParameters) :
             this(algorithm.validOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameters)
 
-    actual suspend fun generate(): Key {
-        TODO("Not yet implemented")
-    }
-
+    actual suspend fun generate(): Key = Key(
+        algorithm = algorithm,
+        type = KeyType.SYMMETRIC,
+        internal = crypto.subtle.generateKey(
+            algorithm = when(algorithm) {
+                "AES" -> AesKeyGenParams.invoke("AES-${parameters.blockMode?: Algorithm.AES.defaultBlockMode}", parameters.size.toShort())
+                else -> throw IllegalArgumentException("Algorithm '$algorithm' not supported")
+            },
+            extractable = false,
+            keyUsages = arrayOf(KeyUsage.encrypt, KeyUsage.decrypt) // TODO: Make specifiable by user
+        )
+    )
 }

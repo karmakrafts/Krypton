@@ -16,6 +16,8 @@
 
 package io.karma.evince.krypton.key
 
+import web.crypto.CryptoKey
+
 /**
  * This class is a cross-platform implementation for a key (with support for symmetric and asymmetric keys) that can be
  * used in all parts of the Krypton API like Key generation and signing.
@@ -23,7 +25,7 @@ package io.karma.evince.krypton.key
  * @author Cedric Hammes
  * @since  08/09/2024
  */
-actual class Key(actual val algorithm: String, actual val type: KeyType) : AutoCloseable {
+actual class Key(actual val algorithm: String, actual val type: KeyType, internal val internal: CryptoKey) : AutoCloseable {
     actual override fun close() {
     }
 }
