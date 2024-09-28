@@ -179,6 +179,44 @@ kotlin {
             implementation(libs.kotlin.web)
         }
 
+        // Configure test source set
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.bundles.kotest)
+            }
+        }
+
+        // Create JVM and native test set
+        val jvmAndNativeTest by creating {
+            dependsOn(commonTest)
+        }
+        val jvmTest by getting {
+            dependsOn(jvmAndNativeTest)
+        }
+        val linuxX64Test by getting {
+            dependsOn(jvmAndNativeTest)
+        }
+        val mingwX64Test by getting {
+            dependsOn(jvmAndNativeTest)
+        }
+        val macosX64Test by getting {
+            dependsOn(jvmAndNativeTest)
+        }
+        val macosArm64Test by getting {
+            dependsOn(jvmAndNativeTest)
+        }
+        val iosX64Test by getting {
+            dependsOn(jvmAndNativeTest)
+        }
+        val iosArm64Test by getting {
+            dependsOn(jvmAndNativeTest)
+        }
+        val iosSimulatorArm64Test by getting {
+            dependsOn(jvmAndNativeTest)
+        }
+
+        // Create OpenSSL source set with all OpenSSL-supporting native targets
         val opensslMain by creating {
             dependsOn(commonMain)
         }
@@ -202,11 +240,6 @@ kotlin {
         }
         val iosSimulatorArm64Main by getting {
             dependsOn(opensslMain)
-        }
-        
-        commonTest.dependencies {
-            implementation(kotlin("test"))
-            implementation(libs.bundles.kotest)
         }
         
         // Configure JVM source sets
