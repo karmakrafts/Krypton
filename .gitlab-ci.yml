@@ -3,6 +3,13 @@ stages:
   - tests
   - publish
 
+.reports: &reports
+  name: reports
+  when: always
+  paths: ["**/build/reports"]
+  reports:
+    junit: "**/build/test-results/**/Test-*.xml"
+
 .cache-linux: &cache-linux
   - key: krypton-core-cache-linux
     policy: pull-push
@@ -45,6 +52,7 @@ tests:linux:
   needs: ["build:linux"]
   tags: ["linux", "x86_64"]
   image: java:21-jdk
+  artifacts: *reports
   cache:
     - *cache-linux
   script:
@@ -55,6 +63,7 @@ tests:macos:
   needs: ["build:macos"]
   tags: ["macos", "arm64"]
   image: java:21-jdk
+  artifacts: *reports
   cache:
     - *cache-macos
   script:
