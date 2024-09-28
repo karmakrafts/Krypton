@@ -19,7 +19,6 @@ package io.karma.evince.krypton
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
 import io.karma.evince.krypton.internal.openssl.*
 import io.karma.evince.krypton.key.Key
-import io.karma.evince.krypton.key.KeyType
 import io.karma.evince.krypton.utils.ErrorHelper
 import io.karma.evince.krypton.utils.checkNotNull
 import io.karma.evince.krypton.utils.withFree
@@ -187,7 +186,7 @@ actual class Cipher actual constructor(
 fun asymmetricCipher(
     configurator: (CPointer<EVP_PKEY_CTX>, CipherParameters) -> Unit
 ): (Key, CipherParameters, ByteArray, ByteArray?) -> ByteArray = { key, parameters, data, _ ->
-    if (key.type == KeyType.SYMMETRIC || key.body !is Key.KeyBody.EVPKeyBody) {
+    if (key.type == Key.Type.SYMMETRIC || key.body !is Key.KeyBody.EVPKeyBody) {
         throw InitializationException("The key type '${key.type}' is not supported")
     }
     
@@ -283,7 +282,7 @@ fun symmetricCipher(
     isBlockCipher: Boolean,
     getCipher: (Key, CipherParameters) -> CPointer<EVP_CIPHER>?
 ): (Key, CipherParameters, ByteArray, ByteArray?) -> ByteArray = { key, parameters, data, _ ->
-    if (key.type != KeyType.SYMMETRIC || key.body !is Key.KeyBody.DataKeyBody) {
+    if (key.type != Key.Type.SYMMETRIC || key.body !is Key.KeyBody.DataKeyBody) {
         throw InitializationException("The key type '${key.type}' is not supported")
     }
     

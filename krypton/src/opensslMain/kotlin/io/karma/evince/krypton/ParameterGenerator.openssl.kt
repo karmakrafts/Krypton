@@ -19,6 +19,7 @@ package io.karma.evince.krypton
 import io.karma.evince.krypton.annotations.InternalKryptonAPI
 import io.karma.evince.krypton.internal.openssl.*
 import io.karma.evince.krypton.key.DHKeyPairGeneratorParameters
+import io.karma.evince.krypton.key.Key
 import io.karma.evince.krypton.key.KeyPairGeneratorParameters
 import io.karma.evince.krypton.utils.WithFree
 import io.karma.evince.krypton.utils.checkNotNull
@@ -78,7 +79,8 @@ actual class ParameterGenerator actual constructor(
                     DHKeyPairGeneratorParameters(
                         DH_get0_p(dhParameters).checkNotNull().toBigInteger(),
                         DH_get0_g(dhParameters).checkNotNull().toBigInteger(),
-                        parameters.bits
+                        parameters.bits,
+                        arrayOf(Key.Usage.DERIVE)
                     )
                 }
             ))

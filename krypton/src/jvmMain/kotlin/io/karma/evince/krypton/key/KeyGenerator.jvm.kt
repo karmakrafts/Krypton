@@ -30,5 +30,5 @@ actual class KeyGenerator actual constructor(algorithm: String, parameters: KeyG
         this.keyGenerator.init(parameters.size)
     }
     
-    actual suspend fun generate(): Key = Key(KeyType.SYMMETRIC, keyGenerator.generateKey())
+    actual suspend fun generate(): Key = Key(Key.Type.SYMMETRIC, arrayOf(Key.Usage.ENCRYPT, Key.Usage.ENCRYPT), keyGenerator.generateKey())
 }

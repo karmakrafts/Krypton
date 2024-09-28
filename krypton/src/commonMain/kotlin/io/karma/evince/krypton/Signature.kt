@@ -18,7 +18,6 @@ package io.karma.evince.krypton
 
 import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
 import io.karma.evince.krypton.key.Key
-import io.karma.evince.krypton.key.KeyType
 
 /**
  * This class is the implementation for signatures. It can be used to sign arbitrary data and verify them with the
@@ -49,8 +48,8 @@ data class SignatureParameters(val digest: String, val type: EnumType) {
     constructor(digest: Algorithm, type: EnumType) :
             this(digest.validOrError(Algorithm.Scope.DIGEST).toString(), type)
     
-    enum class EnumType(internal val keyType: KeyType) {
-        VERIFY(KeyType.PUBLIC),
-        SIGN(KeyType.PRIVATE)
+    enum class EnumType(internal val keyType: Key.Type) {
+        VERIFY(Key.Type.PUBLIC),
+        SIGN(Key.Type.PRIVATE)
     }
 }

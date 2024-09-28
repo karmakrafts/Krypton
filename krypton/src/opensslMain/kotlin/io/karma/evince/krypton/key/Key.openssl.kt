@@ -20,12 +20,17 @@ import kotlinx.cinterop.CPointer
 import io.karma.evince.krypton.internal.openssl.*
 
 /** @suppress **/
-actual class Key(actual val type: KeyType, actual val algorithm: String, internal val body: KeyBody) : AutoCloseable {
-    constructor(type: KeyType, algorithm: String, data: CPointer<BIO>) :
-            this(type, algorithm, KeyBody.DataKeyBody(data))
+actual class Key(
+    actual val type: Type,
+    actual val usages: Array<Usage>,
+    actual val algorithm: String,
+    internal val body: KeyBody
+) : AutoCloseable {
+    constructor(type: Type, usages: Array<Usage>, algorithm: String, data: CPointer<BIO>) :
+            this(type, usages, algorithm, KeyBody.DataKeyBody(data))
     
-    constructor(type: KeyType, algorithm: String, data: CPointer<EVP_PKEY>) :
-            this(type, algorithm, KeyBody.EVPKeyBody(data))
+    constructor(type: Type, usages: Array<Usage>, algorithm: String, data: CPointer<EVP_PKEY>) :
+            this(type, usages, algorithm, KeyBody.EVPKeyBody(data))
     
     internal fun size() = body.size()
     
@@ -51,5 +56,32 @@ actual class Key(actual val type: KeyType, actual val algorithm: String, interna
                 EVP_PKEY_free(key)
             }
         }
+    }
+
+    /**
+     * This enum represents all types available for keys. Symmetric if the key is symmetric and public or private if the key
+     * is from an asymmetric algorithm.
+     *
+     * @author Cedric Hammes
+     * @since  08/09/2024
+     */
+    actual enum class Type {
+        SYMMETRIC, PUBLIC, PRIVATE
+    }
+
+    /**
+     * This enum represents all usages for keys available in Krypton. These usages are used by Android and JS to identify the usages of the
+     * key what's part of their security architecture so we try to implement this behavior as best as we can on all platforms compatible
+     * with Krypton.
+     *
+     * @author Cedric Hammes
+     * @since  28/09/2024
+     */
+    actual enum class Usage(actual val supportedTypes: Array<Type>) {
+        SIGN(arrayOf(Type.PRIVATE)),
+        VERIFY(arrayOf(Type.PUBLIC)),
+        ENCRYPT(arrayOf(Type.SYMMETRIC, Type.PUBLIC)),
+        DECRYPT(arrayOf(Type.SYMMETRIC, Type.PRIVATE)),
+        DERIVE(arrayOf(Type.PRIVATE, Type.PUBLIC));
     }
 }

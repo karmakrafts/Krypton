@@ -446,12 +446,12 @@ enum class BlockMode {
  * @author Cedric Hammes
  * @since  08/09/2024
  */
-enum class Padding(private val literal: String) {
-    NONE("NoPadding"),
-    PKCS5("PKCS5Padding"),
-    PKCS1("PKCS1Padding"),
-    OAEP_SHA1("OAEPWithSHA-1AndMGF1Padding"),
-    OAEP_SHA256("OAEPWithSHA-1AndMGF1Padding");
+enum class Padding(private val literal: String, internal val digest: String?) {
+    NONE("NoPadding", null),
+    PKCS5("PKCS5Padding", null),
+    PKCS1("PKCS1Padding", null),
+    OAEP_SHA1("OAEPWithSHA-1AndMGF1Padding", "SHA-1"),
+    OAEP_SHA256("OAEPWithSHA-256AndMGF1Padding", "SHA-256");
     
     override fun toString(): String = literal
 }

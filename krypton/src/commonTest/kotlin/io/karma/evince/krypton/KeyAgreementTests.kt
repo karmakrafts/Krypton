@@ -18,6 +18,7 @@ package io.karma.evince.krypton
 
 import io.karma.evince.krypton.ec.EllipticCurve
 import io.karma.evince.krypton.key.ECKeyPairGeneratorParameters
+import io.karma.evince.krypton.key.Key
 import io.karma.evince.krypton.key.KeyAgreement
 import io.karma.evince.krypton.key.KeyPairGenerator
 import io.kotest.core.spec.style.ShouldSpec
@@ -26,7 +27,10 @@ import kotlin.test.assertTrue
 class KeyAgreementTests : ShouldSpec() {
     init {
         should("test ECDH agreement") {
-            val generator = KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameters(EllipticCurve.PRIME256V1))
+            val generator = KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameters(
+                curve = EllipticCurve.PRIME256V1,
+                usages = arrayOf(Key.Usage.DERIVE)
+            ))
             generator.generate().use { kp1 ->
                 generator.generate().use { kp2 ->
                     val secret1 = KeyAgreement(Algorithm.ECDH, kp1.privateKey)

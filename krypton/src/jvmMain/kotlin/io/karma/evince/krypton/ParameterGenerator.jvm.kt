@@ -19,6 +19,7 @@ package io.karma.evince.krypton
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.Sign
 import io.karma.evince.krypton.key.DHKeyPairGeneratorParameters
+import io.karma.evince.krypton.key.Key
 import io.karma.evince.krypton.key.KeyPairGeneratorParameters
 import java.security.AlgorithmParameterGenerator
 import javax.crypto.spec.DHParameterSpec
@@ -51,7 +52,7 @@ actual class ParameterGenerator actual constructor(
     actual fun generate(): KeyPairGeneratorParameters = generator.generateParameters().let { params ->
         when(algorithm) {
             "DH" -> params.getParameterSpec(DHParameterSpec::class.java).let { spec ->
-                DHKeyPairGeneratorParameters(spec.p.toBigInteger(), spec.g.toBigInteger(), parameters.bits)
+                DHKeyPairGeneratorParameters(spec.p.toBigInteger(), spec.g.toBigInteger(), parameters.bits, arrayOf(Key.Usage.DERIVE))
             }
             else -> throw IllegalArgumentException("Unsupported algorithm '$algorithm'")
         }

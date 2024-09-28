@@ -32,17 +32,22 @@ actual class KeyGenerator actual constructor(
             this(algorithm.validOrError(Algorithm.Scope.KEY_GENERATOR).toString(), parameters)
     
     actual suspend fun generate(): Key {
-        return Key(KeyType.SYMMETRIC, algorithm, requireNotNull(BIO_new(BIO_s_secmem())).let { data ->
-            val parameterSize = parameters.size
-            ByteArray(parameterSize).usePinned { dataPtr ->
-                if (RAND_bytes(dataPtr.addressOf(0).reinterpret(), parameters.size) != 1)
-                    throw RuntimeException(
-                        "Unable to generate random data for key",
-                        ErrorHelper.createOpenSSLException()
-                    )
-                BIO_write(data, dataPtr.addressOf(0), parameterSize)
+        return Key(
+            type = Key.Type.SYMMETRIC,
+            usages = arrayOf(),
+            algorithm = algorithm,
+            data = requireNotNull(BIO_new(BIO_s_secmem())).let { data ->
+                val parameterSize = parameters.size
+                ByteArray(parameterSize).usePinned { dataPtr ->
+                    if (RAND_bytes(dataPtr.addressOf(0).reinterpret(), parameters.size) != 1)
+                        throw RuntimeException(
+                            message = "Unable to generate random data for key",
+                            cause = ErrorHelper.createOpenSSLException()
+                        )
+                    BIO_write(data, dataPtr.addressOf(0), parameterSize)
+                }
+                data
             }
-            data
-        })
+        )
     }
 }

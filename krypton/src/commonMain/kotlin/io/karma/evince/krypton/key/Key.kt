@@ -25,19 +25,40 @@ package io.karma.evince.krypton.key
  */
 expect class Key : AutoCloseable {
     val algorithm: String
-    val type: KeyType
+    val type: Type
+    val usages: Array<Usage>
     override fun close()
+
+    /**
+     * This enum represents all types available for keys. Symmetric if the key is symmetric and public or private if the key
+     * is from an asymmetric algorithm.
+     *
+     * @author Cedric Hammes
+     * @since  08/09/2024
+     */
+    enum class Type {
+        SYMMETRIC,
+        PUBLIC,
+        PRIVATE
+    }
+
+    /**
+     * This enum represents all usages for keys available in Krypton. These usages are used by Android and JS to identify the usages of the
+     * key what's part of their security architecture so we try to implement this behavior as best as we can on all platforms compatible
+     * with Krypton.
+     *
+     * @author Cedric Hammes
+     * @since  28/09/2024
+     */
+    enum class Usage {
+        SIGN,
+        VERIFY,
+        ENCRYPT,
+        DECRYPT,
+        DERIVE;
+
+        val supportedTypes: Array<Type>
+    }
 }
 
-/**
- * This enum represents all types available for keys. Symmetric if the key is symmetric and public or private if the key
- * is from an asymmetric algorithm.
- *
- * @author Cedric Hammes
- * @since  08/09/2024
- */
-enum class KeyType {
-    SYMMETRIC,
-    PUBLIC,
-    PRIVATE
-}
+fun Array<Key.Usage>.forType(type: Key.Type): Array<Key.Usage> = filter { it.supportedTypes.contains(type) }.toTypedArray()

@@ -16,6 +16,7 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.key.Key
 import io.karma.evince.krypton.key.KeyGenerator
 import io.karma.evince.krypton.key.KeyGeneratorParameters
 import io.karma.evince.krypton.key.KeyPairGenerator
@@ -34,7 +35,10 @@ class CipherTests : ShouldSpec() {
         }
         
         should("test RSA") {
-            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameters(2048)).generate().use { keyPair ->
+            KeyPairGenerator(
+                algorithm = Algorithm.RSA,
+                parameters = KeyPairGeneratorParameters(2048, arrayOf(Key.Usage.ENCRYPT, Key.Usage.DECRYPT))
+            ).generate().use { keyPair ->
                 val string = "This is a secret".encodeToByteArray()
                 val enc = Cipher(Algorithm.RSA, keyPair.publicKey, CipherParameters(Cipher.Mode.ENCRYPT))
                     .process(string)

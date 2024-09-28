@@ -16,6 +16,7 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.key.Key
 import io.karma.evince.krypton.key.KeyPairGenerator
 import io.karma.evince.krypton.key.KeyPairGeneratorParameters
 import io.kotest.core.spec.style.ShouldSpec
@@ -24,7 +25,10 @@ import kotlin.test.assertTrue
 class SignatureTests : ShouldSpec() {
     init {
         should("test SHA3-256 with RSA") {
-            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameters(2048)).generate().use { keyPair ->
+            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameters(
+                size = 2048,
+                usages = arrayOf(Key.Usage.SIGN, Key.Usage.VERIFY)
+            )).generate().use { keyPair ->
                 val signature = Signature(
                     key = keyPair.privateKey,
                     algorithm = Algorithm.RSA,

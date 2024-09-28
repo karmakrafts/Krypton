@@ -50,10 +50,18 @@ expect class KeyPairGenerator @UncheckedKryptonAPI constructor(
  * This class defines the required parameters for using a keypair generator. These parameters are the base of all
  * algorithm parameters this API provides.
  *
+ * @param size    The bit length of the key
+ * @parma padding The padding used together with the algorithm
+ * @param usages  The usages of the generated keys in the keypair
+ *
  * @author Cedric Hammes
  * @since  09/09/2024
  */
-open class KeyPairGeneratorParameters(internal val size: Int, internal val padding: Padding? = null)
+open class KeyPairGeneratorParameters(
+    val size: Int,
+    val usages: Array<Key.Usage>,
+    val padding: Padding? = null
+)
 
 /**
  * This class defines the required parameters for the generation of keys for elliptic curve based algorithms like the
@@ -62,7 +70,10 @@ open class KeyPairGeneratorParameters(internal val size: Int, internal val paddi
  * @author Cedric Hammes
  * @since  09/09/2024
  */
-class ECKeyPairGeneratorParameters(internal val curve: EllipticCurve) : KeyPairGeneratorParameters(0, null)
+class ECKeyPairGeneratorParameters(
+    val curve: EllipticCurve,
+    usages: Array<Key.Usage>
+) : KeyPairGeneratorParameters(0, usages, null)
 
 /**
  * This class defines the optional parameters for the generation of keys for the Diffie-Hellman key exchange
@@ -72,5 +83,9 @@ class ECKeyPairGeneratorParameters(internal val curve: EllipticCurve) : KeyPairG
  * @author Cedric Hammes
  * @since  17/09/2024
  */
-class DHKeyPairGeneratorParameters(internal val p: BigInteger, internal val g: BigInteger, bits: Int)
-    : KeyPairGeneratorParameters(bits, null)
+class DHKeyPairGeneratorParameters(
+    val p: BigInteger,
+    val g: BigInteger,
+    bits: Int,
+    usages: Array<Key.Usage>
+) : KeyPairGeneratorParameters(bits, usages, null)

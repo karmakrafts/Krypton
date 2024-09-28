@@ -18,20 +18,23 @@ package io.karma.evince.krypton
 
 import io.karma.evince.krypton.ec.EllipticCurve
 import io.karma.evince.krypton.key.ECKeyPairGeneratorParameters
+import io.karma.evince.krypton.key.Key
 import io.karma.evince.krypton.key.KeyPairGenerator
 import io.karma.evince.krypton.key.KeyPairGeneratorParameters
-import io.karma.evince.krypton.key.KeyType
 import io.kotest.core.spec.style.ShouldSpec
 import kotlin.test.assertEquals
 
 class KeyPairGeneratorTests : ShouldSpec() {
     init {
         should("test RSA") {
-            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameters(2048)).generate().use { keyPair ->
+            KeyPairGenerator(Algorithm.RSA, KeyPairGeneratorParameters(
+                size = 2048,
+                usages = arrayOf(Key.Usage.ENCRYPT, Key.Usage.DECRYPT)
+            )).generate().use { keyPair ->
                 assertEquals("RSA", keyPair.publicKey.algorithm)
-                assertEquals(KeyType.PUBLIC, keyPair.publicKey.type)
+                assertEquals(Key.Type.PUBLIC, keyPair.publicKey.type)
                 assertEquals("RSA", keyPair.privateKey.algorithm)
-                assertEquals(KeyType.PRIVATE, keyPair.privateKey.type)
+                assertEquals(Key.Type.PRIVATE, keyPair.privateKey.type)
             }
         }
         
@@ -39,19 +42,22 @@ class KeyPairGeneratorTests : ShouldSpec() {
             val parameters = ParameterGenerator(Algorithm.DH, ParameterGeneratorParameters(512)).generate()
             KeyPairGenerator(Algorithm.DH, parameters).generate().use { keyPair ->
                 assertEquals("DH", keyPair.publicKey.algorithm)
-                assertEquals(KeyType.PUBLIC, keyPair.publicKey.type)
+                assertEquals(Key.Type.PUBLIC, keyPair.publicKey.type)
                 assertEquals("DH", keyPair.privateKey.algorithm)
-                assertEquals(KeyType.PRIVATE, keyPair.privateKey.type)
+                assertEquals(Key.Type.PRIVATE, keyPair.privateKey.type)
             }
         }
         
         should("test ECDH") {
-            KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameters(EllipticCurve.PRIME192V1)).generate()
+            KeyPairGenerator(Algorithm.ECDH, ECKeyPairGeneratorParameters(
+                curve = EllipticCurve.P521,
+                usages = arrayOf(Key.Usage.DERIVE)
+            )).generate()
                 .use { keyPair ->
                     assertEquals("ECDH", keyPair.publicKey.algorithm)
-                    assertEquals(KeyType.PUBLIC, keyPair.publicKey.type)
+                    assertEquals(Key.Type.PUBLIC, keyPair.publicKey.type)
                     assertEquals("ECDH", keyPair.privateKey.algorithm)
-                    assertEquals(KeyType.PRIVATE, keyPair.privateKey.type)
+                    assertEquals(Key.Type.PRIVATE, keyPair.privateKey.type)
                 }
         }
     }

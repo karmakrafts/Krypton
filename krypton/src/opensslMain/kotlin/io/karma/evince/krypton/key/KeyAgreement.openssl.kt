@@ -29,7 +29,7 @@ actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key)
             this(algorithm.validOrError(Algorithm.Scope.KEY_AGREEMENT).toString(), privateKey)
     
     init {
-        if (privateKey.body !is Key.KeyBody.EVPKeyBody || privateKey.type != KeyType.PRIVATE)
+        if (privateKey.body !is Key.KeyBody.EVPKeyBody || privateKey.type != Key.Type.PRIVATE)
             throw RuntimeException("The specified private key isn't a private key")
         
         derivationContext = requireNotNull(EVP_PKEY_CTX_new(privateKey.body.key, null))
@@ -38,7 +38,7 @@ actual class KeyAgreement actual constructor(algorithm: String, privateKey: Key)
     }
     
     actual fun generateSecret(peerPublicKey: Key): ByteArray {
-        if (peerPublicKey.body !is Key.KeyBody.EVPKeyBody || peerPublicKey.type != KeyType.PUBLIC)
+        if (peerPublicKey.body !is Key.KeyBody.EVPKeyBody || peerPublicKey.type != Key.Type.PUBLIC)
             throw RuntimeException("The specified public key isn't a private key")
         
         if (EVP_PKEY_derive_set_peer(derivationContext, peerPublicKey.body.key) != 1)

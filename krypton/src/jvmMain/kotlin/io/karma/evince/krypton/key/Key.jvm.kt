@@ -20,9 +20,36 @@ package io.karma.evince.krypton.key
 typealias JavaKey = java.security.Key
 
 /** @suppress **/
-actual class Key(actual val type: KeyType, internal val internalValue: JavaKey) : AutoCloseable {
+actual class Key(actual val type: Type, actual val usages: Array<Usage>, internal val internalValue: JavaKey) : AutoCloseable {
     actual val algorithm: String = internalValue.algorithm
     
     actual override fun close() {
+    }
+
+    /**
+     * This enum represents all types available for keys. Symmetric if the key is symmetric and public or private if the key
+     * is from an asymmetric algorithm.
+     *
+     * @author Cedric Hammes
+     * @since  08/09/2024
+     */
+    actual enum class Type {
+        SYMMETRIC, PUBLIC, PRIVATE
+    }
+
+    /**
+     * This enum represents all usages for keys available in Krypton. These usages are used by Android and JS to identify the usages of the
+     * key what's part of their security architecture so we try to implement this behavior as best as we can on all platforms compatible
+     * with Krypton.
+     *
+     * @author Cedric Hammes
+     * @since  28/09/2024
+     */
+    actual enum class Usage(actual val supportedTypes: Array<Type>) {
+        SIGN(arrayOf(Type.PRIVATE)),
+        VERIFY(arrayOf(Type.PUBLIC)),
+        ENCRYPT(arrayOf(Type.SYMMETRIC, Type.PUBLIC)),
+        DECRYPT(arrayOf(Type.SYMMETRIC, Type.PRIVATE)),
+        DERIVE(arrayOf(Type.PRIVATE, Type.PUBLIC));
     }
 }

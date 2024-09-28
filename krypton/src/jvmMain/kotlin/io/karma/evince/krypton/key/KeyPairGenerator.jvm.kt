@@ -26,7 +26,7 @@ import javax.crypto.spec.DHParameterSpec
 internal typealias JavaKeyPairGenerator = java.security.KeyPairGenerator
 
 /** @suppress **/
-actual class KeyPairGenerator actual constructor(algorithm: String, parameters: KeyPairGeneratorParameters) {
+actual class KeyPairGenerator actual constructor(algorithm: String, private val parameters: KeyPairGeneratorParameters) {
     private val keyPairGenerator: JavaKeyPairGenerator
     
     actual constructor(
@@ -50,5 +50,10 @@ actual class KeyPairGenerator actual constructor(algorithm: String, parameters: 
     }
     
     actual suspend fun generate(): KeyPair = keyPairGenerator.generateKeyPair()
-        .let { KeyPair(Key(KeyType.PUBLIC, it.public), Key(KeyType.PRIVATE, it.private)) }
+        .let {
+            KeyPair(
+                Key(Key.Type.PUBLIC, parameters.usages.forType(Key.Type.PUBLIC), it.public),
+                Key(Key.Type.PRIVATE, parameters.usages.forType(Key.Type.PRIVATE), it.private)
+            )
+        }
 }

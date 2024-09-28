@@ -175,8 +175,8 @@ inline fun <reified P : KeyPairGeneratorParameters> rawKeyPairGenerator(
         }
         
         KeyPair(
-            Key(KeyType.PUBLIC, algorithm, key),
-            Key(KeyType.PRIVATE, algorithm, EVP_PKEY_dup(key).checkNotNull())
+            Key(Key.Type.PUBLIC, parameters.usages.forType(Key.Type.PUBLIC), algorithm, key),
+            Key(Key.Type.PRIVATE, parameters.usages.forType(Key.Type.PRIVATE), algorithm, EVP_PKEY_dup(key).checkNotNull())
         )
     }
 }
@@ -231,6 +231,9 @@ fun ecKeyPairGenerator(algorithm: String) = nidKeyPairGenerator<ECKeyPairGenerat
  * @since  26/09/2024
  */
 fun EllipticCurve.toOpenSSLId(): Int = when (this) {
+    EllipticCurve.P256 -> NID_secp256k1
+    EllipticCurve.P384 -> NID_secp384r1
+    EllipticCurve.P521 -> NID_secp521r1
     EllipticCurve.PRIME192V1 -> NID_X9_62_prime192v1
     EllipticCurve.PRIME192V2 -> NID_X9_62_prime192v2
     EllipticCurve.PRIME192V3 -> NID_X9_62_prime192v3

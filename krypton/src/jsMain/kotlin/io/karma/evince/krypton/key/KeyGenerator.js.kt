@@ -48,14 +48,15 @@ actual class KeyGenerator @UncheckedKryptonAPI actual constructor(
      */
     actual suspend fun generate(): Key = Key(
         algorithm = algorithm,
-        type = KeyType.SYMMETRIC,
+        type = Key.Type.SYMMETRIC,
+        usages = arrayOf(Key.Usage.ENCRYPT, Key.Usage.DECRYPT),
         internal = crypto.subtle.generateKey(
             algorithm = when(algorithm) {
                 "AES" -> AesKeyGenParams.invoke("AES-${parameters.blockMode?: Algorithm.AES.defaultBlockMode}", parameters.size.toShort())
                 else -> throw IllegalArgumentException("Algorithm '$algorithm' not supported")
             },
             extractable = false,
-            keyUsages = arrayOf(KeyUsage.encrypt, KeyUsage.decrypt) // TODO: Make specifiable by user
+            keyUsages = arrayOf(KeyUsage.encrypt, KeyUsage.decrypt)
         )
     )
 }
