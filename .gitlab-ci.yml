@@ -109,7 +109,6 @@ publish:macos:
 gitlab-release:
   stage: release
   needs: ["publish:linux", "publish:macos"]
-  tags: ["linux", "x86_64"]
   rules:
     - *if-main
   release:
