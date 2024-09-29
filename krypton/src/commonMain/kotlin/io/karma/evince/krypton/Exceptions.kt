@@ -17,34 +17,19 @@
 package io.karma.evince.krypton
 
 /**
- * This exception is thrown if an operation with the Krypton API fails.
+ * This exception is thrown if a unspecific error occurs while working with the Krypton cryptography API and it's components. Most of the
+ * exceptions are specific for the case but a few are this type.
  *
  * @author Cedric Hammes
- * @since  26/09/2024
+ * @since  29/09/2024
  */
-open class KryptonException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+open class KryptonException internal constructor(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
 
 /**
- * This exception is thrown when the initialization of a cryptographic API like the key generation API or the cipher
- * API fails.
+ * This exception is thrown if a error occurs while initializing a component or a temporary generator etc. On Native targets, the cause
+ * contains an OpenSSL exception with all errors extracted from OpenSSL.
  *
  * @author Cedric Hammes
- * @since  26/09/2024
+ * @since  29/09/2024
  */
-class InitializationException(message: String, cause: Throwable? = null) : KryptonException(message, cause)
-
-/**
- * This exception is thrown when the generation of keys or parameters fails.
- *
- * @author Cedric Hammes
- * @since  26/09/2024
- */
-class GenerationException(message: String, cause: Throwable? = null) : KryptonException(message, cause)
-
-/**
- * This exception is thrown if a cipher operation (encrypt data or decrypt data) fails.
- *
- * @author Cedric Hammes
- * @since 27/09/2024
- */
-class CipherOperationException(message: String, cause: Throwable? = null) : KryptonException(message, cause)
+class InitializationException internal constructor(message: String, cause: Throwable? = null) : KryptonException(message, cause)

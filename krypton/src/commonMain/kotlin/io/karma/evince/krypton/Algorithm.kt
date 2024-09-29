@@ -17,155 +17,135 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.annotations.UnstableKryptonAPI
-import kotlin.jvm.JvmStatic
+
+internal expect class DefaultHashProvider(algorithm: Algorithm) : Hash
 
 /**
- * This enum represents all algorithms definitely supported by all platforms of the Krypton API. These are (a)symmetric
- * encryption algorithms and key agreements. It contains post-quantum algorithms like CRYSTALS-Dilithium and algorithms
- * which can be broken by quantum computers like ECDH or RSA.
+ * This enum provides the by-default available algorithms surely supported by the Krypton library itself. This enum contains both deprecated
+ * and new algorithms, also it provides access to quantum safe algorithms like **CRYSTALS-Kyber**. Most of the algorithms are standardized
+ * and stabilized, the unstable ones are marked with [UnstableKryptonAPI].
+ *
+ * Below this text you can see a list of all algorithms supported by default (a few of them on not all platforms, mostly JS is not
+ * supported by conditionally-supported algorithms):
+ * - **Digests:** SHA-1, SHA-2 family, SHA-3 family and MD5
+ * - **Key Agreement algorithm:** DH and ECDH
+ * - **Signature algorithms:** RSA
+ * - **Cipher algorithm:** RSA and RSA
  *
  * @author Cedric Hammes
- * @since  08/09/2024
+ * @since  28/09/2024
  */
-enum class Algorithm(
-    private val literal: String,
-    val supportedBlockModes: Array<BlockMode>,
-    val supportedPaddings: Array<Padding>,
-    val isBitSizeSupported: (Int) -> Boolean,
-    val defaultBitSize: Int,
-    val defaultBlockMode: BlockMode?,
-    val defaultPadding: Padding?,
-    val scopes: Array<Scope>,
-    internal val supportedPlatforms: Array<Platform>,
-    val blockSize: UByte = 0U
-) {
+@OptIn(ExperimentalUnsignedTypes::class)
+enum class DefaultAlgorithm(
+    override val literal: String,
+    override val cryptoProvider: Lazy<CryptoProvider>,
+    override val bitSizePredicate: (UShort) -> Boolean = { true },
+    override val blockSize: UShort? = null,
+    override val supportedBlockModes: Array<Algorithm.BlockMode> = emptyArray(),
+    override val supportedPlatforms: Array<Platform> = Platform.entries.toTypedArray(),
+    override val supportedPaddings: Array<Algorithm.Padding> = emptyArray(),
+    override val defaultBlockMode: Algorithm.BlockMode? = null,
+    override val defaultPadding: Algorithm.Padding? = null
+) : Algorithm {
     /**
      * This value represents the MD5 algorithm. MD5 is a deprecated standard for hashing and should not be used in
      * security relevant usage.
      *
      * @author Cedric Hammes
      * @since  19/09/2024
+     *
+     * @see [MD5, Wikipedia](https://en.wikipedia.org/wiki/MD5#Overview_of_security_issues)
      */
     @Deprecated("MD5 is deprecated <https://en.wikipedia.org/wiki/MD5#Overview_of_security_issues>")
     MD5(
         literal = "MD5",
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        isBitSizeSupported = { true },
-        defaultBitSize = 128,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray(),
+        cryptoProvider = lazy { DefaultHashProvider(MD5) },
+        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
 
     /**
-     * This value represents the SHA1 algorithm. SHA1 is a deprecated standard for hashing and should not be used in
-     * security relevant usage.
+     * This value represents the SHA1 algorithm. SHA1 is a deprecated standard for hashing and should not be used in security relevant
+     * usage.
      *
-     * @author Cedric Hames
+     * @author Cedric Hammes
      * @since  28/09/2024
+     *
+     * @see [SHA-1, Wikipedia](https://en.wikipedia.org/wiki/SHA-1)
      */
     @Deprecated("SHA-1 is deprecated <https://en.wikipedia.org/wiki/SHA-1>")
     SHA1(
         literal = "SHA-1",
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        isBitSizeSupported = { true },
-        defaultBitSize = 160,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        supportedPlatforms = Platform.entries.toTypedArray()
+        cryptoProvider = lazy { DefaultHashProvider(SHA1) }
     ),
-    
+
     /**
-     * This value represents the 224-bit output length variant of the SHA (Secure Hash Algorithm) standard, also named
-     * Keccak. This version of the standard is deprecated and SHA3 should be used.
+     * This value represents the 224-bit output variant of the second version of the Standard Hashing Algorithm (SHA) standard. SHA-2 is
+     * not secure and there are practically-possible collision attack on This version so using SHA-3 (Keccak) is more recommended.
      *
      * @author Cedric Hammes
      * @since  19/09/2024
      *
-     * @see [SHA-1](https://en.wikipedia.org/wiki/SHA-1)
+     * @see [Cryptanalysis and validation of SHA-2, Wikipedia](https://en.wikipedia.org/wiki/SHA-2#Cryptanalysis_and_validation)
+     * @see [SHA-2, Wikipedia](https://en.wikipedia.org/wiki/SHA-2)
      */
+    @Deprecated("SHA-2 is deprecated <https://en.wikipedia.org/wiki/SHA>")
     SHA224(
         literal = "SHA-224",
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        isBitSizeSupported = { true },
-        defaultBitSize = 224,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        supportedPlatforms = Platform.entries.toTypedArray()
+        cryptoProvider = lazy { DefaultHashProvider(SHA224) }
     ),
-    
+
     /**
-     * This value represents the 256-bit output length variant of the SHA (Secure Hash Algorithm) standard, also named
-     * Keccak. This version of the standard is deprecated and SHA3 should be used.
+     * This value represents the 256-bit output variant of the second version of the Standard Hashing Algorithm (SHA) standard. SHA-2 is
+     * not secure and there are practically-possible collision attack on This version so using SHA-3 (Keccak) is more recommended.
      *
      * @author Cedric Hammes
      * @since  19/09/2024
      *
-     * @see [SHA-1](https://en.wikipedia.org/wiki/SHA-1)
+     * @see [Cryptanalysis and validation of SHA-2, Wikipedia](https://en.wikipedia.org/wiki/SHA-2#Cryptanalysis_and_validation)
+     * @see [SHA-2, Wikipedia](https://en.wikipedia.org/wiki/SHA-2)
      */
+    @Deprecated("SHA-2 is deprecated <https://en.wikipedia.org/wiki/SHA>")
     SHA256(
         literal = "SHA-256",
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        isBitSizeSupported = { true },
-        defaultBitSize = 256,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        supportedPlatforms = Platform.entries.toTypedArray()
+        cryptoProvider = lazy { DefaultHashProvider(SHA256) }
     ),
-    
+
     /**
-     * This value represents the 384-bit output length variant of the SHA (Secure Hash Algorithm) standard, also named
-     * Keccak. This version of the standard is deprecated and SHA3 should be used.
+     * This value represents the 384-bit output variant of the second version of the Standard Hashing Algorithm (SHA) standard. SHA-2 is
+     * not secure and there are practically-possible collision attack on This version so using SHA-3 (Keccak) is more recommended.
      *
      * @author Cedric Hammes
      * @since  19/09/2024
      *
-     * @see [SHA-1](https://en.wikipedia.org/wiki/SHA-1)
+     * @see [Cryptanalysis and validation of SHA-2, Wikipedia](https://en.wikipedia.org/wiki/SHA-2#Cryptanalysis_and_validation)
+     * @see [SHA-2, Wikipedia](https://en.wikipedia.org/wiki/SHA-2)
      */
+    @Deprecated("SHA-2 is deprecated <https://en.wikipedia.org/wiki/SHA>")
     SHA384(
         literal = "SHA-384",
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        isBitSizeSupported = { true },
-        defaultBitSize = 384,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        supportedPlatforms = Platform.entries.toTypedArray()
+        cryptoProvider = lazy { DefaultHashProvider(SHA384) }
     ),
-    
+
     /**
-     * This value represents the 512-bit output length variant of the SHA (Secure Hash Algorithm) standard, also named
-     * Keccak. This version of the standard is deprecated and SHA3 should be used.
+     * This value represents the 512-bit output variant of the second version of the Standard Hashing Algorithm (SHA) standard. SHA-2 is
+     * not secure and there are practically-possible collision attack on This version so using SHA-3 (Keccak) is more recommended.
      *
      * @author Cedric Hammes
      * @since  19/09/2024
      *
-     * @see [SHA-1](https://en.wikipedia.org/wiki/SHA-1)
+     * @see [Cryptanalysis and validation of SHA-2, Wikipedia](https://en.wikipedia.org/wiki/SHA-2#Cryptanalysis_and_validation)
+     * @see [SHA-2, Wikipedia](https://en.wikipedia.org/wiki/SHA-2)
      */
+    @Deprecated("SHA-2 is deprecated <https://en.wikipedia.org/wiki/SHA>")
     SHA512(
         literal = "SHA-512",
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        isBitSizeSupported = { true },
-        defaultBitSize = 512,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
-        supportedPlatforms = Platform.entries.toTypedArray()
+        cryptoProvider = lazy { DefaultHashProvider(SHA512) }
     ),
-    
+
     /**
-     * This value represents the 224-bit output length variant of the SHA3 (Secure Hash Algorithm) standard, also named
-     * Keccak. SHA3 is the newest version of the SHA standard.
+     * This value represents the 224-bit output variant of the third version of the Standard Hashing Algorithm (SHA) standard, also named
+     * Keccak. Following to the current knowledge, SHA-3 is secure but can be broken by quantum attacks with Grover's algorithm. It is
+     * recommended over the same variant over it's SHA-2 variant.
      *
      * @author Cedric Hammes
      * @since  19/09/2024
@@ -174,19 +154,14 @@ enum class Algorithm(
      */
     SHA3_224(
         literal = "SHA3-224",
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        isBitSizeSupported = { true },
-        defaultBitSize = 224,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
+        cryptoProvider = lazy { DefaultHashProvider(SHA3_224) },
         supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
-    
+
     /**
-     * This value represents the 256-bit output length variant of the SHA3 (Secure Hash Algorithm) standard, also named
-     * Keccak. SHA3 is the newest version of the SHA standard.
+     * This value represents the 256-bit output variant of the third version of the Standard Hashing Algorithm (SHA) standard, also named
+     * Keccak. Following to the current knowledge, SHA-3 is secure but can be broken by quantum attacks with Grover's algorithm. It is
+     * recommended over the same variant over it's SHA-2 variant.
      *
      * @author Cedric Hammes
      * @since  19/09/2024
@@ -195,19 +170,14 @@ enum class Algorithm(
      */
     SHA3_256(
         literal = "SHA3-256",
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        isBitSizeSupported = { true },
-        defaultBitSize = 256,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
+        cryptoProvider = lazy { DefaultHashProvider(SHA3_256) },
         supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
-    
+
     /**
-     * This value represents the 384-bit output length variant of the SHA3 (Secure Hash Algorithm) standard, also named
-     * Keccak. SHA3 is the newest version of the SHA standard.
+     * This value represents the 384-bit output variant of the third version of the Standard Hashing Algorithm (SHA) standard, also named
+     * Keccak. Following to the current knowledge, SHA-3 is secure but can be broken by quantum attacks with Grover's algorithm. It is
+     * recommended over the same variant over it's SHA-2 variant.
      *
      * @author Cedric Hammes
      * @since  19/09/2024
@@ -216,19 +186,14 @@ enum class Algorithm(
      */
     SHA3_384(
         literal = "SHA3-384",
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        isBitSizeSupported = { true },
-        defaultBitSize = 384,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
+        cryptoProvider = lazy { DefaultHashProvider(SHA3_384) },
         supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
-    
+
     /**
-     * This value represents the 512-bit output length variant of the SHA3 (Secure Hash Algorithm) standard, also named
-     * Keccak. SHA3 is the newest version of the SHA standard.
+     * This value represents the 512-bit output variant of the third version of the Standard Hashing Algorithm (SHA) standard, also named
+     * Keccak. Following to the current knowledge, SHA-3 is secure but can be broken by quantum attacks with Grover's algorithm. It is
+     * recommended over the same variant over it's SHA-2 variant.
      *
      * @author Cedric Hammes
      * @since  19/09/2024
@@ -237,25 +202,19 @@ enum class Algorithm(
      */
     SHA3_512(
         literal = "SHA3-512",
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        isBitSizeSupported = { true },
-        defaultBitSize = 512,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.DIGEST),
+        cryptoProvider = lazy { DefaultHashProvider(SHA3_512) },
         supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
-    
+
     /**
-     * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature crypto system created in
-     * 1977 by Ron Rivest, Adi Shamir and Leonard Adleman. According to the NIST's Recommendation for Key Management
-     * the key length 2048 is recommended. Most security recommendations recommend elliptic curve cryptography over
-     * the usage of RSA because of the smaller keys in relation to its security.
+     * The RSA (Rivest-Shamir-Adleman) algorithm is an asymmetric encryption and signature crypto system created in 1977 by Ron Rivest, Adi
+     * Shamir and Leonard Adleman. According to the NIST's recommendation for Key Management the key length 2048 is recommended. Most
+     * security recommendations recommend elliptic curve cryptography over the usage of RSA because of the smaller keys in relation to its
+     * security.
      *
-     * This algorithm is based on the factoring problem, the difficulty of factoring the product of two large prime
-     * numbers. No efficient algorithm is known for regular computer architectures but on quantum architectures the
-     * Shor's algorithm, an algorithm for the efficient factorisation, is available.
+     * This algorithm is based on the factoring problem, the difficulty of factoring the product of two large prime numbers. No efficient
+     * algorithm is known for regular computer architectures but on quantum architectures the Shor's algorithm, an algorithm for the
+     * efficient factorisation, is available.
      *
      * @author Cedric Hammes
      * @since  08/09/2024
@@ -266,16 +225,18 @@ enum class Algorithm(
      */
     RSA(
         literal = "RSA",
-        supportedBlockModes = arrayOf(BlockMode.ECB),
-        supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS5, Padding.OAEP_SHA1, Padding.OAEP_SHA256),
-        supportedBitSizes = intArrayOf(1024, 2048, 4096, 8192),
-        defaultBitSize = 4096,
-        defaultBlockMode = BlockMode.ECB,
-        defaultPadding = Padding.OAEP_SHA256,
-        scopes = arrayOf(Scope.CIPHER, Scope.SIGNATURE, Scope.KEYPAIR_GENERATOR),
-        supportedPlatforms = Platform.entries.toTypedArray()
+        cryptoProvider = lazy { TODO() },
+        supportedBlockModes = arrayOf(Algorithm.BlockMode.ECB),
+        supportedPaddings = arrayOf(
+            Algorithm.Padding.NONE,
+            Algorithm.Padding.PKCS5,
+            Algorithm.Padding.OAEP_SHA1,
+            Algorithm.Padding.OAEP_SHA256
+        ),
+        defaultPadding = Algorithm.Padding.OAEP_SHA256,
+        defaultBlockMode = Algorithm.BlockMode.ECB
     ),
-    
+
     /**
      * Ths AES (Advanced Encryption Standard, also known as Rijndael) block cipher is a symmetric encryption algorithm
      * created in 1998 with a block size of 128 bits. According to the NSA's Commercial National Security Algorithm
@@ -289,17 +250,15 @@ enum class Algorithm(
      */
     AES(
         literal = "AES",
-        supportedBlockModes = BlockMode.entries.toTypedArray(),
-        supportedPaddings = arrayOf(Padding.NONE, Padding.PKCS1),
-        supportedBitSizes = intArrayOf(128, 192, 256),
-        defaultBitSize = 256,
-        defaultBlockMode = BlockMode.CBC,
-        defaultPadding = Padding.NONE,
-        scopes = arrayOf(Scope.CIPHER, Scope.KEY_GENERATOR),
-        supportedPlatforms = Platform.entries.toTypedArray(),
+        cryptoProvider = lazy { TODO() },
+        supportedBlockModes = Algorithm.BlockMode.entries.toTypedArray(),
+        supportedPaddings = arrayOf(Algorithm.Padding.NONE, Algorithm.Padding.PKCS1),
+        supportedBitSizes = ushortArrayOf(128U, 192U, 256U),
+        defaultBlockMode = Algorithm.BlockMode.CBC,
+        defaultPadding = Algorithm.Padding.NONE,
         blockSize = 128U
     ),
-    
+
     /**
      * The DH (Diffie-Hellman) algorithm is a key agreement algorithm created in 1976. This algorithm is used for the
      * key agreement in the TLS protocol. According to the NIST's Recommendation for Key Management the key length 2048
@@ -313,33 +272,12 @@ enum class Algorithm(
      */
     DH(
         literal = "DH",
+        cryptoProvider = lazy { TODO() },
         supportedBlockModes = emptyArray(),
         supportedPaddings = emptyArray(),
-        supportedBitSizes = intArrayOf(1024, 2048, 3000, 4096, 8192),
-        defaultBitSize = 2048,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR, Scope.PARAMETER_GENERATOR),
-        supportedPlatforms = Platform.entries.toTypedArray()
+        supportedBitSizes = ushortArrayOf(1024U, 2048U, 4096U, 8192U)
     ),
-    
-    /**
-     * @author Cedric Hammes
-     * @since  27/09/2024
-     */
-    @UnstableKryptonAPI
-    ECDSA(
-        literal = "ECDSA",
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        supportedBitSizes = intArrayOf(128, 192, 256),
-        defaultBitSize = 256,
-        defaultBlockMode = null,
-        defaultPadding = null,
-        scopes = arrayOf(Scope.KEYPAIR_GENERATOR, Scope.SIGNATURE),
-        supportedPlatforms = Platform.entries.toTypedArray()
-    ),
-    
+
     /**
      * The ECDH (Elliptic-Curve Diffie-Hellman) is the elliptic-curve equivalent of the Diffie-Hellman key agreement algorithm. The
      * advantage of ECDH is the higher security with lower key sizes compared to DH. This algorithm is used in the Signal Protocol and
@@ -353,129 +291,189 @@ enum class Algorithm(
      */
     ECDH(
         literal = "ECDH",
+        cryptoProvider = lazy { TODO() },
         supportedBlockModes = emptyArray(),
         supportedPaddings = emptyArray(),
-        supportedBitSizes = intArrayOf(128, 192, 256),
-        defaultBitSize = 256,
+        supportedBitSizes = ushortArrayOf(128U, 192U, 256U),
         defaultBlockMode = null,
         defaultPadding = null,
-        scopes = arrayOf(Scope.KEY_AGREEMENT, Scope.KEYPAIR_GENERATOR),
         supportedPlatforms = Platform.entries.toTypedArray()
     );
-    
-    /** @suppress **/
+
     constructor(
-        literal: String, supportedBlockModes: Array<BlockMode>, supportedPaddings: Array<Padding>,
-        supportedBitSizes: IntArray, defaultBitSize: Int, defaultBlockMode: BlockMode?, defaultPadding: Padding?,
-        scopes: Array<Scope>, supportedPlatforms: Array<Platform>, blockSize: UByte = 0U
+        literal: String,
+        cryptoProvider: Lazy<CryptoProvider>,
+        supportedBitSizes: UShortArray,
+        blockSize: UShort? = null,
+        supportedBlockModes: Array<Algorithm.BlockMode> = emptyArray(),
+        supportedPlatforms: Array<Platform> = Platform.entries.toTypedArray(),
+        supportedPaddings: Array<Algorithm.Padding> = emptyArray(),
+        defaultBlockMode: Algorithm.BlockMode? = null,
+        defaultPadding: Algorithm.Padding? = null
     ) : this(
-        literal, supportedBlockModes, supportedPaddings, { value -> supportedBitSizes.contains(value) }, defaultBitSize, defaultBlockMode,
-        defaultPadding, scopes, supportedPlatforms, blockSize
+        literal,
+        cryptoProvider,
+        { supportedBitSizes.contains(it) },
+        blockSize,
+        supportedBlockModes,
+        supportedPlatforms,
+        supportedPaddings,
+        defaultBlockMode,
+        defaultPadding
     )
 
-    /**
-     * This function validates the current platform used and the scope specified. If one of these parameters are not matching this function
-     * throws an exception.
-     *
-     * @author Cedric Hammes
-     * @since  17/09/2024
-     */
-    fun validOrError(scope: Scope): Algorithm = this.also {
-        if (!it.supportedPlatforms.contains(Platform.CURRENT))
-            throw RuntimeException("Algorithm '$it' is not supported on platform '${Platform.CURRENT}'")
-        if (!it.scopes.contains(scope)) {
-            val supported = Algorithm.byScope(listOf(scope)).joinToString(", ")
-            throw IllegalArgumentException("Algorithm '$literal' cannot be found for $scope. Please use: one of the following: $supported")
-        }
-    }
-    
-    /**
-     * This function returns the algorithm as a literal. These literals are used internally for the JVM target.
-     *
-     * @author Cedric Hammes
-     * @since  08/09/2024
-     */
     override fun toString(): String = literal
-    
-    companion object {
-        @JvmStatic
-        fun firstOrNull(literal: String): Algorithm? = Algorithm.entries.firstOrNull { it.toString() == literal }
-        
-        @JvmStatic
-        fun byScope(scopes: List<Scope>): List<Algorithm> =
-            Algorithm.entries.filter { curr -> curr.scopes.all { it in scopes } }
+}
+
+/**
+ * This interface is the implementation for an algorithm. This interface allows the developer to implement own algorithms into the API or
+ * use algorithms exposed by a platform-specific backend that is not exposed by Krypton. We provide a wide range of default-supported
+ * algorithms.
+ *
+ * @author Cedric Hammes
+ * @since  28/09/2024
+ */
+interface Algorithm {
+    val literal: String
+    val bitSizePredicate: (UShort) -> Boolean
+    val blockSize: UShort?
+    val cryptoProvider: Lazy<CryptoProvider>
+
+    // Supported
+    val supportedBlockModes: Array<BlockMode>
+    val supportedPaddings: Array<Padding>
+    val supportedPlatforms: Array<Platform>
+
+    // Defaults
+    val defaultPadding: Padding?
+    val defaultBlockMode: BlockMode?
+
+    suspend fun hash(input: String): ByteArray = hash(input.encodeToByteArray())
+    suspend fun hashToString(input: String): String = hashToString(input.encodeToByteArray())
+    @OptIn(ExperimentalStdlibApi::class)
+    suspend fun hashToString(input: ByteArray): String = hash(input).toHexString()
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T : CryptoProvider> cryptoProvider(scope: String): T {
+        if (!supportedPlatforms.contains(Platform.CURRENT))
+            throw KryptonException("Algorithm '$literal' is not supported on platform '${Platform.CURRENT}'")
+        return (cryptoProvider.value as? T) ?: throw InitializationException("$scope function is not available for algorithm '$literal'")
     }
-    
+
     /**
-     * This class indicates the usages for cryptographic algorithms in the Krypton API. Al of these are checked by the
-     * API to ensure the correct usage of keys.
+     * This function validates whether this algorithm supports hashing by checking the crypto provider. If this check is successful it takes
+     * the input data and hashes it to another bytearray.
+     *
+     * @param input The input of the hash function
+     * @return      The output of the hash function (the hash)
+     *
+     * @author Cedric Hammes
+     * @since  29/09/2024
+     */
+    suspend fun hash(input: ByteArray): ByteArray = cryptoProvider<Hash>("Hashing").hash(input)
+
+    /**
+     * This function validates whether this algorithm supports key generation by checking the crypto provider. If this check is successful
+     * it takes the parameters and generates a key from it.
+     *
+     * TODO: Add parameters
+     *
+     * @return The generated key
+     *
+     * @author Cedric Hammes
+     * @since  29/09/2024
+     */
+    suspend fun generateKey(): Key = cryptoProvider<KeyGenerator>("Key generation").generateKey()
+
+    /**
+     * This function validates whether this algorithm supports keypair generation by checking the crypto provider. If this check is
+     * successful it takes the parameters and generates a key from it.
+     *
+     * TODO: Add parameters
+     *
+     * @return The generated private-public keypair
+     *
+     * @author Cedric Hammes
+     * @since  29/09/2024
+     */
+    suspend fun generateKeypair(): KeyPair = cryptoProvider<KeypairGenerator>("Keypair generation").generateKeypair()
+
+    /**
+     * This enum defines the block modes available in Krypton. Block modes are defining how a block cipher is encrypting data and can help
+     * to ensure the authenticity of a message.
      *
      * @author Cedric Hammes
      * @since  08/09/2024
+     *
+     * @see [Block mode, Wikipedia](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation)
      */
-    enum class Scope(private val literal: String) {
-        CIPHER("Cipher"),
-        KEYPAIR_GENERATOR("Keypair Generator"),
-        KEY_GENERATOR("Key Generator"),
-        KEY_AGREEMENT("Key Agreement"),
-        PARAMETER_GENERATOR("Parameter generator"),
-        SIGNATURE("Signature"),
-        DIGEST("Digest");
-        
+    enum class BlockMode {
+        /**
+         * The electronic code bock (ECB) mode is the most unsecure mode of them and not recommended for the most algorithms. It runs all
+         * blocks separately through the block cipher. This allows an attacker to recover data by muster analysis etc.
+         *
+         * @author Cedric Hammes
+         * @since  08/09/2024
+         */
+        ECB,
+
+        /**
+         * The cipher block chaining (CBC) mode eliminates the attack vector of ECB by XORing the block with the encrypted output of the
+         * last encrypted block. The first block is XORed with an initialization vector (IV), that should not be zeroed for maximum
+         * security.
+         *
+         * @author Cedric Hammes
+         * @since  08/09/2024
+         */
+        CBC,
+
+        /**
+         * The output feedback (OCB) mode is like the CBC mode but with two differences. It encrypts the IV in the first block and run XOR
+         * over the output and the plaintext. The output of This operation get encrypted and XORed with the next block.
+         *
+         * @author Cedric Hammes
+         * @since  08/09/2024
+         */
+        OFB,
+
+        /**
+         * The counter (CTR) mode is using a nonce and counter which is being encrypted and XORed with the plaintext to encrypt the
+         * plaintext.
+         *
+         * @author Cedric Hammes
+         * @since  08/09/2024
+         */
+        CTR,
+
+        /**
+         * The Galois/Counter (GCM) mode is a block mode that uses authenticated encryption with associated data (AEAD) and requires an IV
+         * and outputs a auth tag that is being used in the decryption process.
+         *
+         * @author Cedric Hammes
+         * @since  08/09/2024
+         *
+         * @see [Galois/Counter mode, Wikipedia](https://de.wikipedia.org/wiki/Galois/Counter_Mode)
+         */
+        GCM
+    }
+
+    /**
+     * This enum represents the padding mechanism by the cipher etc. In algorithm the supported and the default padding for the specific
+     * algorithm is specified. Some of these paddings are based on digests like SHA-1.
+     *
+     * @author Cedric Hammes
+     * @since  08/09/2024
+     *
+     * @see [Padding, Wikipedia](https://en.wikipedia.org/wiki/Padding_(cryptography))
+     */
+    enum class Padding(private val literal: String, internal val digest: String?) {
+        NONE("NoPadding", null),
+        PKCS5("PKCS5Padding", null),
+        PKCS1("PKCS1Padding", null),
+        OAEP_SHA1("OAEPWithSHA-1AndMGF1Padding", "SHA-1"),
+        OAEP_SHA256("OAEPWithSHA-256AndMGF1Padding", "SHA-256");
+
         override fun toString(): String = literal
     }
-}
 
-/**
- * This enum represents all block modes supported by block ciphers like AES or RSA.
- *
- * @author Cedric Hammes
- * @since  08/09/2024
- */
-enum class BlockMode {
-    ECB,
-    CBC,
-    CFB,
-    OFB,
-    OCB,
-
-    /**
-     * This enum value represents the Counter (CTR) mode for block cipher and is used to create a stream cipher out of a block cipher. The
-     * developer needs to use a [CTRCipherParameters] for perform cipher operations in CTR mode.
-     *
-     * @see [Counter Mode, Wikipedia](https://de.wikipedia.org/wiki/Counter_Mode)
-     * @see [CTRCipherParameters]
-     *
-     * @author Cedric Hammes
-     * @since  09/09/2024
-     */
-    CTR,
-
-    /**
-     * This enum value represents the Galois/Counter (GCM) mode for block cipher. GCM supports Authenticated Encryption with Associated Data
-     * and allows to ensure the authentication of data.
-     *
-     * @see [Galois/Counter mode, Wikipedia](https://de.wikipedia.org/wiki/Galois/Counter_Mode)
-     * @see [Authenticated Encryption, Wikipedia](https://de.wikipedia.org/wiki/Authenticated_Encryption)
-     *
-     * @author Cedric Hammes
-     * @since  09/09/2024
-     */
-    GCM
-}
-
-/**
- * This enum represents all paddings support by ciphers.
- *
- * @author Cedric Hammes
- * @since  08/09/2024
- */
-enum class Padding(private val literal: String, internal val digest: String?) {
-    NONE("NoPadding", null),
-    PKCS5("PKCS5Padding", null),
-    PKCS1("PKCS1Padding", null),
-    OAEP_SHA1("OAEPWithSHA-1AndMGF1Padding", "SHA-1"),
-    OAEP_SHA256("OAEPWithSHA-256AndMGF1Padding", "SHA-256");
-    
-    override fun toString(): String = literal
 }

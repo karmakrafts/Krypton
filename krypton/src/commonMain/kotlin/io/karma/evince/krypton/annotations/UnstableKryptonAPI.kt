@@ -28,5 +28,5 @@ package io.karma.evince.krypton.annotations
  * @since  26/09/2024
  */
 @Retention(AnnotationRetention.BINARY)
-@RequiresOptIn(level = RequiresOptIn.Level.WARNING, message = "This API is unstable and can be removed in the next release")
+@RequiresOptIn(level = RequiresOptIn.Level.WARNING, message = "This API is unstable and can be removed/changed in the next version")
 annotation class UnstableKryptonAPI

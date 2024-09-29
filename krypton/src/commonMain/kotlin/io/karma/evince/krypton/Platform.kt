@@ -18,9 +18,9 @@ package io.karma.evince.krypton
 
 import kotlin.jvm.JvmStatic
 
-internal expect fun currentPlatform(): Platform
+expect fun currentPlatform(): Platform
 
-internal enum class Platform(private val literal: String) {
+enum class Platform(private val literal: String) {
     OPENSSL("OpenSSL"),
     JVM("JVM"),
     BROWSER("Browser"),

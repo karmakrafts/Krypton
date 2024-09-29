@@ -16,4 +16,4 @@
 
 package io.karma.evince.krypton
 
-internal actual fun currentPlatform(): Platform = Platform.JVM
+actual fun currentPlatform(): Platform = Platform.JVM

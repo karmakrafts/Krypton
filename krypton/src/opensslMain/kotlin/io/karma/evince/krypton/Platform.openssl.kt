@@ -16,4 +16,4 @@
 
 package io.karma.evince.krypton
 
-internal actual fun currentPlatform(): Platform = Platform.OPENSSL
+actual fun currentPlatform(): Platform = Platform.OPENSSL

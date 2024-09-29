@@ -14,19 +14,32 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton.annotations
+package io.karma.evince.krypton
 
-/**
- * This annotation is marking an internal undocumented API interface of the Krypton library. These APIs should not be
- * used by an external developer. These APIs are only set public for the development of Krypton modules like the
- * PQ-crypto module.
- *
- * @author Cedric Hammes
- * @since  08/09/2024
- */
-@Retention(AnnotationRetention.BINARY)
-@RequiresOptIn(
-    level = RequiresOptIn.Level.ERROR,
-    message = "These APIs are internal and not as documented and safe as the main Krypton API"
-)
-annotation class InternalKryptonAPI
+data class KeyPair(val private: Key, val public: Key) : AutoCloseable {
+    override fun close() {
+        private.close()
+        public.close()
+    }
+}
+
+expect class Key : AutoCloseable {
+    val algorithm: Algorithm
+    val usages: Array<Usage>
+    val type: Type
+    override fun close()
+
+    enum class Usage {
+        ENCRYPT,
+        DECRYPT,
+        DERIVE,
+        SIGN,
+        VERIFY
+    }
+
+    enum class Type {
+        PUBLIC,
+        PRIVATE,
+        OTHER
+    }
+}

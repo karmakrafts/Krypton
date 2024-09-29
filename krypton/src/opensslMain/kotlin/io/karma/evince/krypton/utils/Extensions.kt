@@ -16,32 +16,8 @@
 
 package io.karma.evince.krypton.utils
 
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import com.ionspin.kotlin.bignum.integer.Sign
-import io.karma.evince.krypton.internal.openssl.*
-import kotlinx.cinterop.*
+import io.karma.evince.krypton.OpenSSLException
 
 /** @suppress **/
 fun <T> T?.checkNotNull(message: String? = "The allocation of a object is failed"): T =
-    this ?: throw RuntimeException(message, ErrorHelper.createOpenSSLException())
-
-internal fun <T : Any, R> T?.pinnedNotNull(closure: (Pinned<T>) -> R?): R? = this?.usePinned(closure)
-
-/** @suppress **/
-internal fun BigInteger.toOpenSSLBigNumber(store: MutableList<CPointer<BIGNUM>>? = null): CPointer<BIGNUM> =
-    this.toByteArray().let { it.usePinned { pinned -> BN_bin2bn(pinned.addressOf(0).reinterpret(), it.size, null) } }
-        .checkNotNull().also {
-            store?.add(it)
-        }
-
-internal fun CPointer<BIGNUM>.toBigInteger(): BigInteger {
-    val data = ByteArray((BN_num_bits(this) + 7) / 8)
-    data.usePinned {
-        if (BN_bn2bin(this, it.addressOf(0).reinterpret()) < 1)
-            throw RuntimeException(
-                "Unable to convert OpenSSL big number to BigInteger",
-                ErrorHelper.createOpenSSLException()
-            )
-    }
-    return BigInteger.fromByteArray(data, Sign.POSITIVE)
-}
+    this ?: throw RuntimeException(message, OpenSSLException.create())

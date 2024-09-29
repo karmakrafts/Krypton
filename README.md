@@ -7,10 +7,10 @@ Multiplatform. This library uses the system dependency and other external librar
 the risk of more bugs in the cryptological core. Below this text you can see a list of the implemented algorithms, hash    
 functions and more:
 
-- **Hash Functions:** SHA3 (224, 256, 384 and 512 bits), SHA (224, 256, 384 and 512 bits) and MD5
-- **Ciphers:** AES (128, 192 and 256 bits) and RSA
-- **Signatures**: RSA (ECSDA is implemented but unstable)
-- **Key Agreements:** Diffie-Hellman (DH) and Elliptic Curve Diffie-Hellman (ECDH)
+- **Hash Functions:** SHA-1, SHA-2 family, SHA-3 family and MD5
+- **Ciphers:** AES and RSA
+- **Signatures**: RSA
+- **Key Agreements:** DH and ECDH
 - **Elliptic curves:** All curves supported by all platforms together
 
 Below this text you can see the list of backends used on different platforms:

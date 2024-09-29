@@ -30,4 +30,4 @@ private fun hasNodeApi(): Boolean = js(
 ) as Boolean
 
 
-internal actual fun currentPlatform(): Platform = if (hasNodeApi()) Platform.NODEJS else Platform.BROWSER
+actual fun currentPlatform(): Platform = if (hasNodeApi()) Platform.NODEJS else Platform.BROWSER

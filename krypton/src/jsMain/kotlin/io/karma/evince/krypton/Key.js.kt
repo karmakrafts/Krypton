@@ -16,22 +16,23 @@
 
 package io.karma.evince.krypton
 
-import io.karma.evince.krypton.annotations.UncheckedKryptonAPI
-import js.typedarrays.Uint8Array
-import js.typedarrays.toUint8Array
-import web.crypto.crypto
+import web.crypto.CryptoKey
 
-/**
- * @author Cedric Hammes
- * @since  28/09/2024
- * @suppress
- */
-actual class Digest @UncheckedKryptonAPI actual constructor(private val algorithm: String, size: Int) : AutoCloseable {
-    actual constructor(algorithm: Algorithm, size: Int) : this(algorithm.validOrError(Algorithm.Scope.DIGEST).toString(), size)
+/** @suppress **/
+actual class Key(
+    actual val algorithm: Algorithm,
+    actual val type: Type,
+    actual val usages: Array<Usage>,
+    internal val internal: CryptoKey
+) : AutoCloseable {
+    actual override fun close() {} // Not needed on JS
 
-    actual suspend fun hash(value: ByteArray): ByteArray = Uint8Array(crypto.subtle.digest(algorithm, value.toUint8Array())).toByteArray()
+    actual enum class Usage {
+        ENCRYPT, DECRYPT, DERIVE, SIGN, VERIFY
+    }
 
-    actual override fun close() {
+    actual enum class Type {
+        PUBLIC, PRIVATE, OTHER
     }
 
 }
