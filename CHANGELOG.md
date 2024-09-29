@@ -10,10 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - macOS and iOS building, testing and publication tasks to CI configuration
 - Linux ARM64 target support
 - Support for SHA-1 digest algorithm
-- Support for JS targets
+
+### Changed
+- Complete restructuring of the API. Removed internal APIs in favor of modular algorithm interface.
 
 ### Fixed
 - OAEPWithSHA-1AndMGF1Padding and OAEPWithSHA-256AndMGF1Padding work on OpenSSL targets
+
 
 ## v1.0.0.25
 

@@ -16,23 +16,46 @@
 
 package io.karma.evince.krypton
 
+import com.ionspin.kotlin.bignum.integer.BigInteger
+import com.ionspin.kotlin.bignum.integer.Sign
 import io.karma.evince.krypton.impl.DefaultOpenSSLCipher
 import io.karma.evince.krypton.impl.DefaultOpenSSLSignature
+import io.karma.evince.krypton.impl.internalGenerateECKeypair
+import io.karma.evince.krypton.impl.internalGenerateKeypair
 import io.karma.evince.krypton.impl.internalGenerateKeypairWithNid
+import io.karma.evince.krypton.impl.nidParameterGenerator
 import io.karma.evince.krypton.internal.openssl.*
 import io.karma.evince.krypton.parameters.CipherParameters
+import io.karma.evince.krypton.parameters.DHKeypairGeneratorParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
+import io.karma.evince.krypton.parameters.ParameterGeneratorParameters
+import io.karma.evince.krypton.parameters.Parameters
 import io.karma.evince.krypton.parameters.SignatureParameters
 import io.karma.evince.krypton.utils.checkNotNull
 import io.karma.evince.krypton.utils.withFree
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ULongVar
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.value
+
+internal fun CPointer<BIGNUM>.toBigInteger(): BigInteger {
+    val data = ByteArray((BN_num_bits(this) + 7) / 8)
+    data.usePinned {
+        if (BN_bn2bin(this, it.addressOf(0).reinterpret()) < 1)
+            throw RuntimeException("Unable to convert OpenSSL big number to BigInteger", OpenSSLException.create())
+    }
+    return BigInteger.fromByteArray(data, Sign.POSITIVE)
+}
+
+/** @suppress **/
+internal fun BigInteger.toOpenSSLBigNumber(): CPointer<BIGNUM> =
+    this.toByteArray().let { it.usePinned { pinned -> BN_bin2bn(pinned.addressOf(0).reinterpret(), it.size, null) } }.checkNotNull()
 
 internal fun Algorithm.getMessageDigest(): CPointer<EVP_MD> = when (this) {
     DefaultAlgorithm.MD5 -> EVP_md5()
@@ -49,7 +72,7 @@ internal fun Algorithm.getMessageDigest(): CPointer<EVP_MD> = when (this) {
 }.checkNotNull()
 
 internal actual class DefaultHashProvider actual constructor(private val algorithm: Algorithm) : Hash {
-    override suspend fun hash(input: ByteArray): ByteArray = withFree {
+    override fun hash(input: ByteArray): ByteArray = withFree {
         val digest = algorithm.getMessageDigest().freeAfter(::EVP_MD_free)
         val digestContext = EVP_MD_CTX_new().checkNotNull().freeAfter(::EVP_MD_CTX_free)
         if (EVP_DigestInit_ex(digestContext, digest, null) != 1) {
@@ -75,7 +98,7 @@ internal actual class DefaultHashProvider actual constructor(private val algorit
 }
 
 internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator, CipherFactory {
-    override suspend fun generateKey(parameters: KeyGeneratorParameters): Key = SymmetricKey(
+    override fun generateKey(parameters: KeyGeneratorParameters): Key = SymmetricKey(
         type = Key.Type.OTHER,
         algorithm = algorithm,
         usages = parameters.usages,
@@ -95,7 +118,7 @@ internal actual class DefaultSymmetricCipher actual constructor(private val algo
 
 internal actual class DefaultAsymmetricCipher actual constructor(private val algorithm: Algorithm) : KeypairGenerator, SignatureFactory,
     CipherFactory {
-    override suspend fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair = when (algorithm) {
+    override fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair = when (algorithm) {
         DefaultAlgorithm.RSA -> internalGenerateKeypairWithNid<KeypairGeneratorParameters>(
             nid = EVP_PKEY_RSA,
             algorithm = algorithm,
@@ -113,3 +136,90 @@ internal actual class DefaultAsymmetricCipher actual constructor(private val alg
     override fun createSignature(parameters: SignatureParameters): Signature = DefaultOpenSSLSignature(parameters)
     override fun createCipher(parameters: CipherParameters): Cipher = DefaultOpenSSLCipher(parameters)
 }
+
+internal actual class DefaultKeyAgreement actual constructor(
+    private val algorithm: Algorithm
+) : KeypairGenerator, ParameterGenerator, KeyAgreement {
+    override fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair = when (algorithm) {
+        DefaultAlgorithm.DH -> internalGenerateKeypair(
+            algorithm = algorithm,
+            parameters = parameters,
+            contextGenerator = {
+                val params = parameters as DHKeypairGeneratorParameters
+                val dh = DH_new().checkNotNull().freeAfter(::DH_free)
+                val prime = params.p.toOpenSSLBigNumber().checkNotNull()
+                val generator = params.g.toOpenSSLBigNumber().checkNotNull()
+                if (DH_set0_pqg(dh, prime, null, generator) != 1) {
+                    throw RuntimeException(
+                        message = "Unable to initialize prime and generator parameter",
+                        cause = OpenSSLException.create()
+                    )
+                }
+
+                val keyGeneratorParameters = EVP_PKEY_new().checkNotNull()
+                if (EVP_PKEY_set1_DH(keyGeneratorParameters, dh) != 1) {
+                    throw RuntimeException(
+                        message = "Unable to apply DH parameters to keypair generator",
+                        cause = OpenSSLException.create()
+                    )
+                }
+
+                EVP_PKEY_CTX_new(keyGeneratorParameters, null)
+            },
+            contextConfigurator = { _, _: DHKeypairGeneratorParameters -> }
+        )
+        DefaultAlgorithm.ECDH -> internalGenerateECKeypair(algorithm, parameters)
+
+        else -> throw IllegalArgumentException("Unsupported algorithm '${algorithm.literal}'")
+    }
+
+    // It would be very nice to be able to concatenate two crypto providers together but idk how to implement that into the cryptography
+    // provider API :/
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : Parameters> generateParameters(parameters: ParameterGeneratorParameters): T = when (algorithm) {
+        DefaultAlgorithm.DH -> nidParameterGenerator(
+            nid = EVP_PKEY_DH,
+            configurator = { generator ->
+                if (EVP_PKEY_CTX_set_dh_paramgen_prime_len(generator, parameters.bits.toInt()) != 1)
+                    throw RuntimeException("Unable to set prime length")
+            },
+            outputFactory = { rawParameters ->
+                val dhParameters = EVP_PKEY_get1_DH(rawParameters).checkNotNull().freeAfter(::DH_free)
+                DHKeypairGeneratorParameters(
+                    DH_get0_p(dhParameters).checkNotNull().toBigInteger(),
+                    DH_get0_g(dhParameters).checkNotNull().toBigInteger(),
+                    parameters.bits,
+                    arrayOf(Key.Usage.DERIVE)
+                )
+            }
+        )
+
+        else -> throw InitializationException("Parameter generation function is not available for algorithm '${algorithm.literal}'")
+    } as? T ?: throw GeneratorException("Invalid type conversion to specified parameter type")
+
+    override fun computeSecret(privateKey: Key, peerPublicKey: Key): ByteArray = withFree {
+        val context = EVP_PKEY_CTX_new(AsymmetricKey(privateKey).internalKey(), null).checkNotNull().freeAfter(::EVP_PKEY_CTX_free)
+        if (EVP_PKEY_derive_init(context) != 1) {
+            throw InitializationException("Unable to initialize secret computation", OpenSSLException.create())
+        }
+        if (EVP_PKEY_derive_set_peer(context, AsymmetricKey(peerPublicKey).internalKey()) != 1) {
+            throw InitializationException("Unable to st peer's public key", OpenSSLException.create())
+        }
+
+        memScoped {
+            val secretLength = alloc<ULongVar>()
+            if (EVP_PKEY_derive(context, null, secretLength.ptr) != 1) {
+                throw GeneratorException("Unable to acquire length of secret", OpenSSLException.create())
+            }
+            val secret = UByteArray(secretLength.value.toInt())
+            secret.usePinned { pinnedSecret ->
+                if (EVP_PKEY_derive(context, pinnedSecret.addressOf(0), secretLength.ptr) != 1) {
+                    throw GeneratorException("Unable to acquire length of secret", OpenSSLException.create())
+                }
+            }
+            secret.toByteArray()
+        }
+    }
+}
+
+internal actual fun installRequiredProviders() {}

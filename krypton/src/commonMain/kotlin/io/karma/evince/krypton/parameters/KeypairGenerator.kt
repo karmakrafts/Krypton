@@ -16,7 +16,9 @@
 
 package io.karma.evince.krypton.parameters
 
+import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.karma.evince.krypton.Algorithm
+import io.karma.evince.krypton.EllipticCurve
 import io.karma.evince.krypton.Key
 
 /**
@@ -29,11 +31,38 @@ import io.karma.evince.krypton.Key
  * @param padding   The padding used
  *
  * @author Cedric Hammes
- * @since  29/09/2024
+ * @since  09/09/2024
  */
 open class KeypairGeneratorParameters(
     val bitSize: UShort,
     val usages: Array<Key.Usage>,
     val blockMode: Algorithm.BlockMode? = null,
     val padding: Algorithm.Padding? = null
-)
+): Parameters
+
+/**
+ * This class defines the required parameters for the generation of keys for elliptic curve based algorithms like the
+ * ECDH algorithm. These parameters are defined by the user.
+ *
+ * @author Cedric Hammes
+ * @since  09/09/2024
+ */
+class ECKeypairGeneratorParameters(
+    val curve: EllipticCurve,
+    usages: Array<Key.Usage>
+) : KeypairGeneratorParameters(0U, usages)
+
+/**
+ * This class defines the optional parameters for the generation of keys for the Diffie-Hellman key exchange
+ * algorithm. These parameters should be created with a parameter generator or derived from traffic with
+ * another party.
+ *
+ * @author Cedric Hammes
+ * @since  17/09/2024
+ */
+class DHKeypairGeneratorParameters(
+    val p: BigInteger,
+    val g: BigInteger,
+    bits: UShort,
+    usages: Array<Key.Usage>
+) : KeypairGeneratorParameters(bits, usages)

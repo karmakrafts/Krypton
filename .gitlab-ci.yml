@@ -71,7 +71,7 @@ tests:linux:
   cache:
     - *cache-linux
   script:
-    - ./gradlew {js,jvm,linuxX64}Test --stacktrace
+    - ./gradlew {jvm,linuxX64}Test --stacktrace
 
 tests:macos:
   stage: tests

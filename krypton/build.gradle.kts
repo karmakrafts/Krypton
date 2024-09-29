@@ -140,21 +140,6 @@ kotlin {
         }
     }
 
-    js {
-        browser {
-            testTask {
-                useKarma {
-                    useFirefoxHeadless()
-                }
-            }
-        }
-        nodejs {
-            testTask {
-                useMocha()
-            }
-        }
-    }
-
     /*androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
@@ -176,9 +161,6 @@ kotlin {
                 implementation(libs.bignum)
             }
         }
-        jsMain.dependencies {
-            implementation(libs.kotlin.web)
-        }
 
         // Configure test source set
         val commonTest by getting {
@@ -196,6 +178,9 @@ kotlin {
             dependsOn(jvmAndNativeTest)
         }
         val linuxX64Test by getting {
+            dependsOn(jvmAndNativeTest)
+        }
+        val linuxArm64Test by getting {
             dependsOn(jvmAndNativeTest)
         }
         val mingwX64Test by getting {
@@ -222,6 +207,9 @@ kotlin {
             dependsOn(commonMain)
         }
         val linuxX64Main by getting {
+            dependsOn(opensslMain)
+        }
+        val linuxArm64Main by getting {
             dependsOn(opensslMain)
         }
         val mingwX64Main by getting {

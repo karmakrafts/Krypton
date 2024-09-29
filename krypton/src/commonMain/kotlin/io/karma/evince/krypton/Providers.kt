@@ -19,6 +19,8 @@ package io.karma.evince.krypton
 import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
+import io.karma.evince.krypton.parameters.ParameterGeneratorParameters
+import io.karma.evince.krypton.parameters.Parameters
 import io.karma.evince.krypton.parameters.SignatureParameters
 
 /**
@@ -36,7 +38,7 @@ interface Hash : CryptoProvider {
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun hash(input: ByteArray): ByteArray
+    fun hash(input: ByteArray): ByteArray
 }
 
 /**
@@ -72,7 +74,7 @@ interface KeyAgreement : CryptoProvider {
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun computeSecret(privateKey: Key, peerPublicKey: Any): ByteArray
+    fun computeSecret(privateKey: Key, peerPublicKey: Key): ByteArray
 }
 
 /**
@@ -87,7 +89,7 @@ interface KeyGenerator : CryptoProvider {
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun generateKey(parameters: KeyGeneratorParameters): Key
+    fun generateKey(parameters: KeyGeneratorParameters): Key
 }
 
 /**
@@ -102,5 +104,17 @@ interface KeypairGenerator : CryptoProvider {
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair
+    fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair
+}
+
+/**
+ * @author Cedric Hammes
+ * @since  30/09/2024
+ */
+interface ParameterGenerator : CryptoProvider {
+    /**
+     * @author Cedric Hammes
+     * @since  30/09/2024
+     */
+    fun <T: Parameters> generateParameters(parameters: ParameterGeneratorParameters): T
 }

@@ -30,9 +30,13 @@ import io.karma.evince.krypton.internal.openssl.EVP_PKEY
 import io.karma.evince.krypton.internal.openssl.EVP_PKEY_CTX
 import io.karma.evince.krypton.internal.openssl.EVP_PKEY_CTX_free
 import io.karma.evince.krypton.internal.openssl.EVP_PKEY_CTX_new_id
+import io.karma.evince.krypton.internal.openssl.EVP_PKEY_CTX_set_ec_paramgen_curve_nid
+import io.karma.evince.krypton.internal.openssl.EVP_PKEY_EC
 import io.karma.evince.krypton.internal.openssl.EVP_PKEY_dup
 import io.karma.evince.krypton.internal.openssl.EVP_PKEY_keygen
 import io.karma.evince.krypton.internal.openssl.EVP_PKEY_keygen_init
+import io.karma.evince.krypton.nid
+import io.karma.evince.krypton.parameters.ECKeypairGeneratorParameters
 import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
 import io.karma.evince.krypton.utils.WithFree
 import io.karma.evince.krypton.utils.checkNotNull
@@ -88,3 +92,29 @@ internal inline fun <reified P : KeypairGeneratorParameters> internalGenerateKey
     contextConfigurator = contextConfigurator,
     parameters = parameters
 )
+
+/**
+ * This function allows the developer to create an elliptic curve specific keypair generation function.
+ *
+ * @param algorithm The target algorithm
+ * @returns         The function closure
+ *
+ * @author Cedric Hammes
+ * @since  27/09/2024
+ */
+@InternalKryptonAPI
+fun internalGenerateECKeypair(algorithm: Algorithm, parameters: KeypairGeneratorParameters) =
+    internalGenerateKeypairWithNid<ECKeypairGeneratorParameters>(
+        nid = EVP_PKEY_EC,
+        algorithm = algorithm,
+        parameters = parameters,
+        contextConfigurator = { context, params ->
+            if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(context, params.curve.nid) != 1) {
+                throw InitializationException(
+                    message = "Unable to set curve information for $algorithm generator",
+                    cause = OpenSSLException.create()
+                )
+            }
+        }
+    )
+

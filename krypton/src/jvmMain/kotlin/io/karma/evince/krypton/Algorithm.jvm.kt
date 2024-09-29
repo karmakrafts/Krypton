@@ -16,24 +16,51 @@
 
 package io.karma.evince.krypton
 
+import com.ionspin.kotlin.bignum.integer.BigInteger
+import com.ionspin.kotlin.bignum.integer.Sign
+import com.ionspin.kotlin.bignum.integer.base63.toJavaBigInteger
 import io.karma.evince.krypton.impl.DefaultJavaCipher
 import io.karma.evince.krypton.impl.DefaultJavaSignature
 import io.karma.evince.krypton.parameters.CBCCipherParameters
 import io.karma.evince.krypton.parameters.CipherParameters
+import io.karma.evince.krypton.parameters.DHKeypairGeneratorParameters
+import io.karma.evince.krypton.parameters.ECKeypairGeneratorParameters
 import io.karma.evince.krypton.parameters.GCMCipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
+import io.karma.evince.krypton.parameters.ParameterGeneratorParameters
+import io.karma.evince.krypton.parameters.Parameters
 import io.karma.evince.krypton.parameters.SignatureParameters
+import io.karma.evince.krypton.utils.JavaCryptoHelper
+import java.security.AlgorithmParameterGenerator
+import java.security.KeyPair
 import java.security.MessageDigest
+import java.security.spec.ECGenParameterSpec
+import javax.crypto.spec.DHParameterSpec
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 
 private typealias JavaKeyGenerator = javax.crypto.KeyGenerator
 private typealias JavaKeyPairGenerator = java.security.KeyPairGenerator
+private typealias JavaKeyAgreement = javax.crypto.KeyAgreement
+
+internal fun java.math.BigInteger.toBigInteger(): BigInteger =
+    BigInteger.fromByteArray(
+        toByteArray(), when (signum()) {
+            1 -> Sign.POSITIVE
+            -1 -> Sign.NEGATIVE
+            else -> Sign.ZERO
+        }
+    )
+
+internal fun KeyPair.toKryptonKeypair(algorithm: Algorithm, usages: Array<Key.Usage>): Keypair = Keypair(
+    Key(private, algorithm, usages.forType(Key.Type.PRIVATE)),
+    Key(public, algorithm, usages.forType(Key.Type.PUBLIC))
+)
 
 internal actual class DefaultHashProvider actual constructor(algorithm: Algorithm) : Hash {
     private val messageDigest: MessageDigest = MessageDigest.getInstance(algorithm.literal)
-    override suspend fun hash(input: ByteArray): ByteArray = messageDigest.digest(input)
+    override fun hash(input: ByteArray): ByteArray = messageDigest.digest(input)
 }
 
 internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator, CipherFactory {
@@ -46,7 +73,7 @@ internal actual class DefaultSymmetricCipher actual constructor(private val algo
         }
     }
 
-    override suspend fun generateKey(parameters: KeyGeneratorParameters): Key {
+    override fun generateKey(parameters: KeyGeneratorParameters): Key {
         keyGenerator.init(parameters.bitSize.toInt())
         return Key(keyGenerator.generateKey(), algorithm, parameters.usages)
     }
@@ -56,12 +83,59 @@ internal actual class DefaultAsymmetricCipher actual constructor(private val alg
     CipherFactory {
     private val keypairGenerator: JavaKeyPairGenerator = JavaKeyPairGenerator.getInstance(algorithm.literal)
 
-    override suspend fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair {
+    override fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair {
         keypairGenerator.initialize(parameters.bitSize.toInt())
-        val keypair = keypairGenerator.generateKeyPair()
-        return Keypair(Key(keypair.private, algorithm, parameters.usages), Key(keypair.public, algorithm, parameters.usages))
+        return keypairGenerator.generateKeyPair().toKryptonKeypair(algorithm, parameters.usages)
     }
 
     override fun createSignature(parameters: SignatureParameters): Signature = DefaultJavaSignature(parameters)
     override fun createCipher(parameters: CipherParameters): Cipher = DefaultJavaCipher(parameters) { _ -> null }
+}
+
+internal actual class DefaultKeyAgreement actual constructor(
+    private val algorithm: Algorithm
+) : KeypairGenerator, ParameterGenerator, KeyAgreement {
+    private val parameterGenerator: AlgorithmParameterGenerator by lazy { AlgorithmParameterGenerator.getInstance(algorithm.literal) }
+    private val keyAgreement: JavaKeyAgreement = JavaKeyAgreement.getInstance(algorithm.literal)
+    private val keypairGenerator: JavaKeyPairGenerator = JavaKeyPairGenerator.getInstance(algorithm.literal)
+
+    override fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair {
+        keypairGenerator.initialize(when (algorithm) {
+            DefaultAlgorithm.ECDH -> ECGenParameterSpec((parameters as ECKeypairGeneratorParameters).curve.toString())
+            DefaultAlgorithm.DH -> (parameters as DHKeypairGeneratorParameters).let {
+                DHParameterSpec(
+                    it.p.toJavaBigInteger(),
+                    it.g.toJavaBigInteger(),
+                    parameters.bitSize.toInt()
+                )
+            }
+
+            else -> throw IllegalArgumentException()
+        })
+        return keypairGenerator.generateKeyPair().toKryptonKeypair(algorithm, parameters.usages)
+    }
+
+    // It would be very nice to be able to concatenate two crypto providers together but idk how to implement that into the cryptography
+    // provider API :/
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : Parameters> generateParameters(parameters: ParameterGeneratorParameters): T = when (algorithm) {
+        DefaultAlgorithm.DH -> {
+            parameterGenerator.init(parameters.bits.toInt())
+            parameterGenerator.generateParameters().getParameterSpec(DHParameterSpec::class.java).let { spec ->
+                DHKeypairGeneratorParameters(spec.p.toBigInteger(), spec.g.toBigInteger(), parameters.bits, arrayOf(Key.Usage.DERIVE))
+            }
+        }
+
+        else -> throw InitializationException("Parameter generation function is not available for algorithm '${algorithm.literal}'")
+    } as? T ?: throw GeneratorException("Invalid type conversion to specified parameter type")
+
+    override fun computeSecret(privateKey: Key, peerPublicKey: Key): ByteArray {
+        keyAgreement.init(privateKey.javaKey)
+        keyAgreement.doPhase(peerPublicKey.javaKey, true)
+        return keyAgreement.generateSecret()
+    }
+}
+
+internal actual fun installRequiredProviders() {
+    JavaCryptoHelper.installBouncyCastleProviders()
 }

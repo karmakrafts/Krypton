@@ -20,11 +20,15 @@ import io.karma.evince.krypton.annotations.UnstableKryptonAPI
 import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
+import io.karma.evince.krypton.parameters.ParameterGeneratorParameters
+import io.karma.evince.krypton.parameters.Parameters
 import io.karma.evince.krypton.parameters.SignatureParameters
 
 internal expect class DefaultHashProvider(algorithm: Algorithm) : Hash
 internal expect class DefaultAsymmetricCipher(algorithm: Algorithm) : KeypairGenerator, CipherFactory, SignatureFactory
 internal expect class DefaultSymmetricCipher(algorithm: Algorithm) : KeyGenerator, CipherFactory
+internal expect class DefaultKeyAgreement(algorithm: Algorithm) : KeypairGenerator, ParameterGenerator, KeyAgreement
+internal expect fun installRequiredProviders()
 
 /**
  * This enum provides the by-default available algorithms surely supported by the Krypton library itself. This enum contains both deprecated
@@ -278,7 +282,7 @@ enum class DefaultAlgorithm(
      */
     DH(
         literal = "DH",
-        cryptoProvider = lazy { TODO() },
+        cryptoProvider = lazy { DefaultKeyAgreement(DH) },
         supportedBlockModes = emptyArray(),
         supportedPaddings = emptyArray(),
         supportedBitSizes = ushortArrayOf(1024U, 2048U, 4096U, 8192U)
@@ -297,7 +301,7 @@ enum class DefaultAlgorithm(
      */
     ECDH(
         literal = "ECDH",
-        cryptoProvider = lazy { TODO() },
+        cryptoProvider = lazy { DefaultKeyAgreement(ECDH) },
         supportedBlockModes = emptyArray(),
         supportedPaddings = emptyArray(),
         supportedBitSizes = ushortArrayOf(128U, 192U, 256U),
@@ -327,6 +331,12 @@ enum class DefaultAlgorithm(
         defaultBlockMode,
         defaultPadding
     )
+
+    companion object {
+        init {
+            installRequiredProviders()
+        }
+    }
 }
 
 /**
@@ -374,7 +384,7 @@ interface Algorithm {
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun hash(input: ByteArray): ByteArray = cryptoProvider<Hash>("Hashing").hash(input)
+    fun hash(input: ByteArray): ByteArray = cryptoProvider<Hash>("Hashing").hash(input)
 
     /**
      * This function validates whether this algorithm supports key generation by checking the crypto provider. If this check is successful
@@ -386,7 +396,7 @@ interface Algorithm {
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun generateKey(parameters: KeyGeneratorParameters): Key = cryptoProvider<KeyGenerator>("Key generation")
+    fun generateKey(parameters: KeyGeneratorParameters): Key = cryptoProvider<KeyGenerator>("Key generation")
         .generateKey(parameters)
 
     /**
@@ -398,21 +408,48 @@ interface Algorithm {
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair = cryptoProvider<KeypairGenerator>("Keypair generation")
+    fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair = cryptoProvider<KeypairGenerator>("Keypair generation")
         .generateKeypair(parameters)
 
     /**
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    fun createCipher(parameters: CipherParameters): Cipher = cryptoProvider<CipherFactory>("cipher factory").createCipher(parameters)
+    fun createCipher(parameters: CipherParameters): Cipher = cryptoProvider<CipherFactory>("Cipher factory").createCipher(parameters)
 
     /**
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    fun createSignature(parameters: SignatureParameters): Signature = cryptoProvider<SignatureFactory>("signature factory")
+    fun createSignature(parameters: SignatureParameters): Signature = cryptoProvider<SignatureFactory>("Signature factory")
         .createSignature(parameters)
+
+    /**
+     * This function takes the two keys and computes a shared secret out of it. This secret should not be used as the key for the future
+     * connection. It is recommended to put this array into a key derivation function.
+     *
+     * @param privateKey    Your own private key used for the key agreement
+     * @param peerPublicKey The public key of the peer
+     * @return              The computed secret
+     *
+     * @author Cedric Hammes
+     * @since  30/09/2024
+     */
+    suspend fun computeSecret(privateKey: Key, peerPublicKey: Key): ByteArray = cryptoProvider<KeyAgreement>("Key agreement")
+        .computeSecret(privateKey, peerPublicKey)
+
+    /**
+     * This function takes the parameters and generates secure parameters for the specified algorithm. These parameters are safe to use in
+     * a environment where secure parameters for your cryptographic infrastructure are needed.
+     *
+     * @param parameters The parameters used for the parameter generation function
+     * @param T          The type of the parameters generated
+     *
+     * @author Cedric Hammes
+     * @since  30/09/2024
+     */
+    fun <T : Parameters> generateParameters(parameters: ParameterGeneratorParameters): T =
+        cryptoProvider<ParameterGenerator>("Parameter generation").generateParameters(parameters)
 
     /**
      * This enum defines the block modes available in Krypton. Block modes are defining how a block cipher is encrypting data and can help

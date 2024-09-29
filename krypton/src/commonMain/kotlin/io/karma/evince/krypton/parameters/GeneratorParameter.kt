@@ -16,21 +16,14 @@
 
 package io.karma.evince.krypton.parameters
 
-import io.karma.evince.krypton.Algorithm
-import io.karma.evince.krypton.Key
+/**
+ * @author Cedric Hammes
+ * @since  18/09/2024
+ */
+interface Parameters
 
 /**
- * This class implements the default KeyGenerator parameters. These parameters are specified to tell the key generator more about the key
- * you want to generate.
- *
- * @param bitSize The size in bits of the key
- * @param usages  The key's usages
- *
  * @author Cedric Hammes
- * @since  29/09/2024
+ * @since  18/09/2024
  */
-open class KeyGeneratorParameters(
-    val bitSize: UShort,
-    val usages: Array<Key.Usage>,
-    val blockMode: Algorithm.BlockMode? = null
-): Parameters
+open class ParameterGeneratorParameters(internal val bits: UShort): Parameters
