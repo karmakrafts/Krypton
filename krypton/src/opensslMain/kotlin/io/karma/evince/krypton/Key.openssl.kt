@@ -30,7 +30,7 @@ value class AsymmetricKey(private val key: Key) {
     fun internalKey(): CPointer<EVP_PKEY> = (key.body as Key.KeyBody.EVPKeyBody).key
 }
 
-value class SymmetricKey(private val key: Key) {
+value class SymmetricKey(internal val key: Key) {
     constructor(type: Key.Type, algorithm: Algorithm, usages: Array<Key.Usage>, data: CPointer<BIO>)
             : this(Key(type, algorithm, usages, Key.KeyBody.DataKeyBody(data)))
     fun internalKey(): CPointer<BIO> = (key.body as Key.KeyBody.DataKeyBody).data

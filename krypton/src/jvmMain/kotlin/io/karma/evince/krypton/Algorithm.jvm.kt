@@ -16,9 +16,20 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import java.security.MessageDigest
+
+private typealias JavaKeyGenerator = javax.crypto.KeyGenerator
 
 internal actual class DefaultHashProvider actual constructor(algorithm: Algorithm) : Hash {
     private val messageDigest: MessageDigest = MessageDigest.getInstance(algorithm.literal)
     override suspend fun hash(input: ByteArray): ByteArray = messageDigest.digest(input)
+}
+
+internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator {
+    private val keyGenerator: JavaKeyGenerator = JavaKeyGenerator.getInstance(algorithm.literal)
+    override suspend fun generateKey(parameters: KeyGeneratorParameters): Key {
+        keyGenerator.init(parameters.bitSize.toInt())
+        return Key(keyGenerator.generateKey(), algorithm, parameters.usages)
+    }
 }

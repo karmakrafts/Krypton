@@ -16,11 +16,31 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import js.typedarrays.Uint8Array
 import js.typedarrays.toUint8Array
+import web.crypto.AesKeyGenParams
 import web.crypto.crypto
 
 internal actual class DefaultHashProvider actual constructor(private val algorithm: Algorithm) : Hash {
     override suspend fun hash(input: ByteArray): ByteArray = Uint8Array(crypto.subtle.digest(algorithm.literal, input.toUint8Array()))
         .toByteArray()
+}
+
+internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator {
+    override suspend fun generateKey(parameters: KeyGeneratorParameters): Key = Key(
+        algorithm = algorithm,
+        type = Key.Type.OTHER,
+        usages = parameters.usages,
+        internal = crypto.subtle.generateKey(
+            algorithm = when(algorithm) {
+                DefaultAlgorithm.AES -> AesKeyGenParams.invoke(
+                    name = "AES-${parameters.blockMode?: algorithm.defaultBlockMode}",
+                    length = parameters.bitSize.toShort())
+                else -> throw IllegalArgumentException("Algorithm '$algorithm' is not supported")
+            },
+            extractable = true,
+            keyUsages = parameters.usages.toJsUsages()
+        )
+    )
 }

@@ -17,6 +17,7 @@
 package io.karma.evince.krypton
 
 import web.crypto.CryptoKey
+import web.crypto.KeyUsage
 
 /** @suppress **/
 actual class Key(
@@ -27,8 +28,12 @@ actual class Key(
 ) : AutoCloseable {
     actual override fun close() {} // Not needed on JS
 
-    actual enum class Usage {
-        ENCRYPT, DECRYPT, DERIVE, SIGN, VERIFY
+    actual enum class Usage(internal val jsUsages: Array<KeyUsage>) {
+        ENCRYPT(arrayOf(KeyUsage.encrypt)),
+        DECRYPT(arrayOf(KeyUsage.decrypt)),
+        DERIVE(arrayOf(KeyUsage.deriveBits, KeyUsage.deriveKey)),
+        SIGN(arrayOf(KeyUsage.sign)),
+        VERIFY(arrayOf(KeyUsage.verify))
     }
 
     actual enum class Type {
@@ -36,3 +41,5 @@ actual class Key(
     }
 
 }
+
+internal fun Array<Key.Usage>.toJsUsages(): Array<KeyUsage> = flatMap { it.jsUsages.asIterable() }.toTypedArray()

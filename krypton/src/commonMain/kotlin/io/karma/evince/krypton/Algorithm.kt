@@ -17,8 +17,10 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.annotations.UnstableKryptonAPI
+import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 
 internal expect class DefaultHashProvider(algorithm: Algorithm) : Hash
+internal expect class DefaultSymmetricCipher(algorithm: Algorithm) : KeyGenerator
 
 /**
  * This enum provides the by-default available algorithms surely supported by the Krypton library itself. This enum contains both deprecated
@@ -250,7 +252,7 @@ enum class DefaultAlgorithm(
      */
     AES(
         literal = "AES",
-        cryptoProvider = lazy { TODO() },
+        cryptoProvider = lazy { DefaultSymmetricCipher(AES) },
         supportedBlockModes = Algorithm.BlockMode.entries.toTypedArray(),
         supportedPaddings = arrayOf(Algorithm.Padding.NONE, Algorithm.Padding.PKCS1),
         supportedBitSizes = ushortArrayOf(128U, 192U, 256U),
@@ -378,12 +380,14 @@ interface Algorithm {
      *
      * TODO: Add parameters
      *
-     * @return The generated key
+     * @param parameters The parameters used for the key generation
+     * @return           The generated key
      *
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun generateKey(): Key = cryptoProvider<KeyGenerator>("Key generation").generateKey()
+    suspend fun generateKey(parameters: KeyGeneratorParameters): Key = cryptoProvider<KeyGenerator>("Key generation")
+        .generateKey(parameters)
 
     /**
      * This function validates whether this algorithm supports keypair generation by checking the crypto provider. If this check is

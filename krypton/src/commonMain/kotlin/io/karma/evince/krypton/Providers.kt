@@ -16,6 +16,8 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.parameters.KeyGeneratorParameters
+
 /**
  * @author Cedric Hammes
  * @since  29/09/2024
@@ -88,10 +90,13 @@ interface KeyAgreement : CryptoProvider {
  */
 interface KeyGenerator : CryptoProvider { // TODO: Add parameters
     /**
+     * @param parameters The parameters for the key generation procedure
+     * @return           The generated key for the algorithm
+     *
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun generateKey(): Key
+    suspend fun generateKey(parameters: KeyGeneratorParameters): Key
 }
 
 /**

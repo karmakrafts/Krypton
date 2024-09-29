@@ -17,6 +17,7 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.internal.openssl.*
+import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import io.karma.evince.krypton.utils.checkNotNull
 import io.karma.evince.krypton.utils.withFree
 import kotlinx.cinterop.CPointer
@@ -65,4 +66,23 @@ internal actual class DefaultHashProvider actual constructor(private val algorit
             }
         }
     }
+}
+
+internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator {
+    override suspend fun generateKey(parameters: KeyGeneratorParameters): Key = SymmetricKey(
+        type = Key.Type.OTHER,
+        algorithm = algorithm,
+        usages = parameters.usages,
+        data = requireNotNull(BIO_new(BIO_s_secmem())).also { data ->
+            val bitSize = parameters.bitSize.toInt()
+            ByteArray(bitSize).usePinned { dataPtr ->
+                if (RAND_bytes(dataPtr.addressOf(0).reinterpret(), bitSize) != 1)
+                    throw KryptonException(
+                        message = "Unable to generate random data for key",
+                        cause = OpenSSLException.create()
+                    )
+                BIO_write(data, dataPtr.addressOf(0), bitSize)
+            }
+        }
+    ).key
 }
