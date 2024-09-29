@@ -20,10 +20,11 @@ import io.karma.evince.krypton.annotations.UnstableKryptonAPI
 import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
+import io.karma.evince.krypton.parameters.SignatureParameters
 
 internal expect class DefaultHashProvider(algorithm: Algorithm) : Hash
+internal expect class DefaultAsymmetricCipher(algorithm: Algorithm) : KeypairGenerator, CipherFactory, SignatureFactory
 internal expect class DefaultSymmetricCipher(algorithm: Algorithm) : KeyGenerator, CipherFactory
-internal expect class DefaultAsymmetricCipher(algorithm: Algorithm) : KeypairGenerator, CipherFactory
 
 /**
  * This enum provides the by-default available algorithms surely supported by the Krypton library itself. This enum contains both deprecated
@@ -326,8 +327,6 @@ enum class DefaultAlgorithm(
         defaultBlockMode,
         defaultPadding
     )
-
-    override fun toString(): String = literal
 }
 
 /**
@@ -407,6 +406,13 @@ interface Algorithm {
      * @since  29/09/2024
      */
     fun createCipher(parameters: CipherParameters): Cipher = cryptoProvider<CipherFactory>("cipher factory").createCipher(parameters)
+
+    /**
+     * @author Cedric Hammes
+     * @since  29/09/2024
+     */
+    fun createSignature(parameters: SignatureParameters): Signature = cryptoProvider<SignatureFactory>("signature factory")
+        .createSignature(parameters)
 
     /**
      * This enum defines the block modes available in Krypton. Block modes are defining how a block cipher is encrypting data and can help

@@ -28,10 +28,10 @@ private typealias JavaCipher = javax.crypto.Cipher
  * @since  29/09/2024
  */
 class DefaultJavaCipher(
-    private val algorithm: Algorithm,
     private val parameters: CipherParameters,
     parameterSpecFactory: (CipherParameters) -> AlgorithmParameterSpec?
 ) : Cipher {
+    private val algorithm: Algorithm = parameters.key.algorithm
     private val cipher: JavaCipher = JavaCipher.getInstance(toString())
 
     init {

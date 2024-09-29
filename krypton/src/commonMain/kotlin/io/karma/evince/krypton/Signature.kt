@@ -16,18 +16,20 @@
 
 package io.karma.evince.krypton
 
-// https://github.com/ktorio/ktor/blob/6ab2a63747a5c0d58c882155b905a3601f5927cd/ktor-utils/jsAndWasmShared/src/io/ktor/util/PlatformUtilsJs.kt#L14-L24
-private fun hasNodeApi(): Boolean = js(
-    """
-(typeof process !== 'undefined' 
-    && process.versions != null 
-    && process.versions.node != null) ||
-(typeof window !== 'undefined' 
-    && typeof window.process !== 'undefined' 
-    && window.process.versions != null 
-    && window.process.versions.node != null)
-"""
-) as Boolean
+/**
+ * @author Cedric Hammes
+ * @since  29/09/2024
+ */
+interface Signature : CryptoProvider {
+    /**
+     * @author Cedric Hammes
+     * @since  29/09/2024
+     */
+    suspend fun sign(input: ByteArray): ByteArray
 
-
-actual fun currentPlatform(): Platform = if (hasNodeApi()) Platform.NODEJS else Platform.BROWSER
+    /**
+     * @author Cedric Hammes
+     * @since  29/09/2024
+     */
+    suspend fun verify(signature: ByteArray, original: ByteArray): Boolean
+}

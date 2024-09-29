@@ -19,6 +19,7 @@ package io.karma.evince.krypton
 import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
+import io.karma.evince.krypton.parameters.SignatureParameters
 
 /**
  * @author Cedric Hammes
@@ -54,18 +55,12 @@ interface CipherFactory : CryptoProvider {
  * @author Cedric Hammes
  * @since  29/09/2024
  */
-interface Signature : CryptoProvider { // TODO: Add parameters and key
+interface SignatureFactory : CryptoProvider {
     /**
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun sign(privateKey: Key, input: ByteArray): ByteArray
-
-    /**
-     * @author Cedric Hammes
-     * @since  29/09/2024
-     */
-    suspend fun verify(publicKey: Key, signature: ByteArray, original: ByteArray): Boolean
+    fun createSignature(parameters: SignatureParameters): Signature
 }
 
 /**

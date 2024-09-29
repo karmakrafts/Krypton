@@ -17,11 +17,13 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.impl.DefaultOpenSSLCipher
+import io.karma.evince.krypton.impl.DefaultOpenSSLSignature
 import io.karma.evince.krypton.impl.internalGenerateKeypairWithNid
 import io.karma.evince.krypton.internal.openssl.*
 import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
+import io.karma.evince.krypton.parameters.SignatureParameters
 import io.karma.evince.krypton.utils.checkNotNull
 import io.karma.evince.krypton.utils.withFree
 import kotlinx.cinterop.CPointer
@@ -32,7 +34,7 @@ import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
 
-internal fun Algorithm.getMessageDigest(): CPointer<EVP_MD> = when(this) {
+internal fun Algorithm.getMessageDigest(): CPointer<EVP_MD> = when (this) {
     DefaultAlgorithm.MD5 -> EVP_md5()
     DefaultAlgorithm.SHA1 -> EVP_sha1()
     DefaultAlgorithm.SHA224 -> EVP_sha224()
@@ -88,11 +90,12 @@ internal actual class DefaultSymmetricCipher actual constructor(private val algo
         }
     ).key
 
-    override fun createCipher(parameters: CipherParameters): Cipher = DefaultOpenSSLCipher(algorithm, parameters)
+    override fun createCipher(parameters: CipherParameters): Cipher = DefaultOpenSSLCipher(parameters)
 }
 
-internal actual class DefaultAsymmetricCipher actual constructor(private val algorithm: Algorithm) : KeypairGenerator, CipherFactory {
-    override suspend fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair = when(algorithm) {
+internal actual class DefaultAsymmetricCipher actual constructor(private val algorithm: Algorithm) : KeypairGenerator, SignatureFactory,
+    CipherFactory {
+    override suspend fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair = when (algorithm) {
         DefaultAlgorithm.RSA -> internalGenerateKeypairWithNid<KeypairGeneratorParameters>(
             nid = EVP_PKEY_RSA,
             algorithm = algorithm,
@@ -103,7 +106,10 @@ internal actual class DefaultAsymmetricCipher actual constructor(private val alg
                 }
             }
         )
+
         else -> throw IllegalArgumentException("Unsupported algorithm '${algorithm.literal}'")
     }
-    override fun createCipher(parameters: CipherParameters): Cipher = DefaultOpenSSLCipher(algorithm, parameters)
+
+    override fun createSignature(parameters: SignatureParameters): Signature = DefaultOpenSSLSignature(parameters)
+    override fun createCipher(parameters: CipherParameters): Cipher = DefaultOpenSSLCipher(parameters)
 }

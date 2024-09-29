@@ -27,7 +27,8 @@ import io.karma.evince.krypton.openssl.asymmetricCipher
 import io.karma.evince.krypton.openssl.symmetricCipher
 import io.karma.evince.krypton.parameters.CipherParameters
 
-class DefaultOpenSSLCipher(algorithm: Algorithm, private val parameters: CipherParameters) : Cipher {
+class DefaultOpenSSLCipher(private val parameters: CipherParameters) : Cipher {
+    private val algorithm: Algorithm = parameters.key.algorithm
     private val closure: (CipherParameters, ByteArray, ByteArray?) -> ByteArray = INTERNAL_FACTORIES[algorithm.literal]
         ?: throw InitializationException("Algorithm '${algorithm.literal}' is not supported")
 

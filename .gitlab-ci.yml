@@ -50,7 +50,7 @@ build:linux:
   cache:
     - *cache-linux
   script:
-    - ./gradlew compileKotlin{Js,Jvm,LinuxX64,MingwX64} linkDebugTest{LinuxX64,MingwX64} --stacktrace
+    - ./gradlew compileKotlin{Jvm,LinuxX64,MingwX64} linkDebugTest{LinuxX64,MingwX64} --stacktrace
 
 build:macos:
   stage: build
@@ -93,7 +93,7 @@ publish:linux:
   rules:
     - *if-main
   script:
-    - ./gradlew dokkaHtml publish{KotlinMultiplatform,Jvm,Js,LinuxX64,MingwX64}PublicationToKarmaKraftsRepository --stacktrace
+    - ./gradlew dokkaHtml publish{KotlinMultiplatform,Jvm,LinuxX64,MingwX64}PublicationToKarmaKraftsRepository --stacktrace
 
 publish:macos:
   stage: publish

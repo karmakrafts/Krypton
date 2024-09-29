@@ -17,11 +17,13 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.impl.DefaultJavaCipher
+import io.karma.evince.krypton.impl.DefaultJavaSignature
 import io.karma.evince.krypton.parameters.CBCCipherParameters
 import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.GCMCipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
+import io.karma.evince.krypton.parameters.SignatureParameters
 import java.security.MessageDigest
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
@@ -36,8 +38,8 @@ internal actual class DefaultHashProvider actual constructor(algorithm: Algorith
 
 internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator, CipherFactory {
     private val keyGenerator: JavaKeyGenerator by lazy { JavaKeyGenerator.getInstance(algorithm.literal) }
-    override fun createCipher(parameters: CipherParameters): Cipher = DefaultJavaCipher(algorithm, parameters) { _ ->
-        when(parameters.blockMode ?: algorithm.defaultBlockMode) {
+    override fun createCipher(parameters: CipherParameters): Cipher = DefaultJavaCipher(parameters) { _ ->
+        when (parameters.blockMode ?: algorithm.defaultBlockMode) {
             Algorithm.BlockMode.CBC -> IvParameterSpec((parameters as CBCCipherParameters).iv)
             Algorithm.BlockMode.GCM -> (parameters as GCMCipherParameters).let { GCMParameterSpec(it.tagLength, it.iv) }
             else -> null
@@ -50,7 +52,8 @@ internal actual class DefaultSymmetricCipher actual constructor(private val algo
     }
 }
 
-internal actual class DefaultAsymmetricCipher actual constructor(private val algorithm: Algorithm) : KeypairGenerator, CipherFactory {
+internal actual class DefaultAsymmetricCipher actual constructor(private val algorithm: Algorithm) : KeypairGenerator, SignatureFactory,
+    CipherFactory {
     private val keypairGenerator: JavaKeyPairGenerator = JavaKeyPairGenerator.getInstance(algorithm.literal)
 
     override suspend fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair {
@@ -59,5 +62,6 @@ internal actual class DefaultAsymmetricCipher actual constructor(private val alg
         return Keypair(Key(keypair.private, algorithm, parameters.usages), Key(keypair.public, algorithm, parameters.usages))
     }
 
-    override fun createCipher(parameters: CipherParameters): Cipher = DefaultJavaCipher(algorithm, parameters) { _ -> null }
+    override fun createSignature(parameters: SignatureParameters): Signature = DefaultJavaSignature(parameters)
+    override fun createCipher(parameters: CipherParameters): Cipher = DefaultJavaCipher(parameters) { _ -> null }
 }
