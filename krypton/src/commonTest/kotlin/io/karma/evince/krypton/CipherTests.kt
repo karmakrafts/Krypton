@@ -17,31 +17,50 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.parameters.CBCCipherParameters
+import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
+import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
 import io.kotest.core.spec.style.ShouldSpec
 import kotlin.test.assertEquals
 
 class CipherTests : ShouldSpec() {
     init {
         should("test AES-CBC") {
-            val key = DefaultAlgorithm.AES.generateKey(KeyGeneratorParameters(128U, arrayOf(Key.Usage.ENCRYPT, Key.Usage.DECRYPT)))
+            DefaultAlgorithm.AES.generateKey(KeyGeneratorParameters(128U, arrayOf(Key.Usage.ENCRYPT, Key.Usage.DECRYPT))).use { key ->
+                val text = "Test".encodeToByteArray()
+                val encrypted = DefaultAlgorithm.AES.createCipher(CBCCipherParameters(
+                    padding = Algorithm.Padding.PKCS5,
+                    blockMode = Algorithm.BlockMode.CBC,
+                    mode = Cipher.Mode.ENCRYPT,
+                    key = key,
+                    iv = ByteArray(16) { 0 }
+                )).run(text)
+                val decrypted = DefaultAlgorithm.AES.createCipher(CBCCipherParameters(
+                    padding = Algorithm.Padding.PKCS5,
+                    blockMode = Algorithm.BlockMode.CBC,
+                    mode = Cipher.Mode.DECRYPT,
+                    key = key,
+                    iv = ByteArray(16) { 0 }
+                )).run(encrypted)
+                assertEquals("Test", decrypted.decodeToString())
+            }
+        }
+        should("test RSA") {
+            DefaultAlgorithm.RSA.generateKeypair(KeypairGeneratorParameters(2048U, arrayOf(Key.Usage.ENCRYPT, Key.Usage.DECRYPT)))
+                .use { keypair ->
+                    val encrypted = DefaultAlgorithm.RSA.createCipher(CipherParameters(
+                        padding = Algorithm.Padding.OAEP_SHA1,
+                        mode = Cipher.Mode.ENCRYPT,
+                        key = keypair.public
+                    )).run("Test".encodeToByteArray())
+                    val decrypted = DefaultAlgorithm.RSA.createCipher(CipherParameters(
+                        padding = Algorithm.Padding.OAEP_SHA1,
+                        mode = Cipher.Mode.DECRYPT,
+                        key = keypair.private
+                    )).run(encrypted)
+                    assertEquals("Test", decrypted.decodeToString())
 
-            val text = "Test".encodeToByteArray()
-            val encrypted = DefaultAlgorithm.AES.createCipher(CBCCipherParameters(
-                padding = Algorithm.Padding.PKCS7,
-                blockMode = Algorithm.BlockMode.CBC,
-                mode = Cipher.Mode.ENCRYPT,
-                key = key,
-                iv = ByteArray(16) { 0 }
-            )).run(text)
-            val decrypted = DefaultAlgorithm.AES.createCipher(CBCCipherParameters(
-                padding = Algorithm.Padding.PKCS7,
-                blockMode = Algorithm.BlockMode.CBC,
-                mode = Cipher.Mode.DECRYPT,
-                key = key,
-                iv = ByteArray(16) { 0 }
-            )).run(encrypted)
-            assertEquals("Test", decrypted.decodeToString())
+                }
         }
     }
 }

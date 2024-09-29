@@ -24,7 +24,8 @@ import io.karma.evince.krypton.internal.openssl.EVP_PKEY_free
 import io.karma.evince.krypton.internal.openssl.EVP_PKEY_get_bits
 import kotlinx.cinterop.CPointer
 
-value class AsymmetricKey(private val key: Key) {
+fun Keypair.Companion.from(private: AsymmetricKey, public: AsymmetricKey): Keypair = Keypair(private.key, public.key)
+value class AsymmetricKey(internal val key: Key) {
     constructor(type: Key.Type, algorithm: Algorithm, usages: Array<Key.Usage>, data: CPointer<EVP_PKEY>)
         : this(Key(type, algorithm, usages, Key.KeyBody.EVPKeyBody(data)))
     fun internalKey(): CPointer<EVP_PKEY> = (key.body as Key.KeyBody.EVPKeyBody).key
@@ -70,8 +71,12 @@ actual class Key internal constructor(
     }
 
 
-    actual enum class Usage {
-        ENCRYPT, DECRYPT, DERIVE, SIGN, VERIFY
+    actual enum class Usage(actual val supportedTypes: Array<Type>) {
+        ENCRYPT(Type.entries.toTypedArray()),
+        DECRYPT(Type.entries.toTypedArray()),
+        DERIVE(arrayOf(Type.PUBLIC, Type.PRIVATE)),
+        SIGN(arrayOf(Type.PUBLIC, Type.PRIVATE)),
+        VERIFY(arrayOf(Type.PUBLIC, Type.PRIVATE))
     }
 
     actual enum class Type {

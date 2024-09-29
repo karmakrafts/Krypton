@@ -19,9 +19,14 @@ package io.karma.evince.krypton
 import io.karma.evince.krypton.impl.DefaultWebCryptoCipher
 import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
+import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
 import js.typedarrays.Uint8Array
 import js.typedarrays.toUint8Array
 import web.crypto.AesKeyGenParams
+import web.crypto.BigInteger
+import web.crypto.CryptoKeyPair
+import web.crypto.KeyAlgorithm
+import web.crypto.RsaHashedKeyGenParams
 import web.crypto.crypto
 
 internal actual class DefaultHashProvider actual constructor(private val algorithm: Algorithm) : Hash {
@@ -45,6 +50,36 @@ internal actual class DefaultSymmetricCipher actual constructor(private val algo
             keyUsages = parameters.usages.toJsUsages()
         )
     )
+
+    override fun createCipher(parameters: CipherParameters): Cipher = DefaultWebCryptoCipher(algorithm, parameters)
+}
+
+internal actual class DefaultAsymmetricCipher actual constructor(private val algorithm: Algorithm) : KeypairGenerator, CipherFactory {
+    override suspend fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair = crypto.subtle.generateKey(
+        algorithm = when(algorithm) {
+            DefaultAlgorithm.RSA -> {
+                when (val padding = parameters.padding ?: algorithm.defaultPadding) {
+                    Algorithm.Padding.OAEP_SHA1, Algorithm.Padding.OAEP_SHA256 -> {
+                        RsaHashedKeyGenParams.invoke(
+                            name = "RSA-OAEP",
+                            publicExponent = Uint8Array(arrayOf(1, 0, 1)),
+                            modulusLength = parameters.bitSize.toInt(),
+                            hash = KeyAlgorithm.invoke(requireNotNull(padding.digest))
+                        )
+                    }
+                    else -> throw IllegalArgumentException("Padding '$padding' is not supported")
+                }
+            }
+            else -> throw IllegalArgumentException("Algorithm '$algorithm' is not supported")
+        },
+        extractable = true,
+        keyUsages = parameters.usages.toJsUsages()
+    ).unsafeCast<CryptoKeyPair>().let { keypair ->
+        Keypair(
+            Key(algorithm, Key.Type.PRIVATE, parameters.usages, keypair.privateKey),
+            Key(algorithm, Key.Type.PUBLIC, parameters.usages, keypair.publicKey)
+        )
+    }
 
     override fun createCipher(parameters: CipherParameters): Cipher = DefaultWebCryptoCipher(algorithm, parameters)
 }

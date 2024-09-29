@@ -17,9 +17,11 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.impl.DefaultOpenSSLCipher
+import io.karma.evince.krypton.impl.internalGenerateKeypairWithNid
 import io.karma.evince.krypton.internal.openssl.*
 import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
+import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
 import io.karma.evince.krypton.utils.checkNotNull
 import io.karma.evince.krypton.utils.withFree
 import kotlinx.cinterop.CPointer
@@ -78,15 +80,30 @@ internal actual class DefaultSymmetricCipher actual constructor(private val algo
         data = requireNotNull(BIO_new(BIO_s_secmem())).also { data ->
             val bitSize = parameters.bitSize.toInt()
             ByteArray(bitSize).usePinned { dataPtr ->
-                if (RAND_bytes(dataPtr.addressOf(0).reinterpret(), bitSize) != 1)
-                    throw KryptonException(
-                        message = "Unable to generate random data for key",
-                        cause = OpenSSLException.create()
-                    )
+                if (RAND_bytes(dataPtr.addressOf(0).reinterpret(), bitSize) != 1) {
+                    throw KryptonException("Unable to generate random data for key", OpenSSLException.create())
+                }
                 BIO_write(data, dataPtr.addressOf(0), bitSize)
             }
         }
     ).key
 
+    override fun createCipher(parameters: CipherParameters): Cipher = DefaultOpenSSLCipher(algorithm, parameters)
+}
+
+internal actual class DefaultAsymmetricCipher actual constructor(private val algorithm: Algorithm) : KeypairGenerator, CipherFactory {
+    override suspend fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair = when(algorithm) {
+        DefaultAlgorithm.RSA -> internalGenerateKeypairWithNid<KeypairGeneratorParameters>(
+            nid = EVP_PKEY_RSA,
+            algorithm = algorithm,
+            parameters = parameters,
+            contextConfigurator = { context, params ->
+                if (EVP_PKEY_CTX_set_rsa_keygen_bits(context, params.bitSize.toInt()) != 1) {
+                    throw InitializationException("Unable to set key generation bits for keypair generator", OpenSSLException.create())
+                }
+            }
+        )
+        else -> throw IllegalArgumentException("Unsupported algorithm '${algorithm.literal}'")
+    }
     override fun createCipher(parameters: CipherParameters): Cipher = DefaultOpenSSLCipher(algorithm, parameters)
 }

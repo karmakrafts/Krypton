@@ -28,12 +28,12 @@ actual class Key(
 ) : AutoCloseable {
     actual override fun close() {} // Not needed on JS
 
-    actual enum class Usage(internal val jsUsages: Array<KeyUsage>) {
-        ENCRYPT(arrayOf(KeyUsage.encrypt)),
-        DECRYPT(arrayOf(KeyUsage.decrypt)),
-        DERIVE(arrayOf(KeyUsage.deriveBits, KeyUsage.deriveKey)),
-        SIGN(arrayOf(KeyUsage.sign)),
-        VERIFY(arrayOf(KeyUsage.verify))
+    actual enum class Usage(actual val supportedTypes: Array<Type>, internal val jsUsages: Array<KeyUsage>) {
+        ENCRYPT(Type.entries.toTypedArray(), arrayOf(KeyUsage.encrypt)),
+        DECRYPT(Type.entries.toTypedArray(), arrayOf(KeyUsage.decrypt)),
+        DERIVE(arrayOf(Type.PUBLIC, Type.PRIVATE), arrayOf(KeyUsage.deriveBits, KeyUsage.deriveKey)),
+        SIGN(arrayOf(Type.PUBLIC, Type.PRIVATE), arrayOf(KeyUsage.sign)),
+        VERIFY(arrayOf(Type.PUBLIC, Type.PRIVATE), arrayOf(KeyUsage.verify))
     }
 
     actual enum class Type {

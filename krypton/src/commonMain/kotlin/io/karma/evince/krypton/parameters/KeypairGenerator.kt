@@ -17,41 +17,23 @@
 package io.karma.evince.krypton.parameters
 
 import io.karma.evince.krypton.Algorithm
-import io.karma.evince.krypton.Cipher
 import io.karma.evince.krypton.Key
 
 /**
+ * This class implements the default KeypairGenerator parameters. These parameters are specified to tell the keypair generator more about
+ * the key you want to generate.
+ *
+ * @param bitSize   The size in bits of the key
+ * @param usages    The key's usages
+ * @param blockMode The algorithm's block mode
+ * @param padding   The padding used
+ *
  * @author Cedric Hammes
  * @since  29/09/2024
  */
-open class CipherParameters(
-    val mode: Cipher.Mode,
-    val key: Key,
+open class KeypairGeneratorParameters(
+    val bitSize: UShort,
+    val usages: Array<Key.Usage>,
     val blockMode: Algorithm.BlockMode? = null,
     val padding: Algorithm.Padding? = null
 )
-
-/**
- * @author Cedric Hammes
- * @since  29/09/2024
- */
-open class CBCCipherParameters(
-    mode: Cipher.Mode,
-    key: Key,
-    val iv: ByteArray,
-    blockMode: Algorithm.BlockMode? = null,
-    padding: Algorithm.Padding? = null
-): CipherParameters(mode, key, blockMode, padding)
-
-/**
- * @author Cedric Hammes
- * @since  29/09/2024
- */
-class GCMCipherParameters(
-    mode: Cipher.Mode,
-    key: Key,
-    iv: ByteArray,
-    val tagLength: Int,
-    blockMode: Algorithm.BlockMode? = null,
-    padding: Algorithm.Padding? = null
-) : CBCCipherParameters(mode, key, iv, blockMode, padding)

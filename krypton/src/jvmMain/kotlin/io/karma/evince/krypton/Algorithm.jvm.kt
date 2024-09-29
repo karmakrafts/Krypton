@@ -21,11 +21,13 @@ import io.karma.evince.krypton.parameters.CBCCipherParameters
 import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.GCMCipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
+import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
 import java.security.MessageDigest
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 
 private typealias JavaKeyGenerator = javax.crypto.KeyGenerator
+private typealias JavaKeyPairGenerator = java.security.KeyPairGenerator
 
 internal actual class DefaultHashProvider actual constructor(algorithm: Algorithm) : Hash {
     private val messageDigest: MessageDigest = MessageDigest.getInstance(algorithm.literal)
@@ -46,4 +48,16 @@ internal actual class DefaultSymmetricCipher actual constructor(private val algo
         keyGenerator.init(parameters.bitSize.toInt())
         return Key(keyGenerator.generateKey(), algorithm, parameters.usages)
     }
+}
+
+internal actual class DefaultAsymmetricCipher actual constructor(private val algorithm: Algorithm) : KeypairGenerator, CipherFactory {
+    private val keypairGenerator: JavaKeyPairGenerator = JavaKeyPairGenerator.getInstance(algorithm.literal)
+
+    override suspend fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair {
+        keypairGenerator.initialize(parameters.bitSize.toInt())
+        val keypair = keypairGenerator.generateKeyPair()
+        return Keypair(Key(keypair.private, algorithm, parameters.usages), Key(keypair.public, algorithm, parameters.usages))
+    }
+
+    override fun createCipher(parameters: CipherParameters): Cipher = DefaultJavaCipher(algorithm, parameters) { _ -> null }
 }

@@ -21,7 +21,7 @@ import io.karma.evince.krypton.Key
 
 /**
  * This class implements the default KeyGenerator parameters. These parameters are specified to tell the key generator more about the key
- * you want to register.
+ * you want to generate.
  *
  * @param bitSize The size in bits of the key
  * @param usages  The key's usages

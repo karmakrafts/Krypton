@@ -19,9 +19,11 @@ package io.karma.evince.krypton
 import io.karma.evince.krypton.annotations.UnstableKryptonAPI
 import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
+import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
 
 internal expect class DefaultHashProvider(algorithm: Algorithm) : Hash
 internal expect class DefaultSymmetricCipher(algorithm: Algorithm) : KeyGenerator, CipherFactory
+internal expect class DefaultAsymmetricCipher(algorithm: Algorithm) : KeypairGenerator, CipherFactory
 
 /**
  * This enum provides the by-default available algorithms surely supported by the Krypton library itself. This enum contains both deprecated
@@ -62,7 +64,7 @@ enum class DefaultAlgorithm(
     @Deprecated("MD5 is deprecated <https://en.wikipedia.org/wiki/MD5#Overview_of_security_issues>")
     MD5(
         literal = "MD5",
-        cryptoProvider = lazy { DefaultHashProvider(MD5) },
+        cryptoProvider = @Suppress("DEPRECATION") lazy { DefaultHashProvider(MD5) },
         supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
     ),
 
@@ -78,7 +80,7 @@ enum class DefaultAlgorithm(
     @Deprecated("SHA-1 is deprecated <https://en.wikipedia.org/wiki/SHA-1>")
     SHA1(
         literal = "SHA-1",
-        cryptoProvider = lazy { DefaultHashProvider(SHA1) }
+        cryptoProvider = @Suppress("DEPRECATION") lazy { DefaultHashProvider(SHA1) }
     ),
 
     /**
@@ -94,7 +96,7 @@ enum class DefaultAlgorithm(
     @Deprecated("SHA-2 is deprecated <https://en.wikipedia.org/wiki/SHA>")
     SHA224(
         literal = "SHA-224",
-        cryptoProvider = lazy { DefaultHashProvider(SHA224) }
+        cryptoProvider = @Suppress("DEPRECATION") lazy { DefaultHashProvider(SHA224) }
     ),
 
     /**
@@ -110,7 +112,7 @@ enum class DefaultAlgorithm(
     @Deprecated("SHA-2 is deprecated <https://en.wikipedia.org/wiki/SHA>")
     SHA256(
         literal = "SHA-256",
-        cryptoProvider = lazy { DefaultHashProvider(SHA256) }
+        cryptoProvider = @Suppress("DEPRECATION") lazy { DefaultHashProvider(SHA256) }
     ),
 
     /**
@@ -126,7 +128,7 @@ enum class DefaultAlgorithm(
     @Deprecated("SHA-2 is deprecated <https://en.wikipedia.org/wiki/SHA>")
     SHA384(
         literal = "SHA-384",
-        cryptoProvider = lazy { DefaultHashProvider(SHA384) }
+        cryptoProvider = @Suppress("DEPRECATION") lazy { DefaultHashProvider(SHA384) }
     ),
 
     /**
@@ -142,7 +144,7 @@ enum class DefaultAlgorithm(
     @Deprecated("SHA-2 is deprecated <https://en.wikipedia.org/wiki/SHA>")
     SHA512(
         literal = "SHA-512",
-        cryptoProvider = lazy { DefaultHashProvider(SHA512) }
+        cryptoProvider = @Suppress("DEPRECATION") lazy { DefaultHashProvider(SHA512) }
     ),
 
     /**
@@ -228,7 +230,7 @@ enum class DefaultAlgorithm(
      */
     RSA(
         literal = "RSA",
-        cryptoProvider = lazy { TODO() },
+        cryptoProvider = lazy { DefaultAsymmetricCipher(RSA) },
         supportedBlockModes = arrayOf(Algorithm.BlockMode.ECB),
         supportedPaddings = arrayOf(
             Algorithm.Padding.NONE,
@@ -258,7 +260,7 @@ enum class DefaultAlgorithm(
         supportedPaddings = arrayOf(Algorithm.Padding.NONE, Algorithm.Padding.PKCS1),
         supportedBitSizes = ushortArrayOf(128U, 192U, 256U),
         defaultBlockMode = Algorithm.BlockMode.CBC,
-        defaultPadding = Algorithm.Padding.PKCS7,
+        defaultPadding = Algorithm.Padding.PKCS5,
         blockSize = 128U
     ),
 
@@ -379,8 +381,6 @@ interface Algorithm {
      * This function validates whether this algorithm supports key generation by checking the crypto provider. If this check is successful
      * it takes the parameters and generates a key from it.
      *
-     * TODO: Add parameters
-     *
      * @param parameters The parameters used for the key generation
      * @return           The generated key
      *
@@ -394,14 +394,13 @@ interface Algorithm {
      * This function validates whether this algorithm supports keypair generation by checking the crypto provider. If this check is
      * successful it takes the parameters and generates a key from it.
      *
-     * TODO: Add parameters
-     *
      * @return The generated private-public keypair
      *
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun generateKeypair(): KeyPair = cryptoProvider<KeypairGenerator>("Keypair generation").generateKeypair()
+    suspend fun generateKeypair(parameters: KeypairGeneratorParameters): Keypair = cryptoProvider<KeypairGenerator>("Keypair generation")
+        .generateKeypair(parameters)
 
     /**
      * @author Cedric Hammes
@@ -477,13 +476,13 @@ interface Algorithm {
      *
      * @see [Padding, Wikipedia](https://en.wikipedia.org/wiki/Padding_(cryptography))
      */
-    enum class Padding(private val literal: String, internal val digest: String?) {
-        NONE("NoPadding", null),
-        PKCS5("PKCS5Padding", null),
-        PKCS7("PKCS7Padding", null), // TODO: This is the only available on JS for AES-GCM
-        PKCS1("PKCS1Padding", null),
-        OAEP_SHA1("OAEPWithSHA-1AndMGF1Padding", "SHA-1"),
-        OAEP_SHA256("OAEPWithSHA-256AndMGF1Padding", "SHA-256");
+    enum class Padding(private val literal: String, internal val digest: String?, internal val genericName: String) {
+        NONE("NoPadding", null, "NONE"),
+        PKCS5("PKCS5Padding", null, "PKCS5"),
+        PKCS7("PKCS7Padding", null, "PKCS7"), // TODO: This is the only available on JS for AES-GCM
+        PKCS1("PKCS1Padding", null, "PKCS1"),
+        OAEP_SHA1("OAEPWithSHA-1AndMGF1Padding", "SHA-1", "OAEP"),
+        OAEP_SHA256("OAEPWithSHA-256AndMGF1Padding", "SHA-256", "OAEP");
 
         override fun toString(): String = literal
     }

@@ -16,18 +16,22 @@
 
 package io.karma.evince.krypton
 
-import io.karma.evince.krypton.parameters.KeyGeneratorParameters
+import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
 import io.kotest.core.spec.style.ShouldSpec
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
-class KeyGeneratorTests : ShouldSpec() {
+class KeypairGeneratorTests : ShouldSpec() {
     init {
-        should("test AES") {
+        should("test RSA") {
             val usages = arrayOf(Key.Usage.ENCRYPT, Key.Usage.DECRYPT)
-            DefaultAlgorithm.AES.generateKey(KeyGeneratorParameters(128U, usages)).use { key ->
-                assertEquals(key.algorithm, DefaultAlgorithm.AES)
-                assertEquals(key.type, Key.Type.OTHER)
-                assertEquals(key.usages, usages)
+            DefaultAlgorithm.RSA.generateKeypair(KeypairGeneratorParameters(2048U, usages)).use { keypair ->
+                assertEquals(DefaultAlgorithm.RSA, keypair.public.algorithm)
+                assertEquals(Key.Type.PUBLIC, keypair.public.type)
+                assertTrue { usages.contentEquals(keypair.public.usages) }
+                assertEquals(DefaultAlgorithm.RSA, keypair.private.algorithm)
+                assertEquals(Key.Type.PRIVATE, keypair.private.type)
+                assertTrue { usages.contentEquals(keypair.private.usages) }
             }
         }
     }

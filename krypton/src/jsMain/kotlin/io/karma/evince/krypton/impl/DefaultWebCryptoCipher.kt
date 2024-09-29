@@ -49,10 +49,10 @@ class DefaultWebCryptoCipher(private val algorithm: Algorithm, private val param
                     additionalData = aad?.toUint8Array()
                 )
             }
+
             else -> throw IllegalArgumentException("Block mode '$blockMode' for '${algorithm.literal}' is not supported")
         }
 
-        else -> throw IllegalArgumentException("Algorithm '${algorithm.literal}' is not supported")
+        else -> WebCryptoAlgorithm.invoke("${algorithm.literal}-${(parameters.padding ?: algorithm.defaultPadding)!!.genericName}")
     }
 }
-

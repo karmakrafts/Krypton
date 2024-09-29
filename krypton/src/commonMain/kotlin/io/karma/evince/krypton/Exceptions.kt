@@ -42,3 +42,12 @@ class InitializationException internal constructor(message: String, cause: Throw
  * @since  29/09/2024
  */
 class CipherException internal constructor(message: String, cause: Throwable? = null) : KryptonException(message, cause)
+
+/**
+ * This exception is thrown if a error occurs while operating with a key generator or keypair generator after the initialization step. On
+ * Native targets, the cause is an OpenSSL exception with all errors extracted from PpenSSL.
+ *
+ * @author Cedric Hammes
+ * @since  29/09/2024
+ */
+class GeneratorException internal constructor(message: String, cause: Throwable? = null) : KryptonException(message, cause)

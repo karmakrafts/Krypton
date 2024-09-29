@@ -40,13 +40,16 @@ actual class Key(val javaKey: JavaKey, actual val algorithm: Algorithm, actual v
 
     actual override fun close() {} // Not needed on JVM
 
-    actual enum class Usage {
-        ENCRYPT, DECRYPT, DERIVE, SIGN, VERIFY
+    actual enum class Usage(actual val supportedTypes: Array<Type>) {
+        ENCRYPT(Type.entries.toTypedArray()),
+        DECRYPT(Type.entries.toTypedArray()),
+        DERIVE(arrayOf(Type.PUBLIC, Type.PRIVATE)),
+        SIGN(arrayOf(Type.PUBLIC, Type.PRIVATE)),
+        VERIFY(arrayOf(Type.PUBLIC, Type.PRIVATE))
     }
 
     actual enum class Type(private val literal: String) {
         PUBLIC("public"), PRIVATE("private"), OTHER("symmetric");
         override fun toString(): String = literal
     }
-
 }

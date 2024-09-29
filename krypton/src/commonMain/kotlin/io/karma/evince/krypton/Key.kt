@@ -16,11 +16,13 @@
 
 package io.karma.evince.krypton
 
-data class KeyPair(val private: Key, val public: Key) : AutoCloseable {
+data class Keypair(val private: Key, val public: Key) : AutoCloseable {
     override fun close() {
         private.close()
         public.close()
     }
+
+    companion object
 }
 
 expect class Key : AutoCloseable {
@@ -34,7 +36,9 @@ expect class Key : AutoCloseable {
         DECRYPT,
         DERIVE,
         SIGN,
-        VERIFY
+        VERIFY;
+
+        val supportedTypes: Array<Type>
     }
 
     enum class Type {
@@ -43,3 +47,5 @@ expect class Key : AutoCloseable {
         OTHER
     }
 }
+
+fun Array<Key.Usage>.forType(type: Key.Type): Array<Key.Usage> = filter { it.supportedTypes.contains(type) }.toTypedArray()
