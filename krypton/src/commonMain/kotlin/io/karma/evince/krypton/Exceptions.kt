@@ -26,10 +26,19 @@ package io.karma.evince.krypton
 open class KryptonException internal constructor(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
 
 /**
- * This exception is thrown if a error occurs while initializing a component or a temporary generator etc. On Native targets, the cause
- * contains an OpenSSL exception with all errors extracted from OpenSSL.
+ * This exception is thrown if a error occurs while initializing a component or a temporary generator etc. On Native targets, the cause is
+ * an OpenSSL exception with all errors extracted from OpenSSL.
  *
  * @author Cedric Hammes
  * @since  29/09/2024
  */
 class InitializationException internal constructor(message: String, cause: Throwable? = null) : KryptonException(message, cause)
+
+/**
+ * This exception is thrown if a error occurs while operating with a cipher after the initialisation step. On Native targets, the cause is
+ * an OpenSSL exception with all errors extracted from OpenSSL.
+ *
+ * @author Cedric Hammes
+ * @since  29/09/2024
+ */
+class CipherException internal constructor(message: String, cause: Throwable? = null) : KryptonException(message, cause)

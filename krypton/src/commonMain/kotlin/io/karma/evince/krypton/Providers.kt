@@ -16,6 +16,7 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 
 /**
@@ -40,18 +41,12 @@ interface Hash : CryptoProvider {
  * @author Cedric Hammes
  * @since  29/09/2024
  */
-interface Cipher : CryptoProvider { // TODO: Add parameters and key
+interface CipherFactory : CryptoProvider {
     /**
      * @author Cedric Hammes
      * @since  29/09/2024
      */
-    suspend fun encrypt(key: Any, input: ByteArray, aad: ByteArray?): ByteArray
-
-    /**
-     * @author Cedric Hammes
-     * @since  29/09/2024
-     */
-    suspend fun decrypt(key: Any, input: ByteArray, aad: ByteArray?): ByteArray
+    fun createCipher(parameters: CipherParameters): Cipher
 }
 
 /**

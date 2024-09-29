@@ -43,6 +43,8 @@ actual class Key internal constructor(
     actual val usages: Array<Usage>,
     val body: KeyBody
 ) : AutoCloseable {
+    internal fun size() = body.size()
+
     actual override fun close() {
         body.close()
     }

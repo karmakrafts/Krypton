@@ -17,10 +17,11 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.annotations.UnstableKryptonAPI
+import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 
 internal expect class DefaultHashProvider(algorithm: Algorithm) : Hash
-internal expect class DefaultSymmetricCipher(algorithm: Algorithm) : KeyGenerator
+internal expect class DefaultSymmetricCipher(algorithm: Algorithm) : KeyGenerator, CipherFactory
 
 /**
  * This enum provides the by-default available algorithms surely supported by the Krypton library itself. This enum contains both deprecated
@@ -257,7 +258,7 @@ enum class DefaultAlgorithm(
         supportedPaddings = arrayOf(Algorithm.Padding.NONE, Algorithm.Padding.PKCS1),
         supportedBitSizes = ushortArrayOf(128U, 192U, 256U),
         defaultBlockMode = Algorithm.BlockMode.CBC,
-        defaultPadding = Algorithm.Padding.NONE,
+        defaultPadding = Algorithm.Padding.PKCS7,
         blockSize = 128U
     ),
 
@@ -403,6 +404,12 @@ interface Algorithm {
     suspend fun generateKeypair(): KeyPair = cryptoProvider<KeypairGenerator>("Keypair generation").generateKeypair()
 
     /**
+     * @author Cedric Hammes
+     * @since  29/09/2024
+     */
+    fun createCipher(parameters: CipherParameters): Cipher = cryptoProvider<CipherFactory>("cipher factory").createCipher(parameters)
+
+    /**
      * This enum defines the block modes available in Krypton. Block modes are defining how a block cipher is encrypting data and can help
      * to ensure the authenticity of a message.
      *
@@ -473,11 +480,11 @@ interface Algorithm {
     enum class Padding(private val literal: String, internal val digest: String?) {
         NONE("NoPadding", null),
         PKCS5("PKCS5Padding", null),
+        PKCS7("PKCS7Padding", null), // TODO: This is the only available on JS for AES-GCM
         PKCS1("PKCS1Padding", null),
         OAEP_SHA1("OAEPWithSHA-1AndMGF1Padding", "SHA-1"),
         OAEP_SHA256("OAEPWithSHA-256AndMGF1Padding", "SHA-256");
 
         override fun toString(): String = literal
     }
-
 }

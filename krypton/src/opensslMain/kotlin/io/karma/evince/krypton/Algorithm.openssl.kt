@@ -16,7 +16,9 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.impl.DefaultOpenSSLCipher
 import io.karma.evince.krypton.internal.openssl.*
+import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import io.karma.evince.krypton.utils.checkNotNull
 import io.karma.evince.krypton.utils.withFree
@@ -68,7 +70,7 @@ internal actual class DefaultHashProvider actual constructor(private val algorit
     }
 }
 
-internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator {
+internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator, CipherFactory {
     override suspend fun generateKey(parameters: KeyGeneratorParameters): Key = SymmetricKey(
         type = Key.Type.OTHER,
         algorithm = algorithm,
@@ -85,4 +87,6 @@ internal actual class DefaultSymmetricCipher actual constructor(private val algo
             }
         }
     ).key
+
+    override fun createCipher(parameters: CipherParameters): Cipher = DefaultOpenSSLCipher(algorithm, parameters)
 }

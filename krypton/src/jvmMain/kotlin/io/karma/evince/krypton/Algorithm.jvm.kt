@@ -16,8 +16,14 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.impl.DefaultJavaCipher
+import io.karma.evince.krypton.parameters.CBCCipherParameters
+import io.karma.evince.krypton.parameters.CipherParameters
+import io.karma.evince.krypton.parameters.GCMCipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import java.security.MessageDigest
+import javax.crypto.spec.GCMParameterSpec
+import javax.crypto.spec.IvParameterSpec
 
 private typealias JavaKeyGenerator = javax.crypto.KeyGenerator
 
@@ -26,8 +32,16 @@ internal actual class DefaultHashProvider actual constructor(algorithm: Algorith
     override suspend fun hash(input: ByteArray): ByteArray = messageDigest.digest(input)
 }
 
-internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator {
-    private val keyGenerator: JavaKeyGenerator = JavaKeyGenerator.getInstance(algorithm.literal)
+internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator, CipherFactory {
+    private val keyGenerator: JavaKeyGenerator by lazy { JavaKeyGenerator.getInstance(algorithm.literal) }
+    override fun createCipher(parameters: CipherParameters): Cipher = DefaultJavaCipher(algorithm, parameters) { _ ->
+        when(parameters.blockMode ?: algorithm.defaultBlockMode) {
+            Algorithm.BlockMode.CBC -> IvParameterSpec((parameters as CBCCipherParameters).iv)
+            Algorithm.BlockMode.GCM -> (parameters as GCMCipherParameters).let { GCMParameterSpec(it.tagLength, it.iv) }
+            else -> null
+        }
+    }
+
     override suspend fun generateKey(parameters: KeyGeneratorParameters): Key {
         keyGenerator.init(parameters.bitSize.toInt())
         return Key(keyGenerator.generateKey(), algorithm, parameters.usages)

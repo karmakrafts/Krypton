@@ -16,6 +16,8 @@
 
 package io.karma.evince.krypton
 
+import io.karma.evince.krypton.impl.DefaultWebCryptoCipher
+import io.karma.evince.krypton.parameters.CipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import js.typedarrays.Uint8Array
 import js.typedarrays.toUint8Array
@@ -27,7 +29,7 @@ internal actual class DefaultHashProvider actual constructor(private val algorit
         .toByteArray()
 }
 
-internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator {
+internal actual class DefaultSymmetricCipher actual constructor(private val algorithm: Algorithm) : KeyGenerator, CipherFactory {
     override suspend fun generateKey(parameters: KeyGeneratorParameters): Key = Key(
         algorithm = algorithm,
         type = Key.Type.OTHER,
@@ -43,4 +45,6 @@ internal actual class DefaultSymmetricCipher actual constructor(private val algo
             keyUsages = parameters.usages.toJsUsages()
         )
     )
+
+    override fun createCipher(parameters: CipherParameters): Cipher = DefaultWebCryptoCipher(algorithm, parameters)
 }
