@@ -17,7 +17,9 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.parameters.CipherParameters
+import io.karma.evince.krypton.parameters.KDFParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
+import io.karma.evince.krypton.parameters.KeyParameters
 import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
 import io.karma.evince.krypton.parameters.ParameterGeneratorParameters
 import io.karma.evince.krypton.parameters.Parameters
@@ -117,4 +119,27 @@ interface ParameterGenerator : CryptoProvider {
      * @since  30/09/2024
      */
     fun <T: Parameters> generateParameters(parameters: ParameterGeneratorParameters): T
+}
+
+/**
+ * This interface provides the template for the implementation of key derivation functions (KDF) into Krypton algorithms. It allows to
+ * derive a new key from arbitrary data arrays.
+ *
+ * @author Cedric Hammes
+ * @since  30/09/2024
+ */
+interface KeyDerivationFunction : CryptoProvider {
+    /**
+     * This function takes the input, the key properties like usages and some parameters for the KDF and derives a new Krypton-compatible
+     * key out of it.
+     *
+     * @param input         The input data to derive the key from
+     * @param keyParameters The parameters for the derived key
+     * @param kdfParameters The parameters for the derivation function
+     * @return              The derived key itself
+     *
+     * @author Cedric Hammes
+     * @since  30/09/2024
+     */
+    fun deriveKey(input: ByteArray, keyParameters: KeyParameters, kdfParameters: KDFParameters): Key
 }

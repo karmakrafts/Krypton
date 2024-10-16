@@ -7,11 +7,11 @@ Multiplatform. This library uses the system dependency and other external librar
 the risk of more bugs in the cryptological core. Below this text you can see a list of the implemented algorithms, hash    
 functions and more:
 
-- **Hash Functions:** SHA-1, SHA-2 family, SHA-3 family and MD5
+- **Hash Functions:** SHA-1, SHA-2 family, SHA-3 family, the Argon2 family and MD5
 - **Ciphers:** AES and RSA
 - **Signatures**: RSA
 - **Key Agreements:** DH and ECDH
-- **Elliptic curves:** All curves supported
+- **Key derivation functions:** HKDF, PBKDF2, and the Argon2 family
 
 Below this text you can see the list of backends used on different platforms:
 

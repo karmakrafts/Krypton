@@ -4,3 +4,4 @@ build/
 local.properties
 *.lockfile
 .dependency-report.json
+scripts/openssl

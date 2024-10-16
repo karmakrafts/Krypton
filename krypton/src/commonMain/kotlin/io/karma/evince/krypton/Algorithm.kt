@@ -17,7 +17,9 @@
 package io.karma.evince.krypton
 
 import io.karma.evince.krypton.annotations.UnstableKryptonAPI
+import io.karma.evince.krypton.parameters.CBCCipherParameters
 import io.karma.evince.krypton.parameters.CipherParameters
+import io.karma.evince.krypton.parameters.GCMCipherParameters
 import io.karma.evince.krypton.parameters.KeyGeneratorParameters
 import io.karma.evince.krypton.parameters.KeypairGeneratorParameters
 import io.karma.evince.krypton.parameters.ParameterGeneratorParameters
@@ -52,7 +54,6 @@ enum class DefaultAlgorithm(
     override val bitSizePredicate: (UShort) -> Boolean = { true },
     override val blockSize: UShort? = null,
     override val supportedBlockModes: Array<Algorithm.BlockMode> = emptyArray(),
-    override val supportedPlatforms: Array<Platform> = Platform.entries.toTypedArray(),
     override val supportedPaddings: Array<Algorithm.Padding> = emptyArray(),
     override val defaultBlockMode: Algorithm.BlockMode? = null,
     override val defaultPadding: Algorithm.Padding? = null
@@ -69,8 +70,7 @@ enum class DefaultAlgorithm(
     @Deprecated("MD5 is deprecated <https://en.wikipedia.org/wiki/MD5#Overview_of_security_issues>")
     MD5(
         literal = "MD5",
-        cryptoProvider = @Suppress("DEPRECATION") lazy { DefaultHashProvider(MD5) },
-        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
+        cryptoProvider = @Suppress("DEPRECATION") lazy { DefaultHashProvider(MD5) }
     ),
 
     /**
@@ -164,8 +164,7 @@ enum class DefaultAlgorithm(
      */
     SHA3_224(
         literal = "SHA3-224",
-        cryptoProvider = lazy { DefaultHashProvider(SHA3_224) },
-        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
+        cryptoProvider = lazy { DefaultHashProvider(SHA3_224) }
     ),
 
     /**
@@ -180,8 +179,7 @@ enum class DefaultAlgorithm(
      */
     SHA3_256(
         literal = "SHA3-256",
-        cryptoProvider = lazy { DefaultHashProvider(SHA3_256) },
-        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
+        cryptoProvider = lazy { DefaultHashProvider(SHA3_256) }
     ),
 
     /**
@@ -196,8 +194,7 @@ enum class DefaultAlgorithm(
      */
     SHA3_384(
         literal = "SHA3-384",
-        cryptoProvider = lazy { DefaultHashProvider(SHA3_384) },
-        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
+        cryptoProvider = lazy { DefaultHashProvider(SHA3_384) }
     ),
 
     /**
@@ -212,8 +209,7 @@ enum class DefaultAlgorithm(
      */
     SHA3_512(
         literal = "SHA3-512",
-        cryptoProvider = lazy { DefaultHashProvider(SHA3_512) },
-        supportedPlatforms = Platform.entries.filter { !it.isJS() }.toTypedArray()
+        cryptoProvider = lazy { DefaultHashProvider(SHA3_512) }
     ),
 
     /**
@@ -270,9 +266,8 @@ enum class DefaultAlgorithm(
     ),
 
     /**
-     * The DH (Diffie-Hellman) algorithm is a key agreement algorithm created in 1976. This algorithm is used for the
-     * key agreement in the TLS protocol. According to the NIST's Recommendation for Key Management the key length 2048
-     * is recommended. It can be broken by Shor's algorithm.
+     * DH (Diffie-Hellman) is a key agreement algorithm created in 1976. This algorithm is used for the key agreement in the TLS protocol.
+     * According to the NIST's Recommendation for Key Management the key length 2048 is recommended. It can be broken by Shor's algorithm.
      *
      * @author Cedric Hammes
      * @since  09/09/2024
@@ -283,13 +278,11 @@ enum class DefaultAlgorithm(
     DH(
         literal = "DH",
         cryptoProvider = lazy { DefaultKeyAgreement(DH) },
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
         supportedBitSizes = ushortArrayOf(1024U, 2048U, 4096U, 8192U)
     ),
 
     /**
-     * The ECDH (Elliptic-Curve Diffie-Hellman) is the elliptic-curve equivalent of the Diffie-Hellman key agreement algorithm. The
+     * ECDH (Elliptic-Curve Diffie-Hellman) is the elliptic-curve equivalent of the Diffie-Hellman key agreement algorithm. The
      * advantage of ECDH is the higher security with lower key sizes compared to DH. This algorithm is used in the Signal Protocol and
      * other implementations. It can be broken by Shor's algorithm.
      *
@@ -302,12 +295,87 @@ enum class DefaultAlgorithm(
     ECDH(
         literal = "ECDH",
         cryptoProvider = lazy { DefaultKeyAgreement(ECDH) },
-        supportedBlockModes = emptyArray(),
-        supportedPaddings = emptyArray(),
-        supportedBitSizes = ushortArrayOf(128U, 192U, 256U),
-        defaultBlockMode = null,
-        defaultPadding = null,
-        supportedPlatforms = Platform.entries.toTypedArray()
+        supportedBitSizes = ushortArrayOf(128U, 192U, 256U)
+    ),
+
+    /**
+     * PBKDF2 (Password-based key derivation function 2) is a key derivation function (KDF) with a computational cost. Like HKDF, PBKDF2 is
+     * widely available in almost all programming languages and ecosystems. PBKDF2 comes with a few weaknesses and other candidates like
+     * HKDF or Argon2 should be preferred over PBKDF2.
+     *
+     * @author Cedric Hammes
+     * @since  30/09/2024
+     *
+     * @see [Wikipedia, PBKDF2](https://en.wikipedia.org/wiki/PBKDF2)
+     */
+    @Deprecated("PBKDF2 should not be used <https://en.wikipedia.org/wiki/PBKDF2#Alternatives_to_PBKDF2>")
+    PBKDF2(
+        literal = "PBKDF2",
+        cryptoProvider = lazy { TODO() }
+    ),
+
+    /**
+     * HKDF is a key derivation function (KDF) based on the HMAC (Hash-based message authentication code) message authentication code and is
+     * widely available in almost all programming languages and ecosystems. HDKF follows the extract-then expand paradigm by extracting a
+     * pseudorandom key out of the data and then expand the key into several pseudorandom keys.
+     *
+     * @author Cedric Hammes
+     * @since  30/09/2024
+     *
+     * @see [Wikipedia, HKDF](https://en.wikipedia.org/wiki/HKDF)
+     * @see [Wikipedia, MAC](https://en.wikipedia.org/wiki/Message_authentication_code)
+     * @see [Wikipedia, HMAC](https://en.wikipedia.org/wiki/HMAC)
+     */
+    HKDF(
+        literal = "HKDF",
+        cryptoProvider = lazy { TODO() },
+    ),
+
+    /**
+     * Argon2i is a side-channel resistant variant of the Argon2 key derivation function (KDF) and the winner of the 2015 Password Hashing
+     * Competition. Against this variant 2 cryptanalysis are available.but one is only applicable to an old version.
+     *
+     * @author Cedric Hammes
+     * @since  30/09/2024
+     *
+     * @see [IETF, RFC9106](https://datatracker.ietf.org/doc/html/rfc9106)
+     * @see [Wikipedia, Argon2](https://en.wikipedia.org/wiki/Argon2)
+     */
+    Argon2i(
+        literal = "Argon2i",
+        cryptoProvider = lazy { TODO() }
+    ),
+
+    /**
+     * Argon2d is a GPU cracking attack resistant variant of the Argon2 key derivation function (KDF) and the winner of the 2015 Password
+     * Hashing Competition. No public cryptanalysis against Argon2d is available but it introduces possibilities against side-channel
+     * attacks.
+     *
+     * @author Cedric Hammes
+     * @since  30/09/2024
+     *
+     * @see [IETF, RFC9106](https://datatracker.ietf.org/doc/html/rfc9106)
+     * @see [Wikipedia, Argon2](https://en.wikipedia.org/wiki/Argon2)
+     */
+    Argon2d(
+        literal = "Argon2d",
+        cryptoProvider = lazy { TODO() }
+    ),
+
+    /**
+     * Argon2id is a hybrid variant of the Argon2 key derivation function (KDF) and the winner of the 2015 Password Hashing Competition that
+     * provides security against side-channel attacks and GPU cracking attacks. If side-channel attacks are a viable threat on your setup,
+     * RFC 9106 recommends the usage of Argon2id.
+     *
+     * @author Cedric Hammes
+     * @since  30/09/2024
+     *
+     * @see [IETF, RFC9106](https://datatracker.ietf.org/doc/html/rfc9106)
+     * @see [Wikipedia, Argon2](https://en.wikipedia.org/wiki/Argon2)
+     */
+    Argon2id(
+        literal = "Argon2id",
+        cryptoProvider = lazy { TODO() }
     );
 
     constructor(
@@ -316,7 +384,6 @@ enum class DefaultAlgorithm(
         supportedBitSizes: UShortArray,
         blockSize: UShort? = null,
         supportedBlockModes: Array<Algorithm.BlockMode> = emptyArray(),
-        supportedPlatforms: Array<Platform> = Platform.entries.toTypedArray(),
         supportedPaddings: Array<Algorithm.Padding> = emptyArray(),
         defaultBlockMode: Algorithm.BlockMode? = null,
         defaultPadding: Algorithm.Padding? = null
@@ -326,7 +393,6 @@ enum class DefaultAlgorithm(
         { supportedBitSizes.contains(it) },
         blockSize,
         supportedBlockModes,
-        supportedPlatforms,
         supportedPaddings,
         defaultBlockMode,
         defaultPadding
@@ -356,7 +422,6 @@ interface Algorithm {
     // Supported
     val supportedBlockModes: Array<BlockMode>
     val supportedPaddings: Array<Padding>
-    val supportedPlatforms: Array<Platform>
 
     // Defaults
     val defaultPadding: Padding?
@@ -367,12 +432,20 @@ interface Algorithm {
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun hashToString(input: ByteArray): String = hash(input).toHexString()
 
+    /**
+     * This function uses the specified type to check if this algorithm supports the operation chosen by the developer. If yes, the provider
+     * type is being casted into T, otherwise this function returns an exception.
+     *
+     * @param scope The scope name of the crypto provider
+     * @param T     The provider type requested
+     * @retun       The provider casted into T
+     *
+     * @author Cedric Hammes
+     * @since  29/09/2024
+     */
     @Suppress("UNCHECKED_CAST")
-    fun <T : CryptoProvider> cryptoProvider(scope: String): T {
-        if (!supportedPlatforms.contains(Platform.CURRENT))
-            throw KryptonException("Algorithm '$literal' is not supported on platform '${Platform.CURRENT}'")
-        return (cryptoProvider.value as? T) ?: throw InitializationException("$scope function is not available for algorithm '$literal'")
-    }
+    fun <T : CryptoProvider> cryptoProvider(scope: String): T = (cryptoProvider.value as? T)
+        ?: throw InitializationException("$scope function is not available for algorithm '$literal'")
 
     /**
      * This function validates whether this algorithm supports hashing by checking the crypto provider. If this check is successful it takes
@@ -403,7 +476,8 @@ interface Algorithm {
      * This function validates whether this algorithm supports keypair generation by checking the crypto provider. If this check is
      * successful it takes the parameters and generates a key from it.
      *
-     * @return The generated private-public keypair
+     * @param parameters THe parameters of the keypair generator instance
+     * @return           The generated private-public keypair
      *
      * @author Cedric Hammes
      * @since  29/09/2024
@@ -412,12 +486,21 @@ interface Algorithm {
         .generateKeypair(parameters)
 
     /**
+     * This function takes the specified parameters and generate a cipher instance out of it. Based on the parameters, the instance can be
+     * used to encrypt or decrypt data.
+     *
+     * @param parameters The parameters of the cipher instance
+     * @return           The cipher instance
+     *
      * @author Cedric Hammes
      * @since  29/09/2024
      */
     fun createCipher(parameters: CipherParameters): Cipher = cryptoProvider<CipherFactory>("Cipher factory").createCipher(parameters)
 
     /**
+     * This function takes the specified parameters and generate a signature instance out of it. Based on the parameters, the instance can
+     * be used to sign data or verify signatures.
+     *
      * @author Cedric Hammes
      * @since  29/09/2024
      */
@@ -477,6 +560,8 @@ interface Algorithm {
          *
          * @author Cedric Hammes
          * @since  08/09/2024
+         *
+         * @see [CBCCipherParameters]
          */
         CBC,
 
@@ -506,6 +591,7 @@ interface Algorithm {
          * @since  08/09/2024
          *
          * @see [Galois/Counter mode, Wikipedia](https://de.wikipedia.org/wiki/Galois/Counter_Mode)
+         * @see [GCMCipherParameters]
          */
         GCM
     }

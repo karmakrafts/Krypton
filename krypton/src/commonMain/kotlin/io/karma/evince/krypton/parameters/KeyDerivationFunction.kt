@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package io.karma.evince.krypton
+package io.karma.evince.krypton.parameters
 
-import kotlin.jvm.JvmStatic
+import io.karma.evince.krypton.Algorithm
+import io.karma.evince.krypton.Key
 
-expect fun currentPlatform(): Platform
+/**
+ * @author Cedric Hammes
+ * @since  30/09/2024
+ */
+open class KDFParameters(
 
-enum class Platform(private val literal: String) {
-    OPENSSL("OpenSSL"),
-    JVM("JVM"),
-    BROWSER("Browser"),
-    NODEJS("NodeJS");
+): Parameters
 
-    fun isJS(): Boolean = CURRENT == BROWSER || CURRENT == NODEJS
-    override fun toString(): String = literal
-
-    companion object {
-        @JvmStatic
-        val CURRENT: Platform = currentPlatform()
-    }
-}
+/**
+ * @author Cedric Hammes
+ * @since  30/09/2024
+ */
+open class KeyParameters(
+    usages: Array<Key.Usage>,
+    algorithm: Algorithm,
+    type: Key.Type
+): Parameters
